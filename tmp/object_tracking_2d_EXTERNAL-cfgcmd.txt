@@ -1,0 +1,1 @@
+cmd='/usr/bin/cmake;-DBUILD_SHARED_LIBS:BOOL=ON;-GUnix Makefiles;/home/jiaming/object_tracking_2D/src/object_tracking_2d_EXTERNAL'
