@@ -1,0 +1,1 @@
+/usr/bin/c++ -fPIC  -fopenmp  -shared -Wl,-soname,libImageLib.so -o libImageLib.so CMakeFiles/ImageLib.dir/DistanceTransform.cpp.o 

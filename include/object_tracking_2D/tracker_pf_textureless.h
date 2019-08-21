@@ -14,6 +14,10 @@ public:
 
   virtual ~TexturelessParticleFilterTracker()
   {
+  }
+
+  virtual void clean(){
+    TrackerBase::clean();
     if(pe_surf_) delete pe_surf_;
   }
 
@@ -28,8 +32,41 @@ public:
     return (true);
   }
 
+  void generate_tracker(TrackerBase* cloned_tracker, CvMat* pose_init) {
+    TrackerBase::generate_tracker(cloned_tracker, pose_init);
+    pe_surf_ = ((TexturelessParticleFilterTracker*)cloned_tracker)->pe_surf_;
+    pf_->Init(pose_init);
+  }
+
   inline void setThresholdCM(float th) { th_cm_ = th; };
   inline float getThresholdCM() { return th_cm_; };
+
+  int pose_detection(int numOfDetections, std::vector<LMDetWind> detWind, std::vector<CvMat*>& detectedStates){
+    if(obj_model_->getNumOfEdgeTemplates() > 0)
+    {
+      pe_surf_->setImage(img_gray_);
+      // estimate a set of poses based on random corresondences
+      int numof_det = pe_surf_->PF_estimatePosesFDCM(th_cm_, numOfDetections, detectedStates, detWind, smooth_size_, th_canny_l_, th_canny_h_, img_mask_);
+      if(numof_det > 0)
+      {
+        std::cout << "detected state number size : " << numof_det << std::endl;
+        init_ = false;
+        return numof_det;
+      }
+      else{
+        std::cout << "no detected state\n";
+        init_ = true;
+        return 0;
+      }
+    }
+    else{
+      return -1;
+    }
+  }
+
+  void resetImage(){
+      cvCvtColor(img_gray_, img_result_, CV_GRAY2BGR);
+  }
 
 protected:
   CPoseEstimationSURF* pe_surf_;
@@ -72,52 +109,24 @@ protected:
   {
     ParticleFilterTracker::displayResults();
 
+    //cvSaveImage("/home/jiaming/catkin_ws/pf_image.png", pe_surf_->getImage());
+    /*
     if(display_init_result_)
     {
       cvShowImage("Initialization", pe_surf_->getImage());
       cvWaitKey(1500);
       display_init_result_ = false;
     }
+    */
   }
+
+
 
   virtual bool initialize()
   {
     TrackerBase::initialize();
-
-    // (re-)initialize
-    if(obj_model_->getNumOfEdgeTemplates() > 0)
-    {
-      display_init_result_ = true;
-      pe_surf_->setImage(img_gray_);
-
-      // estimate a set of poses based on random corresondences
-      std::vector<LMDetWind> detWind;
-      int numof_det = pe_surf_->PF_estimatePosesFDCM(th_cm_, pf_->GetNumOfParticle(), pf_->GetStates(), detWind, smooth_size_, th_canny_l_, th_canny_h_);
-      
-      if(numof_det > 0)
-      {
-        for(int i=0; i<(int)pf_->GetStates().size(); i++)
-          pf_->Init(i, pf_->GetStates()[i]);
-
-        pf_->calculateMeanState();
-
-        mutex_.lock();
-        cvCopy(pf_->GetMeanState(), pose_);
-
-	
-
-	printPose(pose_); //AKAN
-	CV_MAT_ELEM(*pose_,float,2,3) = 1.20;
-	
-	//	pose_[2][3] = 1.2;
-
-	sendPoseACH(pose_); //AKAN
-        mutex_.unlock();
-
-        init_ = false;
-        return true;
-      }
-    }
+    display_init_result_ = true;
+    init_ = false;
     return false;
   }
 
@@ -140,6 +149,8 @@ protected:
       break;
     }
   }
+
+
   
   virtual void tracking()
   {
@@ -150,12 +161,14 @@ protected:
     {
       // 'getEdge' returns Berkeley edge if it is available, otherwise returns NULL
       // 'extractEdge' extracts Canny edge if the fourth edge is NULL
-      obj_model_->extractEdge(img_gray_, smooth_size_, th_canny_l_, th_canny_h_, cam_->getEdge());
+
+
+      obj_model_->extractEdge(img_gray_, smooth_size_, th_canny_l_, th_canny_h_, cam_->getEdge(), img_mask_);
       obj_model_->extractEdgeOri(img_gray_, smooth_size_);
 
       // reset previous drawn image
-      if(display_)
-        cvCvtColor(img_gray_, img_result_, CV_GRAY2BGR); // shoud be changed in better way
+      //if(display_)
+      //  cvCvtColor(img_gray_, img_result_, CV_GRAY2BGR); // shoud be changed in better way
 
       if(num_anneal_level == 1)
         pf_->Propagate(noise_l_, noise_h_, true);

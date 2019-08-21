@@ -954,6 +954,9 @@ void LMLineMatcher::DetectBruteForce_omp(EIEdgeImage& dbImage, EIEdgeImage& quer
 }
 #endif
 
+// dbImage: dbImages which is the image in template database
+// detectionThreshold: the maximum threshold for detection
+// mathingCostMap:
 void LMLineMatcher::DetectBruteForceVaryingTemplateSize(EIEdgeImage& dbImage, double detectionThreshold, MatchingCostMap &matchingCostMap)
 {
 	int costMapIndex = 0;
@@ -967,48 +970,56 @@ void LMLineMatcher::DetectBruteForceVaryingTemplateSize(EIEdgeImage& dbImage, do
 	double ltrans[2];
 	double factor;
 	double cost;
-	double sum;
 	double aspect;
 	double scale;
 	double minx, miny, maxx, maxy;
 	LFLineSegment dbLine, queryLine, line;
 	
-	for(int s = minSearchScale_; s<= maxSearchScale_; s++)
+	for(int s = minSearchScale_; s<= maxSearchScale_; s++)				// detect with different size of the template
 	{
-		scale = pow(baseSearchScale_,1.0*s);
-		// detection with different aspect ratios
-		for(int a = minSearchAspect_  ; a<= maxSearchAspect_ ; a++)	
-		{			
+		scale = baseSearchScale_ * s;
+		for(int a = minSearchAspect_  ; a<= maxSearchAspect_ ; a++)		// detection with different aspect ratios
+		{
 			EIEdgeImage tdbImage;
 			tdbImage = dbImage;
-
+			
+			// apply the size and aspect to the template
 			aspect = pow(baseSearchAspect_,1.0*a);
 			tdbImage.Scale(scale);
 			tdbImage.Aspect(aspect);
-			tdbImage.Boundary(minx, miny, maxx, maxy);
-			tdbImage.Tight(minx,miny,maxx,maxy);
-			tdbImage.SetDirectionIndices();
 
-			factor = 1.0/pow(tdbImage.Length(),bias_);
-			detectionThreshold *= ( queryDistanceImage_.maxCost_/factor);
+			
+			tdbImage.Boundary(minx, miny, maxx, maxy);			// get the new boundary of the template
+			tdbImage.Tight(minx, miny, maxx, maxy);				// set the template to the up left corner of the image
+			tdbImage.SetDirectionIndices();					// get the direction of each line in template
 
-			width = (queryImage_.width_-(int)(maxx-minx) )/searchStepSize_;
-			height = (queryImage_.height_-(int)(maxy-miny) )/searchStepSize_;
+			factor = 1.0/pow(tdbImage.Length(),bias_);			// factor = 1 / template total pixel number
+
+			double currentDetectionThreshold = queryDistanceImage_.maxCost_ * detectionThreshold / factor;
+
+			width = (queryImage_.width_-(int)(maxx-minx) )/searchStepSize_;		// find width range
+			height = (queryImage_.height_-(int)(maxy-miny) )/searchStepSize_;	// find height range
 			width = max(0,width);
 			height = max(0,height);
+
 			matchingCostMap.templateWidth_[costMapIndex] = tdbImage.width_;
 			matchingCostMap.templateHeight_[costMapIndex] = tdbImage.height_;
-			matchingCostMap.width_[costMapIndex] = width;
+
+			matchingCostMap.width_[costMapIndex] = width; 				// set width range and height range to the cost map
 			matchingCostMap.height_[costMapIndex] = height;
+
 			matchingCostMap.x0_[costMapIndex] = 0;
 			matchingCostMap.y0_[costMapIndex] = 0;
+
 			matchingCostMap.stepSize_[costMapIndex] = searchStepSize_;
-            matchingCostMap.scale_[costMapIndex] = scale;
+            		matchingCostMap.scale_[costMapIndex] = scale;
 			matchingCostMap.aspect_[costMapIndex] = aspect;
 			matchingCostMap.costMap_[costMapIndex].resize(width*height,1e+10);
+
 			if(min(width,height)==0)
 				continue;
 
+			// go through the image
 			y0 = 0;
 			for (int y=-(int)miny; y<queryImage_.height_-(int)maxy; y += searchStepSize_)
 			{
@@ -1016,7 +1027,8 @@ void LMLineMatcher::DetectBruteForceVaryingTemplateSize(EIEdgeImage& dbImage, do
 				for (int x=-(int)minx ; x<queryImage_.width_-(int)maxx ; x += searchStepSize_)
 				{
 					ltrans[0] = (double)x;
-					ltrans[1] = (double)y;				
+					ltrans[1] = (double)y;
+
 					cost = 0;				
 
 					if (minx + ltrans[0] <=searchBoundarySize_ || minx + ltrans[0] >=queryImage_.width_-searchBoundarySize_ || 
@@ -1034,20 +1046,21 @@ void LMLineMatcher::DetectBruteForceVaryingTemplateSize(EIEdgeImage& dbImage, do
 						{
 							line = tdbImage.lines_[k];
 							line.Translate(ltrans);
-							sum = queryDistanceImage_.idtImages_[tdbImage.directionIndices_[k]].Sum((int)line.sx_,(int)line.sy_,(int)line.ex_,(int)line.ey_, currentcount);
-							cost+=sum;
-							if (cost > detectionThreshold)
+
+							// get cost of line according to the image
+							double sum = queryDistanceImage_.idtImages_[tdbImage.directionIndices_[k]].Sum((int)line.sx_,(int)line.sy_,(int)line.ex_,(int)line.ey_, currentcount);
+                                                        cost += sum;
+							if (cost > currentDetectionThreshold)
 							{
 								cost = 1e+10;
 								break;
 							}
-						}				
+						}
 						cost *= factor;
-						cost /= queryDistanceImage_.maxCost_;
-
+                                                cost /= queryDistanceImage_.maxCost_;
 					}
 					imageIdx = x0 + y0*width;
-					matchingCostMap.costMap_[costMapIndex][imageIdx] = cost;
+					matchingCostMap.costMap_[costMapIndex][imageIdx] = cost; // costMapIndex is the combinition of the size and other; imageIdx is position of the template
 					x0++;
 				}
 				y0++;
@@ -1208,13 +1221,43 @@ void LMLineMatcher::MultiShapeDetectionWithVaryingTemplateSize(LFLineFitter &lf,
 
     // compute matching cost
     std::cout << "[";
-    #pragma omp parallel for num_threads(50)
+    #pragma omp parallel for num_threads(10)
     for(int t=0; t<ndbImages_; t++)
     {
-        std::cout << '.';
+        std::cout << ".";
         DetectBruteForceVaryingTemplateSize(dbImages_[t], maxThreshold, matchingCostMap[t]);
+/*
+        // jiaming hu modified: get the result image of the cost for each template
+        
+        for(int s = 0; s < matchingCostMap[t].nCostMap_; s++){
+            float v = matchingCostMap[t].costMap_[s][0];
+            for(int item = 0 ; item < matchingCostMap[t].costMap_[s].size(); item++){
+                if( matchingCostMap[t].costMap_[s][item] < v){
+                    v = matchingCostMap[t].costMap_[s][item];
+                }
+            }
+            std::cout << v << " ";
+        }
+        std::cout << std::endl;
+*/
+        for(int s = 0; s < matchingCostMap[t].nCostMap_; s++){
+            cv::Mat testimage = cv::Mat(matchingCostMap[t].height_[s], matchingCostMap[t].width_[s], CV_8UC1);
+
+            for(int ix = 0 ; ix < matchingCostMap[t].height_[s]; ix++){
+                for(int iy = 0; iy < matchingCostMap[t].width_[s]; iy ++){
+                    if( matchingCostMap[t].costMap_[s][iy + ix * matchingCostMap[t].width_[s]] >= 1.0){
+                        testimage.at<uchar>(ix, iy) = 255;
+                    }
+                    else{
+                        testimage.at<uchar>(ix, iy) = (matchingCostMap[t].costMap_[s][iy + ix * matchingCostMap[t].width_[s]]) * 255;
+                    }
+                }
+            }
+            std::ostringstream name;
+            name << "/home/jiaming/test/testimage" << t << "-" << s << ".jpg";
+            cv::imwrite(name.str(), testimage);
+        } 
     }
-    std::cout << "]\n";
 
     double overlapThreshold = 0.2;
     int index = 0;

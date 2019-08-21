@@ -4,6 +4,7 @@ cmake_minimum_required(VERSION 2.8.7)
 
 #set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 #set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR})
+set(CMAKE_CXX_STANDARD 11)
 
 # Set the version number for the library
 set (EBT_VERSION_MAJOR 1)
@@ -55,6 +56,7 @@ find_package( GLUT    2.8.1 REQUIRED )
 find_package( OpenCV  2.4.9 REQUIRED )
 find_package( LAPACK    3.5 REQUIRED )
 find_package( OpenMP        REQUIRED )
+
 #find_package( BULLET        REQUIRED )
 #find_package(ASSIMP 3.0 QUIET)
 #if (${ASSIMP_FOUND})
@@ -139,10 +141,21 @@ set(FITLINE_LIBS ${FITLINE_LIBS}
 set(IMAGE_LIBS ${IMAGE_LIBS}
         ${PROJECT_BINARY_DIR}/3rdparty/Image/libImageLib.so)
 
+set(TENSORFLOW_LIBS "/home/jiaming/tensorflow/bazel-bin/tensorflow/libtensorflow_cc.so.1.14.0"
+	"/home/jiaming/tensorflow/bazel-bin/tensorflow/libtensorflow_framework.so"
+	"/home/jiaming/tensorflow/bazel-bin/tensorflow/libtensorflow_framework.so.1")
+
 include_directories( ${EBT_SOURCE_DIR}/3rdparty)
 include_directories( ${OpenCV_INCLUDE_DIRS} )
 include_directories( ${Boost_INCLUDE_DIR} )
 include_directories( ${EBT_SOURCE_DIR}/include)
+include_directories( "/usr/local/include/eigen3")
+include_directories( "/home/jiaming/tensorflow/")
+include_directories( "/home/jiaming/tensorflow/bazel-genfiles/")
+include_directories( "/home/jiaming/tensorflow/tensorflow/")
+include_directories( "/home/jiaming/tensorflow/third-party/")
+include_directories( "/usr/protobuf/include/")
+
 #include_directories( ${EBT_SOURCE_DIR})
 
 set(ADDITIONAL_BOOST_LIBS
@@ -167,8 +180,9 @@ set(incs
                 include/object_tracking_2D/randn.h
                 include/object_tracking_2D/ParticleFilter.h
                 include/object_tracking_2D/imageReceiver.h
-                include/object_tracking_2D/non_randomness.h)
-
+                include/object_tracking_2D/non_randomness.h
+		include/object_tracking_2D/utils.h
+		include/object_tracking_2D/utils.cpp)
 
 set(srcs
                 src/Camera.cpp
@@ -182,12 +196,14 @@ set(srcs
                 src/PoseEstimationSURF.cpp)
 
 
-set(EBT_src     src/main.cpp)
+#set(EBT_src     src/main.cpp)
 
 set(ETG_src     src/edge_templates_generator.cpp)
+set(TG_src     src/templates_generator.cpp)
 
-add_executable(EBTDemo ${incs} ${EBT_src} ${srcs})
+#add_executable(EBTDemo ${incs} ${EBT_src} ${srcs})
 add_executable(ETGDemo ${incs} ${ETG_src} ${srcs})
+add_executable(TGDemo ${incs} ${TG_src} ${srcs})
 
 set(libs
                 ${OpenMP_LIBRARY}
@@ -201,23 +217,37 @@ set(libs
                 ${OpenCV_LIBS}
                 ${FDCM_LIBS}
                 ${FITLINE_LIBS}
-                ${IMAGE_LIBS})
+                ${IMAGE_LIBS}
+		${TENSORFLOW_LIBS})
 
+
+
+target_link_libraries(TGDemo ${libs})
 
 target_link_libraries(ETGDemo ${libs})
+
+
+add_dependencies(TGDemo
+    ImageLib
+    LineFitLib
+    FdcmLib
+)
 
 add_dependencies(ETGDemo
     ImageLib
     LineFitLib
-    FdcmLib)
+    FdcmLib
+)
 
-target_link_libraries(EBTDemo
-                ${libs})
+#target_link_libraries(EBTDemo
+#                ${libs})
 
-add_dependencies(EBTDemo
-    ImageLib
-    LineFitLib
-    FdcmLib)
+
+#add_dependencies(EBTDemo
+#    ImageLib
+#    LineFitLib
+#    FdcmLib
+#)
 
 add_library(object_tracking_2d SHARED ${incs} ${srcs})
 
@@ -226,4 +256,5 @@ target_link_libraries(object_tracking_2d ${libs})
 add_dependencies(object_tracking_2d
     ImageLib
     LineFitLib
-    FdcmLib)
+    FdcmLib
+)

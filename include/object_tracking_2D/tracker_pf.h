@@ -94,8 +94,6 @@ protected:
     }
     obj_model_->displayPoseLine(img_result_, pf_->GetMeanState(), CV_RGB(255, 0, 0), 2, false);
 
- //   cv::imwrite(result,cv::Mat(img_result_));
-        
     cvShowImage("Result", img_result_);
     cvShowImage("Edge", img_edge_);
   }

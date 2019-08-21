@@ -1,6 +1,8 @@
 # make sure we find all headers
 cmake_minimum_required(VERSION 2.8)
 
+set(CMAKE_CXX_STANDARD 11)
+
 # make sure we find all headers
 include_directories(${EdgeBasedTracker_SOURCE_DIR}/)
 include_directories(../)
@@ -16,7 +18,9 @@ add_library(FdcmLib SHARED
 	LMDistanceImage.cpp 
 	LMLineMatcher.cpp 
 	LMNonMaximumSuppression.cpp 
-	MatchingCostMap.cpp)
+	MatchingCostMap.cpp
+)
+
 
 #add_executable(Fdcm 
 #	EIEdgeImage.cpp 
@@ -34,4 +38,3 @@ add_library(FdcmLib SHARED
 #	${EdgeBasedTracker_SOURCE_DIR}/Fitline/libLineFitLib.a 
 #	${OpenCV_LIBS} 
 #	${EdgeBasedTracker_SOURCE_DIR}/Image/libImageLib.a) 
-

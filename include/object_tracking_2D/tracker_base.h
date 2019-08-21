@@ -18,6 +18,23 @@
 #include "EdgeTracker.h"
 #include "Timer.h"
 
+// tensorflow headers
+#include <utility>
+#include <vector>
+#include "tensorflow/cc/ops/const_op.h"
+#include "tensorflow/cc/ops/image_ops.h"
+#include "tensorflow/cc/ops/standard_ops.h"
+#include "tensorflow/core/framework/graph.pb.h"
+#include "tensorflow/core/graph/default_device.h"
+#include "tensorflow/core/graph/graph_def_builder.h"
+#include "tensorflow/core/lib/core/threadpool.h"
+#include "tensorflow/core/lib/io/path.h"
+#include "tensorflow/core/lib/strings/stringprintf.h"
+#include "tensorflow/core/platform/init_main.h"
+#include "tensorflow/core/public/session.h"
+#include "tensorflow/core/util/command_line_flags.h"
+#include "utils.h"
+
 //#include <imageReceiver.h>
 //#include "/home/acosgun/repos/ach/include/ach.h"
 //#include "sns.h"
@@ -26,6 +43,13 @@
 
 using namespace cv;
 using boost::asio::ip::tcp;
+
+// tensorflow using
+using tensorflow::Flag;
+using tensorflow::Tensor;
+using tensorflow::Status;
+using tensorflow::string;
+using tensorflow::int32;
 
 class TrackerBase
 {
@@ -49,6 +73,7 @@ public:
     , img_gray_tracking(NULL)
     , img_result_(NULL)
     , img_edge_(NULL)
+    , img_mask_(NULL)
     , display_(true)    , display_result_(true)
     , display_init_result_(false)
     , display_edge_result_(true)
@@ -77,6 +102,12 @@ public:
   
   virtual ~TrackerBase()
   {
+    cvReleaseMat(&pose_);
+    cvReleaseMat(&pose_init_);
+    cvReleaseMat(&covariance_);
+  }
+
+  virtual void clean(){
     if(cam_)            delete cam_;
     if(edge_tracker_)   delete edge_tracker_;
     if(obj_model_)      delete obj_model_;
@@ -86,18 +117,14 @@ public:
     if(img_gray_tracking)       cvReleaseImage(&img_gray_tracking);
     if(img_result_)     cvReleaseImage(&img_result_);
     if(img_edge_)       cvReleaseImage(&img_edge_);
+    if(img_mask_)       cvReleaseImage(&img_mask_);
 
-    cvReleaseMat(&pose_);
-    cvReleaseMat(&pose_init_);
-    cvReleaseMat(&covariance_);
+    //cvReleaseMat(&pose_);
+    //cvReleaseMat(&pose_init_);
+    //cvReleaseMat(&covariance_);
 
     if(ofs_pose_.is_open())      ofs_pose_.close();
     if(ofs_time_.is_open())      ofs_time_.close();
-
-    /*if(use_ach_)
-		{
-			ach_close(&channel);
-		}*/
   }
 
   virtual bool initTracker(std::string &obj_name, std::string &cam_name, std::string &intrinsic, std::string &distortion, int width, int height, CvMat* pose_init, std::string ach_channel)
@@ -139,7 +166,64 @@ public:
     cvCopy(pose_init, pose_init_);
     cvCopy(pose_init_, pose_);
 
+    // jiaming hu: initialize tensorflow
+    // Set dirs variables
+    string ROOTDIR = "/home/jiaming/catkin_ws/";
+    string LABELS = "labels_map.pbtxt";
+    string GRAPH = "frozen_inference_graph.pb";
+
+    // Set input & output nodes names
+    inputLayer = "image_tensor:0";
+    outputLayer = {"detection_boxes:0", "detection_scores:0", "detection_classes:0", "num_detections:0"};
+
+    // Load and initialize the model from .pb file
+    string graphPath = tensorflow::io::JoinPath(ROOTDIR, GRAPH);
+    LOG(INFO) << "graphPath:" << graphPath;
+    Status loadGraphStatus = loadGraph(graphPath, &session);
+    if (!loadGraphStatus.ok()) {
+        LOG(ERROR) << "loadGraph(): ERROR - " << loadGraphStatus;
+        return false;
+    } else
+        LOG(INFO) << "loadGraph(): frozen graph loaded " << endl;
+
+
+    // Load labels map from .pbtxt file
+    labelsMap = std::map<int,std::string>();
+    Status readLabelsMapStatus = readLabelsMapFile(tensorflow::io::JoinPath(ROOTDIR, LABELS), labelsMap);
+    if (!readLabelsMapStatus.ok()) {
+        LOG(ERROR) << "readLabelsMapFile(): ERROR" << loadGraphStatus;
+        return false;
+    } else
+        LOG(INFO) << "readLabelsMapFile(): labels map loaded with " << labelsMap.size() << " label(s)" << endl;
+    thresholdScore = 0.5;
+    thresholdIOU = 0.8;
+
+
+    shape = tensorflow::TensorShape();
+    shape.AddDim(1);
+    shape.AddDim((int64)height);
+    shape.AddDim((int64)width);
+    shape.AddDim(3);
     return (true);
+  }
+
+  // jiaming hu: generate_tracker the tracker template
+  virtual void generate_tracker(TrackerBase* cloned_tracker, CvMat* pose_init){
+    use_ach_ = false;
+    obj_name_ = cloned_tracker->obj_name_;
+    width_ = cloned_tracker->width_;
+    height_ = cloned_tracker->height_;
+
+    cam_ = cloned_tracker->cam_;
+    edge_tracker_ = cloned_tracker->edge_tracker_;
+    obj_model_ = cloned_tracker->obj_model_;
+    img_gray_ = cloned_tracker->img_gray_;
+    img_result_ = cloned_tracker->img_result_;
+    img_edge_ = cloned_tracker->img_edge_;
+    img_mask_ = cloned_tracker->img_mask_;
+
+    cvCopy(pose_init, pose_init_);
+    cvCopy(pose_init_, pose_);
   }
 
   void sendPoseACH(CvMat* p)
@@ -334,6 +418,7 @@ public:
   inline void   setPose(CvMat* pose)                { pose_ = pose;           }
   inline IplImage*   getResultImage()               { return img_result_;     }
   inline IplImage*   getEdgeImage()                 { return img_edge_;       }
+  inline IplImage*   getMaskImage()                 { return img_mask_;       }
   inline void   setMinKeypointMatches(int d)        { min_keypoint_matches = d; }
   inline void   setTracking(bool use_tracking)      { use_tracking_ = use_tracking; }
   inline std::string& getSaveResultPath()           { return str_result_path_; }
@@ -357,8 +442,50 @@ public:
     hsvFilt = thresholds;
   }
 
+  bool imageFilter(cv::Mat image){
+      // jiaming: tensorflow processing
+      // clean edge image
+      //cvRectangle(img_edge_, cvPoint(0,0), cvPoint(image.cols,image.rows), CV_RGB(0,0,0), -1);
+      cvRectangle(img_mask_, cvPoint(0,0), cvPoint(image.cols,image.rows), CV_RGB(0,0,0), -1);
+
+      tensor = Tensor(tensorflow::DT_FLOAT, shape);
+      try{
+          Status readTensorStatus = readTensorFromMat(image, tensor);
+          if(!readTensorStatus.ok()) {
+              LOG(ERROR) << "Mat->Tensor conversion failed: " << readTensorStatus;
+              return false;
+          }
+      } catch(exception& e){
+          std::cout << e.what() << std::endl;
+      }
+
+      // Run the graph on tensor
+      outputs.clear();
+      Status runStatus = session->Run({{inputLayer, tensor}}, outputLayer, {}, &outputs);
+      if (!runStatus.ok()) {
+          LOG(ERROR) << "Running model failed: " << runStatus;
+          return false;
+      }
+
+      // Extract results from the outputs vector
+      tensorflow::TTypes<float>::Flat scores = outputs[1].flat<float>();
+      tensorflow::TTypes<float>::Flat classes = outputs[2].flat<float>();
+      tensorflow::TTypes<float>::Flat numDetections = outputs[3].flat<float>();
+      tensorflow::TTypes<float, 3>::Tensor boxes = outputs[0].flat_outer_dims<float,3>();
+      vector<size_t> goodIdxs = filterBoxes(scores, boxes, thresholdIOU, thresholdScore);
+
+      for (size_t i = 0; i < goodIdxs.size(); i++){
+          CvPoint tl = cvPoint((int) (boxes(0, goodIdxs.at(i), 1) * image.cols), (int) (boxes(0, goodIdxs.at(i), 0) * image.rows));
+          CvPoint br = cvPoint((int) (boxes(0, goodIdxs.at(i), 3) * image.cols), (int) (boxes(0, goodIdxs.at(i), 2) * image.rows));
+          cvRectangle(img_mask_, tl, br, CV_RGB(255,255,255), -1);
+      }
+
+      return true;
+  }
+
   bool setImage(cv::Mat image)
   {
+      imageFilter(image);
       IplImage copy = image;
       img_input_ = static_cast<IplImage *>(&copy);
 
@@ -369,8 +496,7 @@ public:
 
   virtual void renderResults()
   {
-    CvScalar color = cvScalar(0,0,255);
-    obj_model_->displayPoseLine(img_result_, pose_, color, 1, false);
+    obj_model_->displayPoseLine(img_result_, pose_, CV_RGB(255, 0, 0), 1, false);
     obj_model_->displaySamplePointsAndErrors(img_edge_);
   }
 
@@ -391,6 +517,8 @@ public:
     frame_num_after_init_ = 0;
     return false;
   }
+
+
 
 protected:
   void displayOpenCVInfo()
@@ -438,6 +566,9 @@ protected:
     img_result_ = cvCreateImage(cvSize(width, height), 8, 3);
     if(img_edge_) cvReleaseImage(&img_edge_);
     img_edge_ = cvCreateImage(cvSize(width, height), 8, 3);
+    if(img_mask_) cvReleaseImage(&img_mask_);
+    img_mask_ = cvCreateImage(cvSize(width, height), 8, 3);
+
 
     return (true);
   }
@@ -618,4 +749,15 @@ protected:
   cv::Mat image;
 
   int* hsvFilt;
+
+  // tensorflow variables
+  std::map<int, std::string> labelsMap;
+  Tensor tensor;
+  std::vector<Tensor> outputs;
+  double thresholdScore;
+  double thresholdIOU;
+  tensorflow::TensorShape shape;
+  std::unique_ptr<tensorflow::Session> session;
+  string inputLayer;
+  vector<string> outputLayer;
 };

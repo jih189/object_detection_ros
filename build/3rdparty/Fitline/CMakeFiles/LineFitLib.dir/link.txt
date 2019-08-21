@@ -1,0 +1,1 @@
+/usr/bin/c++ -fPIC  -fopenmp  -shared -Wl,-soname,libLineFitLib.so -o libLineFitLib.so CMakeFiles/LineFitLib.dir/fitline.cpp.o CMakeFiles/LineFitLib.dir/LFLineFitter.cpp.o CMakeFiles/LineFitLib.dir/LFLineSegment.cpp.o 

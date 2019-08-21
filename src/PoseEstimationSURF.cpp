@@ -224,50 +224,125 @@ void CPoseEstimationSURF::PF_estimatePoses(int &num_of_corr, int numOfParticle, 
   return;
 }
 
-int CPoseEstimationSURF::PF_estimatePosesFDCM(float maxThreshold, int numOfParticle, vector<CvMat*>& states, vector<LMDetWind> &detWind, int smoothSize/*=1*/, int cannyLow/*=20*/, int cannyHigh/*=40*/, IplImage* displayImage/*=NULL*/)
+bool sortBySize(const LMDetWind& left, const LMDetWind& right)
+{
+  return (left.width_ * left.height_ > right.width_ * right.height_);
+}
+
+int CPoseEstimationSURF::PF_estimatePosesFDCM(float maxThreshold, int numOfDetections, vector<CvMat*>& states, vector<LMDetWind> &detWind, int smoothSize/*=1*/, int cannyLow/*=20*/, int cannyHigh/*=40*/, IplImage* displayImage/*=NULL*/) // the display image is used to filter edge
 {
   Timer timer;
   timer.start();
-
   // Using edge templates + random draw
   IplImage *inputImage = cvCloneImage(img_input_);
   IplImage *edgeImage = cvCloneImage(inputImage);
 
-  if(displayImage) cvCvtColor(inputImage, displayImage, CV_GRAY2RGB);
+  // jiaming
+  //displayImage = cvCreateImage(cvGetSize(inputImage),IPL_DEPTH_8U,3);
+
+  //if(displayImage) cvCvtColor(inputImage, displayImage, CV_GRAY2RGB);
 
   if(smoothSize > 0)
     cvSmooth(inputImage, inputImage, CV_GAUSSIAN, smoothSize, smoothSize);
 
   cvCanny(inputImage, edgeImage, cannyLow, cannyHigh);
+  
+
+  std::cout << "frank: filter the image\n";
+  // filter out the edge image
+
+  for(int i = 0; i < edgeImage->width; i++){
+    for(int j = 0; j < edgeImage->height; j++){
+      if(CV_IMAGE_ELEM(displayImage,uchar, j, 3 * i + 0) == 0 &&
+         CV_IMAGE_ELEM(displayImage,uchar, j, 3 * i + 1) == 0 &&
+         CV_IMAGE_ELEM(displayImage,uchar, j, 3 * i + 2) == 0){
+      
+        CV_IMAGE_ELEM(edgeImage,uchar, j, i) = 0;
+      }
+    }
+  }
+
+  //cvSaveImage("/home/jiaming/catkin_ws/mask_img.png", displayImage);
+  //cvSaveImage("/home/jiaming/catkin_ws/edge_img.png", edgeImage);
+
+  //displayImage = cvCreateImage(cvGetSize(inputImage),IPL_DEPTH_8U,3);
+
+  if(displayImage) cvCvtColor(inputImage, displayImage, CV_GRAY2RGB);
   cvReleaseImage(&inputImage);
 
   // Line Fitting
   lf_.FitLine(edgeImage);
   //lf_.FitLine_omp(edgeImage);
 
-#if 0
-  lf_.DisplayEdgeMap(edgeImage);
-#endif
-
   // FDCM Matching
   lm_.MultiShapeDetectionWithVaryingTemplateSize(lf_, (double)maxThreshold, detWind);
 
   std::cout << detWind.size() << " detections..." << std::endl;
 
+  std::cout << "x	y	width	height	cost		count	scale	aspect	template_id" << std::endl;
   for(size_t i=0; i<detWind.size(); i++)
   {
-    std::cout << detWind[i].x_ << " " << detWind[i].y_ << " " << detWind[i].width_ << " " << detWind[i].height_ << " " << detWind[i].cost_ << " " << detWind[i].count_ << " " << detWind[i].scale_ << " " << detWind[i].aspect_ << " " << detWind[i].tidx_ << std::endl;
+    std::cout << detWind[i].x_ << "	" << detWind[i].y_ << "	" << detWind[i].width_ << "	" << detWind[i].height_ << "	" << detWind[i].cost_ << "	" << detWind[i].count_ << "	" << detWind[i].scale_ << "	" << detWind[i].aspect_ << "	" << detWind[i].tidx_ << std::endl;
   }
 
   int maxDet = lm_.GetNumOfTemplates();
 
+  if(detWind.size() != 0){
+    // Non-maxima suppressions -- jiaming hu
+    vector<LMDetWind> tmpWind = detWind;
+
+    std::sort(tmpWind.begin(), tmpWind.end(), &sortBySize);
+    unsigned int temp_size = detWind.size();
+
+    detWind.clear();
+    detWind.push_back(tmpWind[0]);
+    for(unsigned int i = 1 ; i < temp_size ; i++)
+    {
+      bool hasNewItem = true;
+      for(unsigned int j = 0; j < detWind.size(); j++)
+      {
+        if(tmpWind[i].x_ > detWind[j].x_ + detWind[j].width_ || detWind[j].x_ > tmpWind[i].x_ + tmpWind[i].width_){ // check whether two rectangles overlap
+          continue;
+        }
+
+        if(tmpWind[i].y_ > detWind[j].y_ + detWind[j].height_ || detWind[j].y_ > tmpWind[i].y_ + tmpWind[i].height_){
+          continue;
+        }
+
+        float overlappingArea = (std::min(tmpWind[i].x_+tmpWind[i].width_,detWind[j].x_+detWind[j].width_) - 
+                                 std::max(tmpWind[i].x_,detWind[j].x_)) * 
+                                (std::min(tmpWind[i].y_+tmpWind[i].height_,detWind[j].y_+detWind[j].height_) - 
+                                 std::max(tmpWind[i].y_,detWind[j].y_));
+        if(overlappingArea / (tmpWind[i].width_ * tmpWind[i].height_) > 0.6)
+        {
+          hasNewItem = false;
+          break;
+        }
+      }
+      if(hasNewItem){
+        detWind.push_back(tmpWind[i]);
+      }
+    }
+    tmpWind.clear();
+  }
+
+/*
   if(detWind.size() > 0 && displayImage)
     for(size_t i=1; i<(detWind.size()<maxDet ? detWind.size() : maxDet); i++)
       DrawDetWind(displayImage, detWind[i].x_, detWind[i].y_, detWind[i].width_, detWind[i].height_, cvScalar(255,255,0), 1);
 
   if(detWind.size() > 0 && displayImage)
     DrawDetWind(displayImage, detWind[0].x_, detWind[0].y_, detWind[0].width_, detWind[0].height_, cvScalar(0,255,255), 1);
+*/
 
+
+  std::cout << "after NMS\n";
+  std::cout << "x	y	width	height	cost		count	scale	aspect	template_id" << std::endl;
+  for(size_t i=0; i<detWind.size(); i++)
+  {
+    std::cout << detWind[i].x_ << "	" << detWind[i].y_ << "	" << detWind[i].width_ << "	" << detWind[i].height_ << "	" << detWind[i].cost_ << "	" << detWind[i].count_ << "	" << detWind[i].scale_ << "	" << detWind[i].aspect_ << "	" << detWind[i].tidx_ << std::endl;
+  }
+/*-----------------------------------------------------------------*/
   if(edgeImage)   cvReleaseImage(&edgeImage);
 
   if(detWind.size() > 0)
@@ -275,79 +350,42 @@ int CPoseEstimationSURF::PF_estimatePosesFDCM(float maxThreshold, int numOfParti
     // Calculate coarse pose
     float lamda = 1.0f;
 
-    int numOfDet = detWind.size() < maxDet ? detWind.size() : maxDet;
+    int numOfDet = detWind.size();
     vector<CvMat*> poses;
-    vector<float> vweight;
+    //vector<float> vweight;
     poses.resize(numOfDet);
-    vweight.resize(numOfDet);
+    //vweight.resize(numOfDet);
     float u0 = CV_MAT_ELEM(*intrinsic_, float, 0, 2);
     float v0 = CV_MAT_ELEM(*intrinsic_, float, 1, 2);
     float fx = CV_MAT_ELEM(*intrinsic_, float, 0, 0);
     float fy = CV_MAT_ELEM(*intrinsic_, float, 1, 1);
+
+    // jiaming hu: add extrinsix matrix
+    float tx = 0.0;//-148.43597135826298;
+    float ty = 0.0;
+    // get the pose of template which matches the object
     for(int i = 0; i<numOfDet; i++)
     {
       poses[i] = cvCreateMat(4, 4, CV_32F);
       cvCopy(obj_model_->getEdgeTemplatePose(static_cast<int>(detWind[i].tidx_)), poses[i]);
-      int x = detWind[i].x_ + detWind[i].width_/2;
-      int y = detWind[i].y_ + detWind[i].height_/2;
+      int x = detWind[i].x_ + (int)((obj_model_->getPosePosition(static_cast<int>(detWind[i].tidx_))).x*detWind[i].scale_);  //detWind[i].width_/2;
+      int y = detWind[i].y_ + (int)((obj_model_->getPosePosition(static_cast<int>(detWind[i].tidx_))).y*detWind[i].scale_);  //detWind[i].height_/2;
       float Z = CV_MAT_ELEM(*poses[i], float, 2, 3) = CV_MAT_ELEM(*poses[i], float, 2, 3)/detWind[i].scale_;
-      float X = (float(x) - u0)*Z/fx;
-      float Y = (float(y) - v0)*Z/fy;
+      float X = ((float(x) - u0)*Z-tx)/fx;
+      float Y = ((float(y) - v0)*Z-ty)/fy;
       CV_MAT_ELEM(*poses[i], float, 0, 3) = X;
       CV_MAT_ELEM(*poses[i], float, 1, 3) = Y;
 
-      vweight[i] = exp(-lamda*(float)detWind[i].cost_);
+      //vweight[i] = exp(-lamda*(float)detWind[i].cost_);
+      obj_model_->displayPoseLine(displayImage, poses[i], CV_RGB(0, 255, 0), 1, false);
     }
 
-    float *weight = new float[numOfParticle];
-    for(int i = 0; i < numOfParticle; i++)
+    for(int i = 0; i < std::min(numOfDetections, numOfDet); i++)
     {
-      cvCopy(poses[i % numOfDet], states[i]);
-      weight[i] = vweight[i % numOfDet];
+      states.push_back(cvCreateMat(4, 4, CV_32F));
+      cvCopy(poses[i], states[i]);
     }
-
-    // randomly draw from weight
-    float sum = 0.0f;
-    for(int i=0; i<numOfParticle; i++)   sum += weight[i];
-    for(int i=0; i<numOfParticle; i++)   weight[i] = weight[i]/sum; // normalize
-
-    float *idx = new float[numOfParticle];
-    float *cumsum = new float[numOfParticle+1];
-    assert(numOfParticle>0);
-    idx[0] = (float)rand()/(float)RAND_MAX/(float)numOfParticle;
-    for(int i=1; i<numOfParticle; i++)
-      idx[i] = idx[i-1] + 1.0f/(float)numOfParticle;
-    cumsum[0] = 0.0f;
-    for(int i=1; i<numOfParticle+1; i++)
-      cumsum[i] = cumsum[i-1] + weight[i-1];
-
-    int *outindex = new int[numOfParticle];
-    for(int i=0; i<numOfParticle; i++)
-    {
-      outindex[i] = 0;
-    }
-    for(int i=0; i<numOfParticle; i++)
-    {
-      for(int j=1; j<numOfParticle+1; j++)
-      {
-        if(idx[i] > cumsum[j-1] && idx[i] <= cumsum[j])
-        {
-          outindex[i] = j-1;
-          break;
-        }
-      }
-    }
-
-    // update resampled results to states
-    for(int i=0; i<numOfParticle; i++)
-    {
-      cvCopy(states[outindex[i]], states[i]);
-    }
-
-    delete[] idx;
-    delete[] cumsum;
-    delete[] outindex;
-    delete[] weight;
+    //cvSaveImage("/home/jiaming/catkin_ws/detect_img.png", displayImage);
 
     for(int i = 0; i < numOfDet; i++)
     {

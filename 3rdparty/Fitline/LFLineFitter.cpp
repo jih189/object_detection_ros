@@ -213,7 +213,7 @@ void LFLineFitter::FitLine(IplImage *inputImage)
 
     width_ = inputImage->width;
     height_ = inputImage->height;
-    cvSaveImage("/home/jiaming/catkin_ws/edgeImg.png", inputImage);
+    //cvSaveImage("/home/jiaming/catkin_ws/edgeImg.png", inputImage);
 
     map<int,CvPoint> edgeMap;
 
@@ -435,14 +435,13 @@ void LFLineFitter::FitLine_omp(IplImage *inputImage)
 }
 
 void LFLineFitter::SaveEdgeMap(const char *filename)
-{
+{	
 	FILE *fp;
 	MMFunctions::Sort(outEdgeMap_,nLineSegments_,0);
 	fp = fopen(filename,"wt");
 
 	fprintf(fp,"%d %d\n",width_,height_);
 	fprintf(fp,"%d\n",nLineSegments_);
-
 	double ratio=0;
 	double count=0;
 	for(int i=0;i<nLineSegments_;i++)
@@ -520,6 +519,7 @@ void LFLineFitter::DisplayEdgeMap(IplImage *inputImage,const char *outputImageNa
 {
 	// debug
 	IplImage *debugImage = cvCreateImage( cvSize(inputImage->width,inputImage->height), IPL_DEPTH_8U,1);
+
 	cvZero(debugImage);
 
 	for(int i=0;i<nLineSegments_;i++)

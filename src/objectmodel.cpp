@@ -495,11 +495,14 @@ void CObjectModel::_saveSURFkeypoints(std::string& obj_name, IplImage* imgG, CvM
       float b = CV_MAT_ELEM(*x, float, 1, 0);
       float c = CV_MAT_ELEM(*x, float, 2, 0);
 
+      // jiaming hu: add extrinsic matrix
+      float tx = 0.0;//-148.43597135826298;
+      float ty = 0.0;
       // Determine 3D coordinates of 3D corner point in camera frame
       CvPoint3D32f pt3d;
-      pt3d.z = -1/(a*float(corner[i].x-ux)/fx + b*float(corner[i].y-uy)/fy + c);
-      pt3d.x = float(corner[i].x-ux)*pt3d.z/fx;
-      pt3d.y = float(corner[i].y-uy)*pt3d.z/fy;
+      pt3d.z = (-1-a*tx/fx-b*ty/fy)/(a*float(corner[i].x-ux)/fx + b*float(corner[i].y-uy)/fy + c);
+      pt3d.x = (float(corner[i].x-ux)*pt3d.z-tx)/fx;
+      pt3d.y = (float(corner[i].y-uy)*pt3d.z-ty)/fy;
 
       // Transform from camera frame to object frame
       CV_MAT_ELEM(*A, float, 0, 0) = CV_MAT_ELEM(*pose, float, 0, 0);
@@ -586,6 +589,23 @@ void CObjectModel::loadEdgeTemplates(const std::string& obj_name)
       edge_template_poses_[i] = (CvMat*)cvLoad((data_dir + "/" + buf).c_str());
       assert(edge_template_poses_[i]);
     }
+  }
+
+  // jiaming hu: load the pose position
+  std::cout << "reading pose positions \n";
+  pose_positions_.clear();
+  string data_dir = path.parent_path().string();
+  for(int i = 0; i < num_edge_templates_; i++){
+    char buf[50];
+    sprintf(buf, "pose_position%03d.txt", i);
+    ifstream inFile;
+    inFile.open((data_dir + "/" + buf).c_str());
+    double posex;
+    double posey;
+    inFile >> posex >> posey;
+    //std::cout << "got pose position (" << posex << "," << posey << ")\n"; 
+    pose_positions_.push_back({posex, posey});
+    inFile.close();
   }
 }
 
@@ -888,8 +908,12 @@ CvPoint2D32f CObjectModel::project3Dto2D(CvPoint3D32f &pt3, CvMat* pose)
   float ux = CV_MAT_ELEM(*intrinsic_, float, 0, 2);
   float uy = CV_MAT_ELEM(*intrinsic_, float, 1, 2);
 
-  pt2.x = fx*pt3_cam.x/pt3_cam.z + ux;
-  pt2.y = fy*pt3_cam.y/pt3_cam.z + uy;
+  // jiaming hu: adding extrinsic matrix
+  float tx = 0.0; //-148.43597135826298;
+  float ty = 0.0;
+
+  //pt2.x = fx*pt3_cam.x/pt3_cam.z + ux + tx / pt3_cam.z;
+  //pt2.y = fy*pt3_cam.y/pt3_cam.z + uy + ty / pt3_cam.z;
 
   if(pt3_cam.z == 0.0f)
   {
@@ -899,8 +923,8 @@ CvPoint2D32f CObjectModel::project3Dto2D(CvPoint3D32f &pt3, CvMat* pose)
   {
     float th_max = 10000.0;
     float th_min = -10000.0;
-    pt2.x = fx*pt3_cam.x/pt3_cam.z + ux;
-    pt2.y = fy*pt3_cam.y/pt3_cam.z + uy;
+    pt2.x = fx*pt3_cam.x/pt3_cam.z + ux + tx / pt3_cam.z;
+    pt2.y = fy*pt3_cam.y/pt3_cam.z + uy + ty / pt3_cam.z;
     if(pt2.x < th_min || pt2.x > th_max)
       pt2.x = numeric_limits<float>::infinity();
     if(pt2.y < th_min || pt2.y > th_max)
@@ -922,12 +946,21 @@ void CObjectModel::setProjectionMatrix(CvMat* intrinsic)
   float near_ = 0.1f;   // minimum depth: 10 cm
   float far_ = 30.f;     // maximum depth: 50 m
 
+  // look wierd the convertion from projection matrix to GL matrix looks wrong
   GLfloat Mp[16] = {
     2.f*fx/(float)width_, 0.f, 0.f, 0.f,
     0.f, -2.f*fy/(float)height_, 0.f, 0.f,
     2.0f*ux/(float)width_ - 1.f, -2.f*uy/(float)height_ + 1.f, (far_+near_)/(far_-near_), 1.f,
     0.f, 0.f, -2.f*far_*near_/(far_-near_), 0.f
   };
+  /*
+  GLfloat Mp[16] = {
+    2.f*fx/(float)width_, 0.f, 0.f, 0.f,
+    0.f, -2.f*fy/(float)height_, 0.f, 0.f,
+    1.f - 2.f*ux/(float)width_, 2.f*uy/(float)height_ - 1.f, (far_+near_)/(near_-far_), -1.f,
+    0.f, 0.f, 2.f*far_*near_/(near_-far_), 0.f
+  };
+  */
 
   glLoadMatrixf(Mp);
 
@@ -1119,7 +1152,7 @@ void CObjectModel::extractEdgeOri(IplImage* img, int smoothSize/*=1*/)
   cvReleaseImage(&imgG);
 }
 
-void CObjectModel::extractEdge(IplImage* img, int smoothSize/*=1*/, int cannyLow/*=20*/, int cannyHigh/*=40*/, IplImage* edge/*=NULL*/)
+void CObjectModel::extractEdge(IplImage* img, int smoothSize/*=1*/, int cannyLow/*=20*/, int cannyHigh/*=40*/, IplImage* edge/*=NULL*/, IplImage* filterImage/*=NULL*/)
 {
   assert(img->nChannels == 1);
 
@@ -1144,12 +1177,45 @@ void CObjectModel::extractEdge(IplImage* img, int smoothSize/*=1*/, int cannyLow
     // GM shield model: 20, 120
     // ICRA exp setting: 20, 40
     // ICCV'11 transparent object: 20, 60
-    cvCanny(imgG, img_edge_, cannyLow, cannyHigh);
+    if(filterImage == NULL){
+      std::cout << "filter image is null\n";
+      cvCanny(imgG, img_edge_, cannyLow, cannyHigh);
+    }else{
+      cvCanny(imgG, img_edge_, cannyLow, cannyHigh);
+      // filter out
+      for(int i = 0; i < img_edge_->width; i++){
+        for(int j = 0; j < img_edge_->height; j++){
+          if(CV_IMAGE_ELEM(filterImage,uchar, j, 3 * i + 0) == 0 &&
+             CV_IMAGE_ELEM(filterImage,uchar, j, 3 * i + 1) == 0 &&
+             CV_IMAGE_ELEM(filterImage,uchar, j, 3 * i + 2) == 0){
+      
+            CV_IMAGE_ELEM(img_edge_,uchar, j, i) = 0;
+          }
+        }
+      }
+    }
   }
   else
   {
     // Copy edges and use it
-    cvCopy(edge, img_edge_);
+    if(filterImage == NULL){
+      std::cout << "filter image is null\n";
+      cvCopy(edge, img_edge_);
+    }else{
+      cvCopy(edge, img_edge_);
+      // filter out
+      for(int i = 0; i < img_edge_->width; i++){
+        for(int j = 0; j < img_edge_->height; j++){
+          if(CV_IMAGE_ELEM(filterImage,uchar, j, 3 * i + 0) == 0 &&
+             CV_IMAGE_ELEM(filterImage,uchar, j, 3 * i + 1) == 0 &&
+             CV_IMAGE_ELEM(filterImage,uchar, j, 3 * i + 2) == 0){
+      
+            CV_IMAGE_ELEM(img_edge_,uchar, j, i) = 0;
+          }
+        }
+      }
+    }
+    
   }
 
   cvReleaseImage(&imgG);

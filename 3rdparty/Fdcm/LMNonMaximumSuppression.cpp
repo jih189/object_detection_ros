@@ -111,9 +111,10 @@ void LMNonMaximumSuppression::ComputeValidWindVaryingTemplateSize(MatchingCostMa
 					aWind.x_ = matchingCostMap.x0_[i]  + x*matchingCostMap.stepSize_[i];
 					aWind.y_ = matchingCostMap.y0_[i]  + y*matchingCostMap.stepSize_[i];
 					aWind.cost_ = matchingCostMap.costMap_[i][index];
+					
 					aWind.count_ = 0;
-                    aWind.scale_ = matchingCostMap.scale_[i]; // cchoi
-                    aWind.aspect_ = matchingCostMap.aspect_[i]; // cchoi
+                    			aWind.scale_ = matchingCostMap.scale_[i]; // cchoi
+                    			aWind.aspect_ = matchingCostMap.aspect_[i]; // cchoi
 					detWinds.push_back(aWind);
 				}
 			}

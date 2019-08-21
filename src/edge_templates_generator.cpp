@@ -42,8 +42,12 @@ CvPoint2D32f project3Dto2D(CvPoint3D32f pt3, CvMat* pose, CvMat* param_intrinsic
   float ux = CV_MAT_ELEM(*param_intrinsic, float, 0, 2);
   float uy = CV_MAT_ELEM(*param_intrinsic, float, 1, 2);
 
-  pt2.x = fx*pt3_cam.x/pt3_cam.z + ux;
-  pt2.y = fy*pt3_cam.y/pt3_cam.z + uy;
+  // jiaming hu: adding extrinsic matrix
+  float tx = 0.0;//-148.43597135826298;
+  float ty = 0.0;
+
+  pt2.x = fx*pt3_cam.x/pt3_cam.z + ux + tx / pt3_cam.z;
+  pt2.y = fy*pt3_cam.y/pt3_cam.z + uy + ty / pt3_cam.z;
 
   float th_d = 10000.0;
   if(pt2.x < -th_d || pt2.x > th_d || pt2.y < -th_d || pt2.y > th_d)
@@ -55,7 +59,7 @@ CvPoint2D32f project3Dto2D(CvPoint3D32f pt3, CvMat* pose, CvMat* param_intrinsic
   return pt2;
 }
 
-CvRect drawModel(IplImage* img, std::vector<CvPoint3D32f> ep1, std::vector<CvPoint3D32f> ep2, CvMat* pose, CvMat* param_intrinsic, CvScalar color)
+CvRect drawModel(IplImage* img, std::vector<CvPoint3D32f> ep1, std::vector<CvPoint3D32f> ep2, CvMat* pose, CvMat* param_intrinsic, CvScalar color, CvPoint3D32f originPoint)
 {
   float widthf = static_cast<float>(img->width), heightf = static_cast<float>(img->height);
   CvPoint2D32f pt21, pt22;
@@ -157,7 +161,8 @@ int main(int argc, char **argv)
 
   // Create object model instance
   int maxd = 16;
-  CObjectModel cObjModel(obj_name, width, height, param_intrinsic, sample_step, maxd, dull_edge, NULL);
+  std::string tempname = obj_name + ".obj";
+  CObjectModel cObjModel(tempname, width, height, param_intrinsic, sample_step, maxd, dull_edge, NULL);
 
   cvSetIdentity(pose);
   CV_MAT_ELEM(*pose, float, 2, 3) = depth;
@@ -222,8 +227,8 @@ int main(int argc, char **argv)
     }
     ep2.push_back(vsp[i-1].coord3);
 
-    
-    CvRect bound = drawModel(img_result, ep1, ep2, pose, param_intrinsic, CV_RGB(255, 255, 255));
+    CvPoint3D32f originPoint={modelPosition[0],modelPosition[1],modelPosition[2]};
+    CvRect bound = drawModel(img_result, ep1, ep2, pose, param_intrinsic, CV_RGB(255, 255, 255), originPoint);
 
     cvShowImage("Edge", img_result);
     cout << "position: " << modelPosition[0] << ", " << modelPosition[1] << ", " << modelPosition[2] << " angle: " << modelAngle[0] << ", " << modelAngle[1] << ", " << modelAngle[2] << endl;
@@ -257,6 +262,23 @@ int main(int argc, char **argv)
     case 'k':
       // save into image and xml
       char buf[50];
+
+    // jiaming hu: draw the point of origin point
+    float fx = CV_MAT_ELEM(*param_intrinsic, float, 0, 0);
+    float fy = CV_MAT_ELEM(*param_intrinsic, float, 1, 1);
+    float ux = CV_MAT_ELEM(*param_intrinsic, float, 0, 2);
+    float uy = CV_MAT_ELEM(*param_intrinsic, float, 1, 2);
+
+    CvPoint2D32f ptori;
+    ptori.x = fx*originPoint.x/originPoint.z + ux;
+    ptori.y = fy*originPoint.y/originPoint.z + uy;
+
+      // save center point
+      ofstream centerfile;
+      sprintf(buf, "/pose_position%03d.txt", int_not);
+      centerfile.open((str_result_path + buf).c_str());
+      centerfile << (ptori.x - bound.x) << " " << (ptori.y - bound.y) << std::endl;
+      centerfile.close();
 
       // save edge template
       cvSetImageROI(img_result, bound);

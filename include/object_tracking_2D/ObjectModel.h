@@ -68,6 +68,7 @@ public:
   int getNumOfKeyframes()                               { return num_keyframes_;                }
   int getNumOfEdgeTemplates()                           { return num_edge_templates_;           }
   inline CvMat* getEdgeTemplatePose(int i)              { return edge_template_poses_[i];       }
+  inline CvPoint2D32f getPosePosition(int i)              { return pose_positions_[i];       }
 
   inline vector<SamplePoint>& getVisibleSamplePoints()  { return visible_sample_points_;        }
   inline int getNumberOfVisibleSamplePoints()           { return visible_sample_points_.size(); }
@@ -78,7 +79,7 @@ public:
   void findEdgeCorrespondencesCoarseOri();
   void findEdgeCorrespondencesFineOri();
   int refineEdgeCorrespondences_RANSAC(CvMat *E, int N=1000, double th=10.0);
-  void extractEdge(IplImage* img, int smoothSize=1, int cannyLow=20, int cannyHigh=40, IplImage* edge = NULL);
+  void extractEdge(IplImage* img, int smoothSize=1, int cannyLow=20, int cannyHigh=40, IplImage* edge = NULL, IplImage* filterImage = NULL);
   void extractEdgeOri(IplImage* img, int smoothSize=1);
   void drawPointsAndErrorCoarseOri(IplImage* img_dest);
   void drawPointsAndErrorFineOri(IplImage* img_dest);
@@ -150,6 +151,8 @@ protected:
   int                     num_keyframes_;
 
   std::vector<CvMat*>     edge_template_poses_;
+  // jiaming hu: add pose position on image
+  std::vector<CvPoint2D32f> pose_positions_;
   int                     num_edge_templates_;
 
   GLuint dl_;
