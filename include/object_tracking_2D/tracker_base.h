@@ -485,7 +485,7 @@ public:
 
   bool setImage(cv::Mat image)
   {
-      imageFilter(image);
+      //imageFilter(image);
       IplImage copy = image;
       img_input_ = static_cast<IplImage *>(&copy);
 

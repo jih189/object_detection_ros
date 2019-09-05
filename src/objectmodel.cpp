@@ -600,8 +600,8 @@ void CObjectModel::loadEdgeTemplates(const std::string& obj_name)
     sprintf(buf, "pose_position%03d.txt", i);
     ifstream inFile;
     inFile.open((data_dir + "/" + buf).c_str());
-    double posex;
-    double posey;
+    float posex;
+    float posey;
     inFile >> posex >> posey;
     //std::cout << "got pose position (" << posex << "," << posey << ")\n"; 
     pose_positions_.push_back({posex, posey});
@@ -1781,6 +1781,7 @@ void CObjectModel::determineSharpEdges(GLMmodel* model, float th_sharp, std::vec
           );
         }
       }
+      
 #if 1
       if(vertex_association[l].second.second == -1) // found only one triangle. some model need this edge as boundary
       {

@@ -60,45 +60,6 @@ CMAKE_SOURCE_DIR = /home/jiaming/object_tracking_2D
 CMAKE_BINARY_DIR = /home/jiaming/object_tracking_2D/build
 
 #=============================================================================
-# Target rules for target CMakeFiles/object_tracking_2d.dir
-
-# All Build rule for target.
-CMakeFiles/object_tracking_2d.dir/all: 3rdparty/Image/CMakeFiles/ImageLib.dir/all
-CMakeFiles/object_tracking_2d.dir/all: 3rdparty/Fitline/CMakeFiles/LineFitLib.dir/all
-CMakeFiles/object_tracking_2d.dir/all: 3rdparty/Fdcm/CMakeFiles/FdcmLib.dir/all
-	$(MAKE) -f CMakeFiles/object_tracking_2d.dir/build.make CMakeFiles/object_tracking_2d.dir/depend
-	$(MAKE) -f CMakeFiles/object_tracking_2d.dir/build.make CMakeFiles/object_tracking_2d.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/jiaming/object_tracking_2D/build/CMakeFiles --progress-num=39,40,41,42,43,44,45,46,47,48,49 "Built target object_tracking_2d"
-.PHONY : CMakeFiles/object_tracking_2d.dir/all
-
-# Include target in all.
-all: CMakeFiles/object_tracking_2d.dir/all
-
-.PHONY : all
-
-# Build rule for subdir invocation for target.
-CMakeFiles/object_tracking_2d.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/jiaming/object_tracking_2D/build/CMakeFiles 25
-	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/object_tracking_2d.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/jiaming/object_tracking_2D/build/CMakeFiles 0
-.PHONY : CMakeFiles/object_tracking_2d.dir/rule
-
-# Convenience name for target.
-object_tracking_2d: CMakeFiles/object_tracking_2d.dir/rule
-
-.PHONY : object_tracking_2d
-
-# clean rule for target.
-CMakeFiles/object_tracking_2d.dir/clean:
-	$(MAKE) -f CMakeFiles/object_tracking_2d.dir/build.make CMakeFiles/object_tracking_2d.dir/clean
-.PHONY : CMakeFiles/object_tracking_2d.dir/clean
-
-# clean rule for target.
-clean: CMakeFiles/object_tracking_2d.dir/clean
-
-.PHONY : clean
-
-#=============================================================================
 # Target rules for target CMakeFiles/ETGDemo.dir
 
 # All Build rule for target.
@@ -134,6 +95,84 @@ CMakeFiles/ETGDemo.dir/clean:
 
 # clean rule for target.
 clean: CMakeFiles/ETGDemo.dir/clean
+
+.PHONY : clean
+
+#=============================================================================
+# Target rules for target CMakeFiles/TIGDemo.dir
+
+# All Build rule for target.
+CMakeFiles/TIGDemo.dir/all: 3rdparty/Image/CMakeFiles/ImageLib.dir/all
+CMakeFiles/TIGDemo.dir/all: 3rdparty/Fitline/CMakeFiles/LineFitLib.dir/all
+CMakeFiles/TIGDemo.dir/all: 3rdparty/Fdcm/CMakeFiles/FdcmLib.dir/all
+	$(MAKE) -f CMakeFiles/TIGDemo.dir/build.make CMakeFiles/TIGDemo.dir/depend
+	$(MAKE) -f CMakeFiles/TIGDemo.dir/build.make CMakeFiles/TIGDemo.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/jiaming/object_tracking_2D/build/CMakeFiles --progress-num=39,40,41,42,43,44,45,46,47,48,49,50 "Built target TIGDemo"
+.PHONY : CMakeFiles/TIGDemo.dir/all
+
+# Include target in all.
+all: CMakeFiles/TIGDemo.dir/all
+
+.PHONY : all
+
+# Build rule for subdir invocation for target.
+CMakeFiles/TIGDemo.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/jiaming/object_tracking_2D/build/CMakeFiles 26
+	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/TIGDemo.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/jiaming/object_tracking_2D/build/CMakeFiles 0
+.PHONY : CMakeFiles/TIGDemo.dir/rule
+
+# Convenience name for target.
+TIGDemo: CMakeFiles/TIGDemo.dir/rule
+
+.PHONY : TIGDemo
+
+# clean rule for target.
+CMakeFiles/TIGDemo.dir/clean:
+	$(MAKE) -f CMakeFiles/TIGDemo.dir/build.make CMakeFiles/TIGDemo.dir/clean
+.PHONY : CMakeFiles/TIGDemo.dir/clean
+
+# clean rule for target.
+clean: CMakeFiles/TIGDemo.dir/clean
+
+.PHONY : clean
+
+#=============================================================================
+# Target rules for target CMakeFiles/object_tracking_2d.dir
+
+# All Build rule for target.
+CMakeFiles/object_tracking_2d.dir/all: 3rdparty/Image/CMakeFiles/ImageLib.dir/all
+CMakeFiles/object_tracking_2d.dir/all: 3rdparty/Fitline/CMakeFiles/LineFitLib.dir/all
+CMakeFiles/object_tracking_2d.dir/all: 3rdparty/Fdcm/CMakeFiles/FdcmLib.dir/all
+	$(MAKE) -f CMakeFiles/object_tracking_2d.dir/build.make CMakeFiles/object_tracking_2d.dir/depend
+	$(MAKE) -f CMakeFiles/object_tracking_2d.dir/build.make CMakeFiles/object_tracking_2d.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/jiaming/object_tracking_2D/build/CMakeFiles --progress-num=51,52,53,54,55,56,57,58,59,60,61 "Built target object_tracking_2d"
+.PHONY : CMakeFiles/object_tracking_2d.dir/all
+
+# Include target in all.
+all: CMakeFiles/object_tracking_2d.dir/all
+
+.PHONY : all
+
+# Build rule for subdir invocation for target.
+CMakeFiles/object_tracking_2d.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/jiaming/object_tracking_2D/build/CMakeFiles 25
+	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/object_tracking_2d.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/jiaming/object_tracking_2D/build/CMakeFiles 0
+.PHONY : CMakeFiles/object_tracking_2d.dir/rule
+
+# Convenience name for target.
+object_tracking_2d: CMakeFiles/object_tracking_2d.dir/rule
+
+.PHONY : object_tracking_2d
+
+# clean rule for target.
+CMakeFiles/object_tracking_2d.dir/clean:
+	$(MAKE) -f CMakeFiles/object_tracking_2d.dir/build.make CMakeFiles/object_tracking_2d.dir/clean
+.PHONY : CMakeFiles/object_tracking_2d.dir/clean
+
+# clean rule for target.
+clean: CMakeFiles/object_tracking_2d.dir/clean
 
 .PHONY : clean
 

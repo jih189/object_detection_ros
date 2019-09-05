@@ -1,0 +1,2 @@
+generate train images:
+./TIGDemo -o megabloks

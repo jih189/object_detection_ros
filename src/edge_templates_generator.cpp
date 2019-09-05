@@ -229,6 +229,10 @@ int main(int argc, char **argv)
 
     CvPoint3D32f originPoint={modelPosition[0],modelPosition[1],modelPosition[2]};
     CvRect bound = drawModel(img_result, ep1, ep2, pose, param_intrinsic, CV_RGB(255, 255, 255), originPoint);
+    bound.x -= 2;
+    bound.y -= 2;
+    bound.width += 4;
+    bound.height += 4;
 
     cvShowImage("Edge", img_result);
     cout << "position: " << modelPosition[0] << ", " << modelPosition[1] << ", " << modelPosition[2] << " angle: " << modelAngle[0] << ", " << modelAngle[1] << ", " << modelAngle[2] << endl;
@@ -286,6 +290,7 @@ int main(int argc, char **argv)
       cvSaveImage((str_result_path + buf).c_str(), img_result);
 
       // fit lines
+/*
       IplImage* img = cvLoadImage((str_result_path + buf).c_str(), 0);
       lf.FitLine(img);
       sprintf(buf, "/%s_edge_template_line%03d.png", obj_name.c_str(), int_not);
@@ -295,6 +300,7 @@ int main(int argc, char **argv)
       sprintf(buf, "/%s_edge_template%03d.txt", obj_name.c_str(), int_not);
       lf.SaveEdgeMap((str_result_path + buf).c_str());
 
+*/
       cvResetImageROI(img_result);
 
       // save template pose

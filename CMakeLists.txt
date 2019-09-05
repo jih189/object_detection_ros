@@ -200,10 +200,12 @@ set(srcs
 
 set(ETG_src     src/edge_templates_generator.cpp)
 set(TG_src     src/templates_generator.cpp)
+set(TIG_src     src/train_image_generator.cpp)
 
 #add_executable(EBTDemo ${incs} ${EBT_src} ${srcs})
 add_executable(ETGDemo ${incs} ${ETG_src} ${srcs})
 add_executable(TGDemo ${incs} ${TG_src} ${srcs})
+add_executable(TIGDemo ${incs} ${TIG_src} ${srcs})
 
 set(libs
                 ${OpenMP_LIBRARY}
@@ -226,6 +228,8 @@ target_link_libraries(TGDemo ${libs})
 
 target_link_libraries(ETGDemo ${libs})
 
+target_link_libraries(TIGDemo ${libs})
+
 
 add_dependencies(TGDemo
     ImageLib
@@ -234,6 +238,12 @@ add_dependencies(TGDemo
 )
 
 add_dependencies(ETGDemo
+    ImageLib
+    LineFitLib
+    FdcmLib
+)
+
+add_dependencies(TIGDemo
     ImageLib
     LineFitLib
     FdcmLib
