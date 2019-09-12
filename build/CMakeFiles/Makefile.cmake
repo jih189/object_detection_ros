@@ -72,9 +72,10 @@ set(CMAKE_MAKEFILE_PRODUCTS
 # Dependency information for all targets:
 set(CMAKE_DEPEND_INFO_FILES
   "CMakeFiles/ETGDemo.dir/DependInfo.cmake"
+  "CMakeFiles/TGDemo.dir/DependInfo.cmake"
+  "CMakeFiles/EBTDemo.dir/DependInfo.cmake"
   "CMakeFiles/TIGDemo.dir/DependInfo.cmake"
   "CMakeFiles/object_tracking_2d.dir/DependInfo.cmake"
-  "CMakeFiles/TGDemo.dir/DependInfo.cmake"
   "3rdparty/Image/CMakeFiles/ImageLib.dir/DependInfo.cmake"
   "3rdparty/Fitline/CMakeFiles/LineFitLib.dir/DependInfo.cmake"
   "3rdparty/Fdcm/CMakeFiles/FdcmLib.dir/DependInfo.cmake"

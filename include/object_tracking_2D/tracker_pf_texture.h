@@ -189,7 +189,7 @@ protected:
     }
   }
   
-  virtual void tracking()
+  virtual int tracking()
   {
     // do annealing process only after (re-)initialization
 
@@ -314,5 +314,6 @@ protected:
       for(int p=0; p<pf_->GetNumOfParticle(); p++)
         cvCopy(pf_->GetState(p), pf_->GetPrevState(p));
     //}
+    return 0;
   }
 };

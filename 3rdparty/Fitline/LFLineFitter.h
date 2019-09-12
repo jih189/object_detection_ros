@@ -67,6 +67,7 @@ public:
 	//void DisplayEdgeMap(Image<uchar> *inputImage,const char *outputImageName=NULL);
     void DisplayEdgeMap(IplImage *inputImage,const char *outputImageName=NULL);
 	void SaveEdgeMap(const char *filename);
+	void SaveEdgeMap(const char *filename, int id_num);
 	void LoadEdgeMap(const char *filename);
 
     void GetEdgeMap(IplImage *inputImage);

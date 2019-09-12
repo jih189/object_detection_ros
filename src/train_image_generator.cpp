@@ -159,6 +159,7 @@ int main(int argc, char **argv)
 
   CvMat* param_intrinsic = (CvMat*)cvLoad(intrinsic.c_str());
 
+
   // Create object model instance
   int maxd = 16;
   std::string tempname = obj_name + ".obj";
@@ -252,8 +253,7 @@ int main(int argc, char **argv)
         ofstream centerfile;
         sprintf(buf, "/pose_position%03d.txt", int_not);
         centerfile.open((str_result_path + buf).c_str());
-        centerfile << ptori.x << " " << ptori.y << std::endl;
-        centerfile << ma0 << " " << ma1 << " " << ma2 << std::endl;
+        centerfile << ptori.x - bound.x << " " << ptori.y - bound.y << std::endl;
         centerfile.close();
 
         // save edge template
@@ -351,8 +351,7 @@ int main(int argc, char **argv)
         ofstream centerfile;
         sprintf(buf, "/pose_position%03d.txt", int_not);
         centerfile.open((str_result_path + buf).c_str());
-        centerfile << ptori.x << " " << ptori.y << std::endl;
-        centerfile << ma0 << " " << ma1 << " " << ma2 << std::endl;
+        centerfile << ptori.x - bound.x << " " << ptori.y - bound.y << std::endl;
         centerfile.close();
 
         // save edge template

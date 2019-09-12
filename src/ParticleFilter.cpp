@@ -326,7 +326,6 @@ void CParticleFilter::Update_IRLS(int i, CvMat* J, CvMat* e, int NumOfVisibleSam
   assert(J->cols == 6);
   assert(J->rows == e->rows);
 
-
   int N = J->rows;
  // std::cout<<"in the uodate IROLS"<< N<<std::endl;
 

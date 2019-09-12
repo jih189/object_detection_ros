@@ -108,10 +108,9 @@ public:
   }
 
   virtual void clean(){
-    if(cam_)            delete cam_;
+    //if(cam_)            delete cam_;
     if(edge_tracker_)   delete edge_tracker_;
     if(obj_model_)      delete obj_model_;
-
     // 'img_input_' is aleady released
     if(img_gray_)       cvReleaseImage(&img_gray_);
     if(img_gray_tracking)       cvReleaseImage(&img_gray_tracking);
@@ -122,7 +121,6 @@ public:
     //cvReleaseMat(&pose_);
     //cvReleaseMat(&pose_init_);
     //cvReleaseMat(&covariance_);
-
     if(ofs_pose_.is_open())      ofs_pose_.close();
     if(ofs_time_.is_open())      ofs_time_.close();
   }
@@ -146,14 +144,17 @@ public:
     height_ = height;
     initCamera(cam_name, intrinsic, distortion, width, height);
     initEdgeTracker(width, height, cam_->getIntrinsicParams(), maxd_, limityrot_);
+/*
+    std::cout << "jiaming check Intrinsic\n";
+    for(int i = 0; i < 3; i++){
+      for(int j = 0; j < 3; j++){
+        std::cout << CV_MAT_ELEM(*(cam_->getIntrinsicParams()), float, i, j) << " ";
+      }
+      std::cout << std::endl;
+    }
+*/  
     initObjectModel(obj_name, width, height, cam_->getIntrinsicParams(), sample_step_, maxd_, dulledge_, edge_tracker_);
     initImages(width, height);
-
-    if(net_)
-    {
-      // create a network thread to handle network commands
-      boost::thread(&TrackerBase::networkFunc, this);
-    }
 
     if(save_rslt_txt_)
     {
@@ -168,6 +169,7 @@ public:
 
     // jiaming hu: initialize tensorflow
     // Set dirs variables
+    /*
     string ROOTDIR = "/home/jiaming/catkin_ws/";
     string LABELS = "labels_map.pbtxt";
     string GRAPH = "frozen_inference_graph.pb";
@@ -181,7 +183,7 @@ public:
     LOG(INFO) << "graphPath:" << graphPath;
     Status loadGraphStatus = loadGraph(graphPath, &session);
     if (!loadGraphStatus.ok()) {
-        LOG(ERROR) << "loadGraph(): ERROR - " << loadGraphStatus;
+        LOG(ERROR) << "loadGraph(): ERROR - " << loadGraphStatus;./
         return false;
     } else
         LOG(INFO) << "loadGraph(): frozen graph loaded " << endl;
@@ -204,6 +206,7 @@ public:
     shape.AddDim((int64)height);
     shape.AddDim((int64)width);
     shape.AddDim(3);
+    */
     return (true);
   }
 
@@ -435,7 +438,7 @@ public:
     str_result_path_ = path;
     return true;
   }
-  virtual void tracking() = 0;
+  virtual int tracking() = 0;
 
   void setColorFilter(int* thresholds)
   {
@@ -568,7 +571,6 @@ protected:
     img_edge_ = cvCreateImage(cvSize(width, height), 8, 3);
     if(img_mask_) cvReleaseImage(&img_mask_);
     img_mask_ = cvCreateImage(cvSize(width, height), 8, 3);
-
 
     return (true);
   }

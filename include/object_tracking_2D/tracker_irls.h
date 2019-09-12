@@ -156,7 +156,7 @@ protected:
     }
   }
   
-  virtual void tracking()
+  virtual int tracking()
   {
     if(saveKeyframe_){
       // Save keyframe into files - gray jpeg file and pose xml file
@@ -206,5 +206,6 @@ protected:
       // not enough valid sample points
       init_ = true; // (re-)init again
     }
+    return 0;
   }
 };

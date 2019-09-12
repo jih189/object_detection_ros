@@ -69,6 +69,7 @@ public:
 	int height_;
 	int	nLines_;
 	int nDirections_;
+	int id_;
 
 	LFLineSegment* lines_;
 	vector<LFLineSegment*>* directions_;

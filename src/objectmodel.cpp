@@ -1178,11 +1178,11 @@ void CObjectModel::extractEdge(IplImage* img, int smoothSize/*=1*/, int cannyLow
     // ICRA exp setting: 20, 40
     // ICCV'11 transparent object: 20, 60
     if(filterImage == NULL){
-      std::cout << "filter image is null\n";
       cvCanny(imgG, img_edge_, cannyLow, cannyHigh);
     }else{
       cvCanny(imgG, img_edge_, cannyLow, cannyHigh);
       // filter out
+      /* tensorflow need
       for(int i = 0; i < img_edge_->width; i++){
         for(int j = 0; j < img_edge_->height; j++){
           if(CV_IMAGE_ELEM(filterImage,uchar, j, 3 * i + 0) == 0 &&
@@ -1193,6 +1193,7 @@ void CObjectModel::extractEdge(IplImage* img, int smoothSize/*=1*/, int cannyLow
           }
         }
       }
+      */
     }
   }
   else
@@ -1282,10 +1283,12 @@ void CObjectModel::drawPointsAndErrorFineOri(IplImage* img_dest)
 
 void CObjectModel::findEdgeCorrespondences()
 {
-  if(use_fine_orientation_)
+  if(use_fine_orientation_){
     findEdgeCorrespondencesFineOri();
-  else
+  }
+  else{
     findEdgeCorrespondencesCoarseOri();
+  }
 }
 
 void CObjectModel::findEdgeCorrespondencesCoarseOri()
@@ -1501,7 +1504,7 @@ int CObjectModel::refineEdgeCorrespondences_RANSAC(CvMat *E, int N/*=1000*/, dou
   int nop = valid_idx.size();
   if(nop < nom)
   {
-    cout << "Insufficient num of points in RANSAC ..." << endl;
+    //cout << "Insufficient num of points in RANSAC ..." << endl;
     return -1;
   }
 
@@ -2161,6 +2164,48 @@ float CObjectModel::getTriangleArea(GLMmodel* m, int tri_idx)
 
   float area = (a_dx*b_dx + a_dy*b_dy + a_dz*b_dz)/2.0f;
   return area;
+}
+void CObjectModel::getVisibleArea(int height, int width){
+  //Timer timer;
+  //timer.start();
+  cv::Mat img(height, width, CV_8U, cv::Scalar(0));
+  int numOfTri = meshmodel_->numtriangles;
+  for(int t = 0 ; t < numOfTri ; t++){
+
+    int vi1 = meshmodel_->triangles[t].vindices[0];
+    int vi2 = meshmodel_->triangles[t].vindices[1];
+    int vi3 = meshmodel_->triangles[t].vindices[2];
+
+    float vc1x = meshmodel_->vertices[3*(vi1)+0];
+    float vc1y = meshmodel_->vertices[3*(vi1)+1];
+    float vc1z = meshmodel_->vertices[3*(vi1)+2];
+
+    float vc2x = meshmodel_->vertices[3*(vi2)+0];
+    float vc2y = meshmodel_->vertices[3*(vi2)+1];
+    float vc2z = meshmodel_->vertices[3*(vi2)+2];
+
+    float vc3x = meshmodel_->vertices[3*(vi3)+0];
+    float vc3y = meshmodel_->vertices[3*(vi3)+1];
+    float vc3z = meshmodel_->vertices[3*(vi3)+2];
+
+    CvPoint3D32f tmp1 = CvPoint3D32f{meshmodel_->vertices[3*(vi1)+0],meshmodel_->vertices[3*(vi1)+1],meshmodel_->vertices[3*(vi1)+2]};
+    CvPoint3D32f tmp2 = CvPoint3D32f{meshmodel_->vertices[3*(vi2)+0],meshmodel_->vertices[3*(vi2)+1],meshmodel_->vertices[3*(vi2)+2]};
+    CvPoint3D32f tmp3 = CvPoint3D32f{meshmodel_->vertices[3*(vi3)+0],meshmodel_->vertices[3*(vi3)+1],meshmodel_->vertices[3*(vi3)+2]};
+
+    CvPoint2D32f vc1_2d = project3Dto2D(tmp1);
+    CvPoint2D32f vc2_2d = project3Dto2D(tmp2);
+    CvPoint2D32f vc3_2d = project3Dto2D(tmp3);
+
+    
+    vector<cv::Point> pts;
+    pts.push_back(vc1_2d);
+    pts.push_back(vc2_2d);
+    pts.push_back(vc3_2d);
+  
+    cv::fillConvexPoly(img, pts, 255);
+  }
+  //cv::imwrite( "contour.png", img );
+  //timer.printTimeMilliSec("drawVisibleSection");
 }
 
 bool CObjectModel::isEnoughValidSamplePoints(double th_ratio/*=0.5*/, int &count)

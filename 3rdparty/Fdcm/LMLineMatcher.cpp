@@ -633,7 +633,6 @@ void LMLineMatcher::Init(const char* fileName)
 
 	// read the templates
 	cout<<"Number of templates = "<<ndbImages_<<endl;
-	//cout<<"Number of templates = "<<ndbImages_<<endl;
 	for (int i=0;i<ndbImages_ ;i++)
 	{
 		getline(file,line);
@@ -1012,7 +1011,7 @@ void LMLineMatcher::DetectBruteForceVaryingTemplateSize(EIEdgeImage& dbImage, do
 			matchingCostMap.y0_[costMapIndex] = 0;
 
 			matchingCostMap.stepSize_[costMapIndex] = searchStepSize_;
-            		matchingCostMap.scale_[costMapIndex] = scale;
+            matchingCostMap.scale_[costMapIndex] = scale;
 			matchingCostMap.aspect_[costMapIndex] = aspect;
 			matchingCostMap.costMap_[costMapIndex].resize(width*height,1e+10);
 
@@ -1239,7 +1238,7 @@ void LMLineMatcher::MultiShapeDetectionWithVaryingTemplateSize(LFLineFitter &lf,
             std::cout << v << " ";
         }
         std::cout << std::endl;
-*/
+
         for(int s = 0; s < matchingCostMap[t].nCostMap_; s++){
             cv::Mat testimage = cv::Mat(matchingCostMap[t].height_[s], matchingCostMap[t].width_[s], CV_8UC1);
 
@@ -1256,7 +1255,8 @@ void LMLineMatcher::MultiShapeDetectionWithVaryingTemplateSize(LFLineFitter &lf,
             std::ostringstream name;
             name << "/home/jiaming/test/testimage" << t << "-" << s << ".jpg";
             cv::imwrite(name.str(), testimage);
-        } 
+
+        } */
     }
 
     double overlapThreshold = 0.2;

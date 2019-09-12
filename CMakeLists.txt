@@ -196,13 +196,12 @@ set(srcs
                 src/PoseEstimationSURF.cpp)
 
 
-#set(EBT_src     src/main.cpp)
-
+set(EBT_src     src/main.cpp)
 set(ETG_src     src/edge_templates_generator.cpp)
 set(TG_src     src/templates_generator.cpp)
 set(TIG_src     src/train_image_generator.cpp)
 
-#add_executable(EBTDemo ${incs} ${EBT_src} ${srcs})
+add_executable(EBTDemo ${incs} ${EBT_src} ${srcs})
 add_executable(ETGDemo ${incs} ${ETG_src} ${srcs})
 add_executable(TGDemo ${incs} ${TG_src} ${srcs})
 add_executable(TIGDemo ${incs} ${TIG_src} ${srcs})
@@ -230,6 +229,8 @@ target_link_libraries(ETGDemo ${libs})
 
 target_link_libraries(TIGDemo ${libs})
 
+target_link_libraries(EBTDemo ${libs})
+
 
 add_dependencies(TGDemo
     ImageLib
@@ -249,15 +250,12 @@ add_dependencies(TIGDemo
     FdcmLib
 )
 
-#target_link_libraries(EBTDemo
-#                ${libs})
 
-
-#add_dependencies(EBTDemo
-#    ImageLib
-#    LineFitLib
-#    FdcmLib
-#)
+add_dependencies(EBTDemo
+    ImageLib
+    LineFitLib
+    FdcmLib
+)
 
 add_library(object_tracking_2d SHARED ${incs} ${srcs})
 

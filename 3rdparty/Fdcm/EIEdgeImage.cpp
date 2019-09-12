@@ -80,15 +80,17 @@ void EIEdgeImage::Read(double *lineRep,int nLine)
 
 void EIEdgeImage::Read(const char* fileName)
 {
-        FILE* fin=NULL;
+    FILE* fin=NULL;
 	fin = fopen(fileName, "r");
 	
 
 	//AKANSEL: FIX NEEDED FOR FILES CREATED IN WINDOWS
-        // jiaming hu modified
+        // jiaming hu modified remember modify this if need
 	//string prelude = "./";
 	string prelude = "/home/jiaming/catkin_ws/src/object_tracking_2d_ros/";
+	
 	string fileName_str(fileName);
+	std::cout << "jiaming read file: " << fileName_str << std::endl;
 	std::string combo = prelude + fileName_str;
 	if (!combo.empty() && combo[combo.size() - 1] == '\r')
 	  {

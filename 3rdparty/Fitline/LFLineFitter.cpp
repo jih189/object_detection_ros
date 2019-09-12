@@ -453,6 +453,26 @@ void LFLineFitter::SaveEdgeMap(const char *filename)
 	fclose(fp);
 }
 
+void LFLineFitter::SaveEdgeMap(const char *filename, int id_num)
+{	
+	FILE *fp;
+	MMFunctions::Sort(outEdgeMap_,nLineSegments_,0);
+	fp = fopen(filename,"wt");
+
+    fprintf(fp,"%d\n",id_num);
+	fprintf(fp,"%d %d\n",width_,height_);
+	fprintf(fp,"%d\n",nLineSegments_);
+	double ratio=0;
+	double count=0;
+	for(int i=0;i<nLineSegments_;i++)
+	{
+		count += (double)outEdgeMap_[i].nSupport_;
+		ratio = count/nInputEdges_;
+		fprintf(fp,"%d %d %d %d\n",(int)outEdgeMap_[i].sx_,(int)outEdgeMap_[i].sy_,(int)outEdgeMap_[i].ex_,(int)outEdgeMap_[i].ey_);
+	}
+	fclose(fp);
+}
+
 void LFLineFitter::LoadEdgeMap(const char *filename)
 {
 	SafeRelease();

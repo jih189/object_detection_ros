@@ -240,14 +240,30 @@ int CPoseEstimationSURF::PF_estimatePosesFDCM(float maxThreshold, int numOfDetec
   // jiaming
   //displayImage = cvCreateImage(cvGetSize(inputImage),IPL_DEPTH_8U,3);
 
-  //if(displayImage) cvCvtColor(inputImage, displayImage, CV_GRAY2RGB);
+  if(displayImage) cvCvtColor(inputImage, displayImage, CV_GRAY2RGB);
 
   if(smoothSize > 0)
     cvSmooth(inputImage, inputImage, CV_GAUSSIAN, smoothSize, smoothSize);
 
   cvCanny(inputImage, edgeImage, cannyLow, cannyHigh);
-  
 
+/*
+  // calculate distance transform
+  cv::Mat dt_input = cv::cvarrToMat(edgeImage);
+
+  cv::Mat binary(dt_input.size(), dt_input.type());
+  cv::Mat dt_image;
+
+  cv::threshold(dt_input, binary, 100, 255, cv::THRESH_BINARY_INV);
+  cv::distanceTransform(dt_input, dt_image, CV_DIST_L2, 3);
+  normalize(dt_image, dt_image, 0.0, 1.0, NORM_MINMAX);
+
+  cv::imwrite("binary_img.png", binary);
+  cv::imwrite("distance_img.png", dt_image);
+  */
+  cvSaveImage("edge_img.png", edgeImage);
+  
+/*
   std::cout << "frank: filter the image\n";
   // filter out the edge image
 
@@ -261,13 +277,9 @@ int CPoseEstimationSURF::PF_estimatePosesFDCM(float maxThreshold, int numOfDetec
       }
     }
   }
+*/
 
-  //cvSaveImage("/home/jiaming/catkin_ws/mask_img.png", displayImage);
-  //cvSaveImage("/home/jiaming/catkin_ws/edge_img.png", edgeImage);
-
-  //displayImage = cvCreateImage(cvGetSize(inputImage),IPL_DEPTH_8U,3);
-
-  if(displayImage) cvCvtColor(inputImage, displayImage, CV_GRAY2RGB);
+  //if(displayImage) cvCvtColor(inputImage, displayImage, CV_GRAY2RGB);
   cvReleaseImage(&inputImage);
 
   // Line Fitting
@@ -326,15 +338,13 @@ int CPoseEstimationSURF::PF_estimatePosesFDCM(float maxThreshold, int numOfDetec
     tmpWind.clear();
   }
 
-/*
+
   if(detWind.size() > 0 && displayImage)
     for(size_t i=1; i<(detWind.size()<maxDet ? detWind.size() : maxDet); i++)
       DrawDetWind(displayImage, detWind[i].x_, detWind[i].y_, detWind[i].width_, detWind[i].height_, cvScalar(255,255,0), 1);
 
   if(detWind.size() > 0 && displayImage)
     DrawDetWind(displayImage, detWind[0].x_, detWind[0].y_, detWind[0].width_, detWind[0].height_, cvScalar(0,255,255), 1);
-*/
-
 
   std::cout << "after NMS\n";
   std::cout << "x	y	width	height	cost		count	scale	aspect	template_id" << std::endl;
@@ -342,7 +352,7 @@ int CPoseEstimationSURF::PF_estimatePosesFDCM(float maxThreshold, int numOfDetec
   {
     std::cout << detWind[i].x_ << "	" << detWind[i].y_ << "	" << detWind[i].width_ << "	" << detWind[i].height_ << "	" << detWind[i].cost_ << "	" << detWind[i].count_ << "	" << detWind[i].scale_ << "	" << detWind[i].aspect_ << "	" << detWind[i].tidx_ << std::endl;
   }
-/*-----------------------------------------------------------------*/
+
   if(edgeImage)   cvReleaseImage(&edgeImage);
 
   if(detWind.size() > 0)
@@ -370,22 +380,26 @@ int CPoseEstimationSURF::PF_estimatePosesFDCM(float maxThreshold, int numOfDetec
       cvCopy(obj_model_->getEdgeTemplatePose(static_cast<int>(detWind[i].tidx_)), poses[i]);
       int x = detWind[i].x_ + (int)((obj_model_->getPosePosition(static_cast<int>(detWind[i].tidx_))).x*detWind[i].scale_);  //detWind[i].width_/2;
       int y = detWind[i].y_ + (int)((obj_model_->getPosePosition(static_cast<int>(detWind[i].tidx_))).y*detWind[i].scale_);  //detWind[i].height_/2;
-      float Z = CV_MAT_ELEM(*poses[i], float, 2, 3) = CV_MAT_ELEM(*poses[i], float, 2, 3)/detWind[i].scale_;
+      
+      float Z = (CV_MAT_ELEM(*poses[i], float, 2, 3)/detWind[i].scale_);
       float X = ((float(x) - u0)*Z-tx)/fx;
       float Y = ((float(y) - v0)*Z-ty)/fy;
+
       CV_MAT_ELEM(*poses[i], float, 0, 3) = X;
       CV_MAT_ELEM(*poses[i], float, 1, 3) = Y;
+      CV_MAT_ELEM(*poses[i], float, 2, 3) = Z;
 
-      //vweight[i] = exp(-lamda*(float)detWind[i].cost_);
       obj_model_->displayPoseLine(displayImage, poses[i], CV_RGB(0, 255, 0), 1, false);
     }
 
-    for(int i = 0; i < std::min(numOfDetections, numOfDet); i++)
+    for(int i = 0; i < numOfDet; i++)
     {
       states.push_back(cvCreateMat(4, 4, CV_32F));
       cvCopy(poses[i], states[i]);
     }
-    //cvSaveImage("/home/jiaming/catkin_ws/detect_img.png", displayImage);
+
+    /*approach the object*/
+    cvSaveImage("detect_img.png", displayImage);
 
     for(int i = 0; i < numOfDet; i++)
     {

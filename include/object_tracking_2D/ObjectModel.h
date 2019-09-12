@@ -84,9 +84,11 @@ public:
   void drawPointsAndErrorCoarseOri(IplImage* img_dest);
   void drawPointsAndErrorFineOri(IplImage* img_dest);
   float getTriangleArea(GLMmodel* m, int tri_idx);
+
   // display functions
   void displayPoseLine(IplImage* img_dest, CvMat* pose, CvScalar color, int thickness, bool onright);
   void displaySamplePointsAndErrors(IplImage* img_dest);
+  void getVisibleArea(int height, int width);
 
 protected:
   bool initOpenGL(int width, int height);
