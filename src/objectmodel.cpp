@@ -603,9 +603,15 @@ void CObjectModel::loadEdgeTemplates(const std::string& obj_name)
     float posex;
     float posey;
     inFile >> posex >> posey;
-    //std::cout << "got pose position (" << posex << "," << posey << ")\n"; 
     pose_positions_.push_back({posex, posey});
     inFile.close();
+  }
+}
+
+void CObjectModel::keepOnlyContourPoints(void){
+  visible_sample_points_.resize(visible_contours_points_.size());
+  for(int i = 0; i < visible_sample_points_.size() ; i++){
+    visible_sample_points_[i] = visible_contours_points_[i];
   }
 }
 
@@ -615,13 +621,17 @@ void CObjectModel::findVisibleSamplePoints(void)
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   // Draw the face (fill) with offset
+   
   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
   glEnable(GL_POLYGON_OFFSET_FILL);
   glPolygonOffset(1.0, 1.0);
-  glColor3f(0.0, 0.0, 0.0);
+  glColor3f(1.0, 1.0, 1.0);
+
   glCallList(dl_); // draw object model saved in display list
 
   glDisable(GL_POLYGON_OFFSET_FILL);
+
+
   // Occlusion test
   vector<CvPoint3D32f> visible_sharpedge_samplepoint; // sample points after visibility test
   vector<int> visible_sharpedge_samplepoint_edge_membership;
@@ -638,8 +648,8 @@ void CObjectModel::findVisibleSamplePoints(void)
   }
   N += (int)sharp_sample_points_.size();
 
-  Timer timer;
-  timer.start();
+  //Timer timer;
+  //timer.start();
 
   assert(N > 0);
   vQueries.resize(N);
@@ -1005,7 +1015,7 @@ void CObjectModel::findNormalUsingEdgeCoordCoarseOri(void)
   deg.resize(sharp_edges_.size() + dull_boundary_edges_.size());
   nidx.resize(sharp_edges_.size() + dull_boundary_edges_.size());
 
-//#pragma omp parallel for
+  #pragma omp parallel for
   for(int i=0; i<(int)sharp_edges_.size(); i++)
   {
     p1 = project3Dto2D(sharp_edges_[i].first);
@@ -1036,7 +1046,7 @@ void CObjectModel::findNormalUsingEdgeCoordCoarseOri(void)
 
   int j = sharp_edges_.size();
 
-//#pragma omp parallel for
+  #pragma omp parallel for
   for(int i=0; i<(int)dull_boundary_edges_.size(); i++)
   {
     p1 = project3Dto2D(dull_boundary_edges_[i].first);
@@ -1065,7 +1075,7 @@ void CObjectModel::findNormalUsingEdgeCoordCoarseOri(void)
     else if(247.5 <= deg[i+j])                      nidx[i+j] = 0;
   }
 
-//#pragma omp parallel for
+  #pragma omp parallel for
   for(int i=0; i<int(visible_sample_points_.size()); i++)
   {
     int edge_mem = visible_sample_points_[i].edge_mem;
@@ -1094,7 +1104,7 @@ void CObjectModel::findNormalUsingEdgeCoordFineOri(void)
   dy.resize(sharp_edges_.size() + dull_boundary_edges_.size());
 
   int sep_size = sharp_edges_.size();
-//#pragma omp parallel for
+  #pragma omp parallel for
   for(int i=0; i<sep_size; i++)
   {
     CvPoint2D32f p1 = project3Dto2D(sharp_edges_[i].first);
@@ -1109,7 +1119,7 @@ void CObjectModel::findNormalUsingEdgeCoordFineOri(void)
   }
 
   int bdep_size = dull_boundary_edges_.size();
-//#pragma omp parallel for
+  #pragma omp parallel for
   for(int i=0; i<bdep_size; i++)
   {
     CvPoint2D32f p1 = project3Dto2D(dull_boundary_edges_[i].first);
@@ -1123,7 +1133,7 @@ void CObjectModel::findNormalUsingEdgeCoordFineOri(void)
     deg[i+sep_size] = ori_rad*180.0f/M_PI; // deg[i] is in -90 ~ 270
   }
 
-//#pragma omp parallel for
+  #pragma omp parallel for
   for(int i=0; i<int(visible_sample_points_.size()); i++)
   {
     int edge_mem = visible_sample_points_[i].edge_mem;
@@ -1296,7 +1306,7 @@ void CObjectModel::findEdgeCorrespondencesCoarseOri()
   const float oth = 15.f; // +- 15 degree
   const double max_dist = static_cast<double>(maxd_);
 
-//#pragma omp parallel for
+  #pragma omp parallel for
   for(int i = 0; i < static_cast<int>(visible_sample_points_.size()); i++)
   {
     int max_step;
@@ -1419,7 +1429,7 @@ void CObjectModel::findEdgeCorrespondencesFineOri()
   const float oth = 15.f; // +- 15 degree
   const int max_step = static_cast<int>(maxd_);
 
-//#pragma omp parallel for
+  #pragma omp parallel for
   for(int i = 0; i < static_cast<int>(visible_sample_points_.size()); i++)
   {
     double dx = visible_sample_points_[i].dx;
@@ -2168,6 +2178,8 @@ float CObjectModel::getTriangleArea(GLMmodel* m, int tri_idx)
 void CObjectModel::getVisibleArea(int height, int width){
   //Timer timer;
   //timer.start();
+  visible_contours_points_.clear();
+  visible_onObject_points_.clear();
   cv::Mat img(height, width, CV_8U, cv::Scalar(0));
   int numOfTri = meshmodel_->numtriangles;
   for(int t = 0 ; t < numOfTri ; t++){
@@ -2204,8 +2216,22 @@ void CObjectModel::getVisibleArea(int height, int width){
   
     cv::fillConvexPoly(img, pts, 255);
   }
-  //cv::imwrite( "contour.png", img );
+
+  cv::erode(img, contourimg, cv::Mat(5, 5, CV_8U),cv::Point(-1,-1), 1);
+  
+  
+  for(int i=0; i<int(visible_sample_points_.size()); i++)
+  {
+    if(contourimg.at<unsigned char>((int)visible_sample_points_[i].coord2.y, (int)visible_sample_points_[i].coord2.x) != 0xFF){
+      visible_contours_points_.push_back(visible_sample_points_[i]);
+    }
+    else{
+      visible_onObject_points_.push_back(visible_sample_points_[i]);
+    }
+  }
+  
   //timer.printTimeMilliSec("drawVisibleSection");
+  //cv::imwrite( "contour.png", contourimg );
 }
 
 bool CObjectModel::isEnoughValidSamplePoints(double th_ratio/*=0.5*/, int &count)

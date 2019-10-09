@@ -16,16 +16,12 @@
 //#include <direct.h> // mkdir(), creating a directory
 
 
-
-
 #include <boost/program_options.hpp>
 #include <boost/algorithm/string.hpp>
 
 #include <limits.h>
 
 #include "object_tracking_2D/ObjectModel.h"
-
-//#include "Fitline/LFLineFitter.h"
 
 namespace po = boost::program_options;
 
@@ -87,6 +83,36 @@ CvRect drawModel(IplImage* img, std::vector<CvPoint3D32f> ep1, std::vector<CvPoi
   return cvRect(static_cast<int>(l), static_cast<int>(t), static_cast<int>(r-l+1.f), static_cast<int>(b-t+1.f));
 }
 
+void rotate(CvMat* curr_pose, float x, float y, float z){
+    cv::Mat R_x = (cv::Mat_<float>(4,4) <<
+               1,       0,        0,          0,
+               0,       cos(x),   -sin(x),    0,
+               0,       sin(x),   cos(x),     0,
+               0,       0,        0,          1
+               );
+     
+    // Calculate rotation about y axis
+    cv::Mat R_y = (cv::Mat_<float>(4,4) <<
+               cos(y),    0,      sin(y),     0,
+               0,         1,      0,          0,
+               -sin(y),   0,      cos(y),     0,
+               0,         0,      0,          1
+               );
+     
+    // Calculate rotation about z axis
+    cv::Mat R_z = (cv::Mat_<float>(4,4) <<
+               cos(z),    -sin(z),      0,    0,
+               sin(z),    cos(z),       0,    0,
+               0,         0,            1,    0,
+               0,         0,            0,    1);
+    cv::Mat temp = R_z * R_y * R_x;
+    for(int r=0; r<4; r++){ 
+      for(int c=0; c<4; c++){
+        CV_MAT_ELEM(*curr_pose, float, r, c) = temp.at<float>(r,c);
+      }
+    }
+}
+
 int main(int argc, char **argv)
 {
   std::string obj_name;
@@ -104,7 +130,7 @@ int main(int argc, char **argv)
     ("help,h", "produce help message")
     ("obj-name,o", po::value<std::string>(&obj_name), "name of traget object")
     ("sample-step,s", po::value<float>(&sample_step)->default_value(0.005f), "sample step")
-    ("depth,d", po::value<float>(&depth)->default_value(0.3f), "distance between object and camera")
+    ("depth,d", po::value<float>(&depth)->default_value(1.0f), "distance between object and camera")
     ("param-linefit,l", po::value<std::string>(&str_param_linfit)->default_value(std::string("para_template_line_fitter.txt")), "set parameters for line fitting")
     ("save-path,p", po::value<std::string>(&str_result_path)->default_value(std::string("train_images")), "set result path")
     
@@ -155,7 +181,6 @@ int main(int argc, char **argv)
   modelAngle[0] = 0.0;
   modelAngle[1] = 0.0;
   modelAngle[2] = 0.0;
-  int int_not = 0; // number of templates
 
   CvMat* param_intrinsic = (CvMat*)cvLoad(intrinsic.c_str());
 
@@ -173,202 +198,145 @@ int main(int argc, char **argv)
   //lf.Init();
   //lf.Configure("para_template_line_fitter.txt");
 
-  cvNamedWindow("Edge");
+
+  vector<int> ma0Arr;
+  vector<int> ma1Arr;
+  vector<int> ma2Arr;
+
+  ma0Arr.push_back(0);
+  ma1Arr.push_back(0);
+  ma2Arr.push_back(0);
   
-  for(int ma0 = 0; ma0 < 360 ; ma0 += 180){
-    for(int ma1 = 0; ma1 < 45 ; ma1 += 45){
-      for(int ma2 = 0; ma2 < 360 ; ma2 += 90){
-        modelAngle[0] = (float)ma0;
-        modelAngle[1] = (float)ma1;
-        modelAngle[2] = (float)ma2;
-        cvSet(img_result, cvScalar(0)); // reset image
-
-        glPushMatrix();
-        glMatrixMode(GL_MODELVIEW);
-        // In order to get the modeling matrix only, reset GL_MODELVIEW matrix
-        glLoadIdentity();
-        // transform the object
-        // From now, all transform will be for modeling matrix only. (transform from object space to world space)
-        glTranslatef(modelPosition[0], modelPosition[1], modelPosition[2]);
-        glRotatef(modelAngle[0], 1, 0, 0);
-        glRotatef(modelAngle[1], 0, 1, 0);
-        glRotatef(modelAngle[2], 0, 0, 1);
-        // save modeling matrix
-        glGetFloatv(GL_MODELVIEW_MATRIX, matrixModel);
-
-        CvMat* poset = cvCreateMat(4, 4, CV_32F);
-        memcpy(poset->data.fl, matrixModel, sizeof(float)*16);
-        cvTranspose(poset, pose);
-        cvReleaseMat(&poset);
-        glPopMatrix();
-
-        // Draw object model with visibility test
-        cObjModel.setModelviewMatrix(pose); // update the initial pose to object model for displaying    
-        cObjModel.findVisibleSamplePoints(); // draw object model with visibility test
-
-        // Find visible edges
-        std::vector<CvPoint3D32f> ep1, ep2;
-   
-        std::vector<CObjectModel::SamplePoint>& vsp = cObjModel.getVisibleSamplePoints();
-    
-        // determine two end points in each common edge_mem sample points
-        int edge_mem = vsp[0].edge_mem;
-        ep1.push_back(vsp[0].coord3);
-        int i;
-        for(i=0; i<int(vsp.size()); i++)
-        {
-          if(edge_mem == vsp[i].edge_mem)
-          {
-            // skip over
-          }
-          else
-          {
-            // new point, so add end/starting edge point
-            ep2.push_back(vsp[i-1].coord3);
-            ep1.push_back(vsp[i].coord3);
-            // update new edge_mem value
-           edge_mem = vsp[i].edge_mem;
-          }
-        }
-        ep2.push_back(vsp[i-1].coord3);
-
-        CvPoint3D32f originPoint={modelPosition[0],modelPosition[1],modelPosition[2]};
-        CvRect bound = drawModel(img_result, ep1, ep2, pose, param_intrinsic, CV_RGB(255, 255, 255), originPoint);
-        bound.x -= 2;
-        bound.y -= 2;
-        bound.width += 4;
-        bound.height += 4;
-        char buf[50];
-        // jiaming hu: draw the point of origin point
-        float fx = CV_MAT_ELEM(*param_intrinsic, float, 0, 0);
-        float fy = CV_MAT_ELEM(*param_intrinsic, float, 1, 1);
-        float ux = CV_MAT_ELEM(*param_intrinsic, float, 0, 2);
-        float uy = CV_MAT_ELEM(*param_intrinsic, float, 1, 2);
-
-        CvPoint2D32f ptori;
-        ptori.x = fx*originPoint.x/originPoint.z + ux;
-        ptori.y = fy*originPoint.y/originPoint.z + uy;
-
-        // save center point
-        ofstream centerfile;
-        sprintf(buf, "/pose_position%03d.txt", int_not);
-        centerfile.open((str_result_path + buf).c_str());
-        centerfile << ptori.x - bound.x << " " << ptori.y - bound.y << std::endl;
-        centerfile.close();
-
-        // save edge template
-        cvSetImageROI(img_result, bound);
-        sprintf(buf, "/edge_template%03d.png", int_not);
-        cvSaveImage((str_result_path + buf).c_str(), img_result);
-
-        cvResetImageROI(img_result);
-
-        // save template pose
-        sprintf(buf, "/edge_template_pose%03d.xml", int_not);
-        cvSave((str_result_path + buf).c_str(), pose);
-
-        int_not++;
-      } 
+  // todo
+  for(int ma0 = -45; ma0 >= -135 ; ma0 -= 45){
+    for(int ma2 = 0 ; ma2 < 360 ; ma2 += 45){
+      ma0Arr.push_back(ma0);
+      ma1Arr.push_back(0);
+      ma2Arr.push_back(ma2);
     }
   }
 
-  for(int ma0 = 45; ma0 < 180 ; ma0 += 45){
-    for(int ma1 = 0; ma1 < 360 ; ma1 += 45){
-      for(int ma2 = 0; ma2 < 360 ; ma2 += 90){
+  ma0Arr.push_back(180);
+  ma1Arr.push_back(0);
+  ma2Arr.push_back(0);
 
-        modelAngle[0] = (float)ma0;
-        modelAngle[1] = (float)ma1;
-        modelAngle[2] = (float)ma2;
-        cvSet(img_result, cvScalar(0)); // reset image
-
-        glPushMatrix();
-        glMatrixMode(GL_MODELVIEW);
-        // In order to get the modeling matrix only, reset GL_MODELVIEW matrix
-        glLoadIdentity();
-        // transform the object
-        // From now, all transform will be for modeling matrix only. (transform from object space to world space)
-        glTranslatef(modelPosition[0], modelPosition[1], modelPosition[2]);
-        glRotatef(modelAngle[0], 1, 0, 0);
-        glRotatef(modelAngle[1], 0, 1, 0);
-        glRotatef(modelAngle[2], 0, 0, 1);
-        // save modeling matrix
-        glGetFloatv(GL_MODELVIEW_MATRIX, matrixModel);
-
-        CvMat* poset = cvCreateMat(4, 4, CV_32F);
-        memcpy(poset->data.fl, matrixModel, sizeof(float)*16);
-        cvTranspose(poset, pose);
-        cvReleaseMat(&poset);
-        glPopMatrix();
-
-        // Draw object model with visibility test
-        cObjModel.setModelviewMatrix(pose); // update the initial pose to object model for displaying    
-        cObjModel.findVisibleSamplePoints(); // draw object model with visibility test
-
-        // Find visible edges
-        std::vector<CvPoint3D32f> ep1, ep2;
-   
-        std::vector<CObjectModel::SamplePoint>& vsp = cObjModel.getVisibleSamplePoints();
+  int indexnum = 0;
+  while(indexnum < ma0Arr.size()){
+    modelAngle[0] = (float)ma0Arr[indexnum];
+    modelAngle[1] = (float)ma1Arr[indexnum];
+    modelAngle[2] = (float)ma2Arr[indexnum];
     
-        // determine two end points in each common edge_mem sample points
-        int edge_mem = vsp[0].edge_mem;
-        ep1.push_back(vsp[0].coord3);
-        int i;
-        for(i=0; i<int(vsp.size()); i++)
-        {
-          if(edge_mem == vsp[i].edge_mem)
-          {
-            // skip over
-          }
-          else
-          {
-            // new point, so add end/starting edge point
-            ep2.push_back(vsp[i-1].coord3);
-            ep1.push_back(vsp[i].coord3);
-            // update new edge_mem value
-           edge_mem = vsp[i].edge_mem;
-          }
+
+    glPushMatrix();
+    glMatrixMode(GL_MODELVIEW);
+    // In order to get the modeling matrix only, reset GL_MODELVIEW matrix
+    glLoadIdentity();
+    // transform the object
+    // From now, all transform will be for modeling matrix only. (transform from object space to world space)
+    glTranslatef(modelPosition[0], modelPosition[1], modelPosition[2]);
+    glRotatef(modelAngle[0], 1, 0, 0);
+    glRotatef(modelAngle[1], 0, 1, 0);
+    glRotatef(modelAngle[2], 0, 0, 1);
+
+    // save modeling matrix
+    glGetFloatv(GL_MODELVIEW_MATRIX, matrixModel);
+
+    CvMat* poset = cvCreateMat(4, 4, CV_32F);
+    CvMat* rotatestate = cvCreateMat(4,4,CV_32F);
+    CvMat* resultstate = cvCreateMat(4,4,CV_32F);
+
+
+    memcpy(poset->data.fl, matrixModel, sizeof(float)*16);
+    cvTranspose(poset, pose);
+    cvReleaseMat(&poset);
+    glPopMatrix();
+
+    for(int rotz = 0 ; rotz < 8 ; rotz++ ){
+      cvSet(img_result, cvScalar(0)); // reset image
+      
+      rotate(rotatestate, 0.0, 0.0, 0.785 * rotz);
+      cvMatMul(rotatestate, pose, resultstate);
+
+/*
+      std::cout << "rotate\n";
+      for(int r=0; r<4; r++){ 
+        for(int c=0; c<4; c++){
+          std::cout << CV_MAT_ELEM(*rotatestate, float, r, c) << " ";
         }
-        ep2.push_back(vsp[i-1].coord3);
-
-        CvPoint3D32f originPoint={modelPosition[0],modelPosition[1],modelPosition[2]};
-        CvRect bound = drawModel(img_result, ep1, ep2, pose, param_intrinsic, CV_RGB(255, 255, 255), originPoint);
-        bound.x -= 2;
-        bound.y -= 2;
-        bound.width += 4;
-        bound.height += 4;
-        char buf[50];
-        // jiaming hu: draw the point of origin point
-        float fx = CV_MAT_ELEM(*param_intrinsic, float, 0, 0);
-        float fy = CV_MAT_ELEM(*param_intrinsic, float, 1, 1);
-        float ux = CV_MAT_ELEM(*param_intrinsic, float, 0, 2);
-        float uy = CV_MAT_ELEM(*param_intrinsic, float, 1, 2);
-
-        CvPoint2D32f ptori;
-        ptori.x = fx*originPoint.x/originPoint.z + ux;
-        ptori.y = fy*originPoint.y/originPoint.z + uy;
-
-        // save center point
-        ofstream centerfile;
-        sprintf(buf, "/pose_position%03d.txt", int_not);
-        centerfile.open((str_result_path + buf).c_str());
-        centerfile << ptori.x - bound.x << " " << ptori.y - bound.y << std::endl;
-        centerfile.close();
-
-        // save edge template
-        cvSetImageROI(img_result, bound);
-        sprintf(buf, "/edge_template%03d.png", int_not);
-        cvSaveImage((str_result_path + buf).c_str(), img_result);
-
-        cvResetImageROI(img_result);
-
-        // save template pose
-        sprintf(buf, "/edge_template_pose%03d.xml", int_not);
-        cvSave((str_result_path + buf).c_str(), pose);
-
-        int_not++;
+        std::cout << std::endl;
       }
+*/
+      CV_MAT_ELEM(*resultstate, float, 0, 3) = CV_MAT_ELEM(*pose, float, 0, 3);
+      CV_MAT_ELEM(*resultstate, float, 1, 3) = CV_MAT_ELEM(*pose, float, 1, 3);
+      CV_MAT_ELEM(*resultstate, float, 2, 3) = CV_MAT_ELEM(*pose, float, 2, 3);
+
+      // Draw object model with visibility test
+      cObjModel.setModelviewMatrix(resultstate); // update the initial pose to object model for displaying    
+      cObjModel.findVisibleSamplePoints(); // draw object model with visibility test
+
+
+      // Find visible edges
+      std::vector<CvPoint3D32f> ep1, ep2;
+    
+      std::vector<CObjectModel::SamplePoint>& vsp = cObjModel.getVisibleSamplePoints();
+      
+      // determine two end points in each common edge_mem sample points
+      int edge_mem = vsp[0].edge_mem;
+      ep1.push_back(vsp[0].coord3);
+      int i;
+      for(i=0; i<int(vsp.size()); i++)
+      {
+        if(edge_mem != vsp[i].edge_mem){
+          // new point, so add end/starting edge point
+          ep2.push_back(vsp[i-1].coord3);
+          ep1.push_back(vsp[i].coord3);
+          // update new edge_mem value
+          edge_mem = vsp[i].edge_mem;
+        }
+      }
+      ep2.push_back(vsp[i-1].coord3);
+
+      CvPoint3D32f originPoint={modelPosition[0],modelPosition[1],modelPosition[2]};
+      CvRect bound = drawModel(img_result, ep1, ep2, resultstate, param_intrinsic, CV_RGB(255, 255, 255), originPoint);
+      bound.x -= 2;
+      bound.y -= 2;
+      bound.width += 4;
+      bound.height += 4;
+      char buf[50];
+      // jiaming hu: draw the point of origin point
+      float fx = CV_MAT_ELEM(*param_intrinsic, float, 0, 0);
+      float fy = CV_MAT_ELEM(*param_intrinsic, float, 1, 1);
+      float ux = CV_MAT_ELEM(*param_intrinsic, float, 0, 2);
+      float uy = CV_MAT_ELEM(*param_intrinsic, float, 1, 2);
+
+      CvPoint2D32f ptori;
+      ptori.x = fx*originPoint.x/originPoint.z + ux;
+      ptori.y = fy*originPoint.y/originPoint.z + uy;
+
+      // save center point
+      ofstream centerfile;
+      sprintf(buf, "/pose_position%03d.txt", indexnum * 8 + rotz);
+      centerfile.open((str_result_path + buf).c_str());
+      centerfile << ptori.x - bound.x << " " << ptori.y - bound.y << std::endl;
+      centerfile.close();
+
+      // save edge template
+      cvSetImageROI(img_result, bound);
+      sprintf(buf, "/edge_template%03d.png", indexnum * 8 + rotz);
+      cvSaveImage((str_result_path + buf).c_str(), img_result);
+
+      cvResetImageROI(img_result);
+
+      // save template pose
+      sprintf(buf, "/edge_template_pose%03d.xml", indexnum * 8 + rotz);
+      cvSave((str_result_path + buf).c_str(), resultstate);
     }
+    
+    cvReleaseMat(&rotatestate);
+    cvReleaseMat(&resultstate);
+    indexnum++;
   }
+
   cvReleaseMat(&pose);
   cvReleaseImage(&img_result);
   

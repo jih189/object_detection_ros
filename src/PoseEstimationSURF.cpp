@@ -247,20 +247,7 @@ int CPoseEstimationSURF::PF_estimatePosesFDCM(float maxThreshold, int numOfDetec
 
   cvCanny(inputImage, edgeImage, cannyLow, cannyHigh);
 
-/*
-  // calculate distance transform
-  cv::Mat dt_input = cv::cvarrToMat(edgeImage);
 
-  cv::Mat binary(dt_input.size(), dt_input.type());
-  cv::Mat dt_image;
-
-  cv::threshold(dt_input, binary, 100, 255, cv::THRESH_BINARY_INV);
-  cv::distanceTransform(dt_input, dt_image, CV_DIST_L2, 3);
-  normalize(dt_image, dt_image, 0.0, 1.0, NORM_MINMAX);
-
-  cv::imwrite("binary_img.png", binary);
-  cv::imwrite("distance_img.png", dt_image);
-  */
   cvSaveImage("edge_img.png", edgeImage);
   
 /*
@@ -325,7 +312,7 @@ int CPoseEstimationSURF::PF_estimatePosesFDCM(float maxThreshold, int numOfDetec
                                  std::max(tmpWind[i].x_,detWind[j].x_)) * 
                                 (std::min(tmpWind[i].y_+tmpWind[i].height_,detWind[j].y_+detWind[j].height_) - 
                                  std::max(tmpWind[i].y_,detWind[j].y_));
-        if(overlappingArea / (tmpWind[i].width_ * tmpWind[i].height_) > 0.6)
+        if(overlappingArea / (tmpWind[i].width_ * tmpWind[i].height_) > 0.55)// && detWind[j].cost_ < tmpWind[i].cost_ )
         {
           hasNewItem = false;
           break;
@@ -370,8 +357,7 @@ int CPoseEstimationSURF::PF_estimatePosesFDCM(float maxThreshold, int numOfDetec
     float fx = CV_MAT_ELEM(*intrinsic_, float, 0, 0);
     float fy = CV_MAT_ELEM(*intrinsic_, float, 1, 1);
 
-    // jiaming hu: add extrinsix matrix
-    float tx = 0.0;//-148.43597135826298;
+    float tx = 0.0;
     float ty = 0.0;
     // get the pose of template which matches the object
     for(int i = 0; i<numOfDet; i++)

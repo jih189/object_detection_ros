@@ -47,6 +47,7 @@ public:
 
   void loadObjectCADModel(const std::string& obj_name);
   void findVisibleSamplePoints(void);
+  void keepOnlyContourPoints(void);
 
   void setProjectionMatrix(CvMat* intrinsic);
   void setModelviewMatrix(CvMat* pose);
@@ -71,6 +72,8 @@ public:
   inline CvPoint2D32f getPosePosition(int i)              { return pose_positions_[i];       }
 
   inline vector<SamplePoint>& getVisibleSamplePoints()  { return visible_sample_points_;        }
+  inline vector<SamplePoint>& getVisibleContoursPoints()  { return visible_contours_points_;        }
+
   inline int getNumberOfVisibleSamplePoints()           { return visible_sample_points_.size(); }
   bool isEnoughValidSamplePoints(double th_ratio, int& count );
   double GetValidVisibleSamplePointsRatio();
@@ -89,6 +92,7 @@ public:
   void displayPoseLine(IplImage* img_dest, CvMat* pose, CvScalar color, int thickness, bool onright);
   void displaySamplePointsAndErrors(IplImage* img_dest);
   void getVisibleArea(int height, int width);
+  cv::Mat contourimg;
 
 protected:
   bool initOpenGL(int width, int height);
@@ -136,6 +140,10 @@ protected:
   std::vector<int> dull_boundary_sample_points_edge_indices_;
   // every visible sample points on edges (sharp and dull)
   std::vector<SamplePoint> visible_sample_points_;
+  std::vector<SamplePoint> visible_contours_points_;
+  std::vector<SamplePoint> visible_onObject_points_;
+
+  
 
   IplImage* img_edge_;
   IplImage* img_gx_;

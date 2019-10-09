@@ -1,1 +1,1 @@
-./EBTDemo -t pf_textureless -o block/model.obj -i testimg.png -n 12 --th_cm 0.1 --save-path .
+./EBTDemo -t pf_textureless -o megabloks/megabloks.obj -i testimg.png -n 8 --th_cm 0.105 --save-path .

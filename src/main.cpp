@@ -8,11 +8,10 @@
 #include <boost/program_options.hpp>
 #include <boost/algorithm/string.hpp>
 
+#include "opencv2/opencv.hpp"
+using namespace cv;
 
 namespace po = boost::program_options;
-
-
-
 
 int main(int argc, char **argv)
 {
@@ -131,6 +130,14 @@ int main(int argc, char **argv)
     }
   }
 
+  VideoCapture cap("testvideo.webm");
+
+  // Check if camera opened successfully
+  if(!cap.isOpened()){
+    cout << "Error opening video stream or file" << endl;
+    return -1;
+  }
+
   std::cout << "\nprepare done!\n";
 
   TrackerBase* origin_tracker_;
@@ -141,7 +148,7 @@ int main(int argc, char **argv)
 
 
   origin_tracker_->setSampleStep(sample_step);
-  origin_tracker_->setMaxSearchDistance(15);
+  origin_tracker_->setMaxSearchDistance(10);
   origin_tracker_->setDisplay(display);
   origin_tracker_->setNetworkMode(false);
   origin_tracker_->setConsideringDullEdges(dull_edge);
@@ -149,17 +156,136 @@ int main(int argc, char **argv)
   origin_tracker_->setValidSamplePointsRatio(0.85);
   origin_tracker_->setMinKeypointMatches(12);
 
-  origin_tracker_->setCannyHigh(20);
-  origin_tracker_->setCannyLow(10);
+  origin_tracker_->setCannyHigh(90);
+  origin_tracker_->setCannyLow(80);
 
   input = "ach";
   origin_tracker_->initTracker(obj_name, input, intrinsic, distortion, width, height, pose_init , ach_channel);
 
+
+  int numofframe = 0;
+
+  bool istrack = false;
+  int numOfTracking = 0;
+  int lifetime[10];
+  int numOfDetections = 0;
+  std::vector<TrackerBase*> trackers;
+  while(1){
+    
+    Mat frame;
+    // Capture frame-by-frame
+    cap >> frame;
+    numofframe++;
+    if(numofframe % 5 != 1){
+      continue;
+    }
+    
+  
+    // If the frame is empty, break immediately
+    if (frame.empty())
+      break;
+    origin_tracker_->setImage(frame);
+
+    if(istrack == false){
+
+      // clean the trackers
+      while(!trackers.empty()){
+        trackers.pop_back();
+      }
+
+      origin_tracker_->init_ = true;
+      std::vector<LMDetWind> detWind;
+      std::vector<CvMat*> detectedState;
+      Timer timer;
+      timer.start();
+      numOfDetections = ((TexturelessParticleFilterTracker*)origin_tracker_)->pose_detection(5, detWind, detectedState);
+      timer.printTimeMilliSec("pose detection");
+      std::cout << "number of detections " << numOfDetections << std::endl;
+      if(numOfDetections > 0){
+        //istrack = true;
+        numOfTracking = numOfDetections;
+        
+
+        for(int nt = 0; nt < numOfDetections; nt++){
+          trackers.push_back(new TexturelessParticleFilterTracker());
+          ((TexturelessParticleFilterTracker*)trackers[nt])->setNumParticle(n);
+          ((TexturelessParticleFilterTracker*)trackers[nt])->setThresholdCM(th_cm);
+          ((TexturelessParticleFilterTracker*)trackers[nt])->initParticleFilter();
+          trackers[nt]->setSampleStep(sample_step);
+          trackers[nt]->setMaxSearchDistance(10);
+          trackers[nt]->setDisplay(display);
+          trackers[nt]->setNetworkMode(false);
+          trackers[nt]->setConsideringDullEdges(dull_edge);
+          trackers[nt]->setTracking(true);
+          trackers[nt]->setCannyHigh(90);
+          trackers[nt]->setCannyLow(80);
+          try{
+            ((TexturelessParticleFilterTracker*)trackers[nt])->generate_tracker(origin_tracker_, detectedState[nt]);
+            lifetime[nt] = 2;
+            trackers[nt]->renderResults();
+          }catch(exception& e){
+            std::cout << e.what() << std::endl;
+          }
+        }
+      }
+    }
+    else{
+      std::cout << "number of tracking-> " << numOfTracking << std::endl;
+      for(int nt = 0; nt < numOfDetections; nt++){
+        if(lifetime[nt] <= 0){
+          continue;
+        }
+        int trackresult = trackers[nt]->tracking();
+        //std::cout << "  with result: " << trackresult << std::endl;
+        trackers[nt]->renderResults();
+        if(trackresult == 0){
+          lifetime[nt] = 2;
+        }
+        else{
+          lifetime[nt] -= 1;
+          if(lifetime[nt] == 0){
+            numOfTracking--;
+          }
+        }
+      }
+      if(numOfTracking == 0 ){
+        istrack = false;
+      }
+    }
+    Mat img_edge   = origin_tracker_->getEdgeImage();
+    Mat img_result = origin_tracker_->getResultImage();
+
+ 
+    // Display the resulting frame
+    imshow( "Frame", frame );
+    imshow( "Edge", img_edge );
+    imshow( "Result", img_result );
+ 
+    // Press  ESC on keyboard to exit
+    char c=(char)waitKey(25);
+    if(c==27)
+      break;
+  }
+  std::cout << "number of frame is " << numofframe << std::endl;
+  // When everything done, release the video capture object
+  cap.release();
+ 
+  // Closes all the frames
+  destroyAllWindows();
+  /*
   // first image
   Mat image = imread("testimg_1.png", CV_LOAD_IMAGE_COLOR);
+  
+  std::vector<Mat> images;
+  // load a series of image
+  for(int t = 0; t < 10; t++){
+    std::cout << "loading " << ("time_" + std::to_string(t) + ".png").c_str() << std::endl;
+    images.push_back(imread(("time_" + std::to_string(t) + ".png").c_str(), CV_LOAD_IMAGE_COLOR));
+  }
+  std::cout << "finish loading\n";
+  origin_tracker_->setImage(images[0]);
 
-  origin_tracker_->setImage(image);
-
+  std::cout << "set first image\n";
   origin_tracker_->init_ = true;
   std::vector<LMDetWind> detWind;
   std::vector<CvMat*> detectedState;
@@ -167,54 +293,70 @@ int main(int argc, char **argv)
   timer.start();
   int numOfDetections = ((TexturelessParticleFilterTracker*)origin_tracker_)->pose_detection(5, detWind, detectedState);
   timer.printTimeMilliSec("pose detection");
+  std::cout << "number of detections " << numOfDetections << std::endl;
+  
+  if(numOfDetections > 0){
 
-  TrackerBase* tracker_ = new TexturelessParticleFilterTracker();
-  ((TexturelessParticleFilterTracker*)tracker_)->setNumParticle(n);
-  ((TexturelessParticleFilterTracker*)tracker_)->setThresholdCM(th_cm);
-  ((TexturelessParticleFilterTracker*)tracker_)->initParticleFilter();
-  tracker_->setSampleStep(sample_step);
-  tracker_->setMaxSearchDistance(15);
-  tracker_->setDisplay(display);
-  tracker_->setNetworkMode(false);
-  tracker_->setConsideringDullEdges(dull_edge);
-  tracker_->setTracking(true);
-  tracker_->setCannyHigh(20);
-  tracker_->setCannyLow(10);
+    std::vector<TrackerBase*> trackers;
+    int lifetime[numOfDetections];
 
-  try{
-    ((TexturelessParticleFilterTracker*)tracker_)->generate_tracker(origin_tracker_, detectedState[0]);
-  }catch(exception& e){
-    std::cout << e.what() << std::endl;
+    for(int nt = 0; nt < numOfDetections; nt++){
+      lifetime[nt] = 2;
+      trackers.push_back(new TexturelessParticleFilterTracker());
+      ((TexturelessParticleFilterTracker*)trackers[nt])->setNumParticle(n);
+      ((TexturelessParticleFilterTracker*)trackers[nt])->setThresholdCM(th_cm);
+      ((TexturelessParticleFilterTracker*)trackers[nt])->initParticleFilter();
+      trackers[nt]->setSampleStep(sample_step);
+      trackers[nt]->setMaxSearchDistance(15);
+      trackers[nt]->setDisplay(display);
+      trackers[nt]->setNetworkMode(false);
+      trackers[nt]->setConsideringDullEdges(dull_edge);
+      trackers[nt]->setTracking(true);
+      trackers[nt]->setCannyHigh(100);
+      trackers[nt]->setCannyLow(90);
+      try{
+        ((TexturelessParticleFilterTracker*)trackers[nt])->generate_tracker(origin_tracker_, detectedState[nt]);
+      }catch(exception& e){
+        std::cout << e.what() << std::endl;
+      }
+    }
+
+    //trackers[nt]->setPose(detectedState[nt]);
+    timer.start();
+    for(int time = 0; time < 10 ; time++){
+      std::cout << "tracking at time " << time << std::endl;
+      //((TexturelessParticleFilterTracker*)origin_tracker_)->resetImage();
+      origin_tracker_->setImage(images[time]);
+      for(int nt = 0; nt < numOfDetections; nt++){
+        if(lifetime[nt] <= 0)
+          continue;
+        //std::cout << " tracker " << nt << std::endl;
+        int trackresult = trackers[nt]->tracking();
+        //std::cout << "  with result: " << trackresult << std::endl;
+        if(trackresult == 0){
+          trackers[nt]->renderResults();
+          lifetime[nt] = 2;
+        }
+        else{
+          lifetime[nt] -= 1;
+        }
+          
+      }
+      cv::Mat img_result = origin_tracker_->getResultImage();
+      cv::Mat img_edge   = origin_tracker_->getEdgeImage();
+      std::string resultname = "output/result_img" + std::to_string(time) + ".png";
+      std::string edgename = "output/edge_img" + std::to_string(time) + ".png";
+      imwrite(resultname, img_result);
+      imwrite(edgename, img_edge);
+    }
+    timer.printTimeMilliSec("processing");
+  }
+  else{
+    std::cout << "no detection!!!\n";
   }
 
-  tracker_->setPose(detectedState[0]);
-  timer.start();
-  for(int time = 0; time < 5 ; time++){
-    std::cout << "tracking at time " << time << std::endl;
-    ((TexturelessParticleFilterTracker*)origin_tracker_)->resetImage();
-    tracker_->tracking();
-    tracker_->renderResults();
-    cv::Mat img_result = origin_tracker_->getResultImage();
-    cv::Mat img_edge   = origin_tracker_->getEdgeImage();
-    std::string resultname = "output/result_img" + std::to_string(time) + ".png";
-    std::string edgename = "output/edge_img" + std::to_string(time) + ".png";
-    imwrite(resultname, img_result);
-    imwrite(edgename, img_edge);
-  }
-  timer.printTimeMilliSec("processing");
-
-  tracker_->renderResults();
-  cv::Mat img_result = origin_tracker_->getResultImage();
-  cv::Mat img_edge   = origin_tracker_->getEdgeImage();
-  std::string resultname = "output/result_img.png";
-  std::string edgename = "output/edge_img.png";
-  imwrite(resultname, img_result);
-  imwrite(edgename, img_edge);
-
-
-
+*/
   origin_tracker_->clean();
   delete origin_tracker_;
-
   return (0);
 }

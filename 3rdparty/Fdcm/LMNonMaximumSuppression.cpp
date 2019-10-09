@@ -137,7 +137,7 @@ void LMNonMaximumSuppression::ComputeDetection(MatchingCostMap &matchingCostMap,
 	
 	if(detWinds.size()==0)
 	{
-		cout<<"\t "<<wind.size()<<"//"<<detWinds.size()<<endl;
+		//cout<<"\t "<<wind.size()<<"//"<<detWinds.size()<<endl;
 		return;
 	}
 
@@ -158,6 +158,6 @@ void LMNonMaximumSuppression::ComputeDetection(MatchingCostMap &matchingCostMap,
 			wind.push_back(tmpWind[i]);
 	}
 
-	cout<<"\t "<<wind.size()<<"//"<<detWinds.size()<<endl;
+	//cout<<"\t "<<wind.size()<<"//"<<detWinds.size()<<endl;
 	delete [] tmpWind;
 }

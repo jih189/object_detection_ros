@@ -749,7 +749,7 @@ void LMLineMatcher::SingleShapeDetectionWithVaryingQuerySizeForROC(LFLineFitter 
 
 	}
 
-	cout<<"]"<<endl;
+	//cout<<"]"<<endl;
 	//cout<<"Structure computation";
 	//cout<<" ( "<<maxSearchScale_-minSearchScale_+1<<" scales )"<<" taking "<<structureCompTime<<" seconds"<<endl;
 
@@ -1219,11 +1219,11 @@ void LMLineMatcher::MultiShapeDetectionWithVaryingTemplateSize(LFLineFitter &lf,
     queryDistanceImage_.SetImage(queryImage_);
 
     // compute matching cost
-    std::cout << "[";
+    //std::cout << "[";
     #pragma omp parallel for num_threads(10)
     for(int t=0; t<ndbImages_; t++)
     {
-        std::cout << ".";
+        //std::cout << ".";
         DetectBruteForceVaryingTemplateSize(dbImages_[t], maxThreshold, matchingCostMap[t]);
 /*
         // jiaming hu modified: get the result image of the cost for each template

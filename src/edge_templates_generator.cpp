@@ -59,7 +59,7 @@ CvPoint2D32f project3Dto2D(CvPoint3D32f pt3, CvMat* pose, CvMat* param_intrinsic
   return pt2;
 }
 
-CvRect drawModel(IplImage* img, std::vector<CvPoint3D32f> ep1, std::vector<CvPoint3D32f> ep2, CvMat* pose, CvMat* param_intrinsic, CvScalar color, CvPoint3D32f originPoint)
+CvRect drawModel(IplImage* img, std::vector<CvPoint3D32f> ep1, std::vector<CvPoint3D32f> ep2, CvMat* pose, CvMat* param_intrinsic, CvScalar color, CvPoint3D32f originPoint, cv::Mat filterimg)
 {
   float widthf = static_cast<float>(img->width), heightf = static_cast<float>(img->height);
   CvPoint2D32f pt21, pt22;
@@ -67,7 +67,7 @@ CvRect drawModel(IplImage* img, std::vector<CvPoint3D32f> ep1, std::vector<CvPoi
   for(int i=0; i<ep1.size(); i++)
   {
     pt21 = project3Dto2D(ep1[i], pose, param_intrinsic);
-    pt22 = project3Dto2D(ep2[i], pose, param_intrinsic);
+    pt22 = project3Dto2D(ep2[i], pose, param_intrinsic);  
     cvLine(img, cvPointFrom32f(pt21), cvPointFrom32f(pt22), color, 1, 8);
     if(pt21.x < l) l = pt21.x;
     if(pt21.x > r) r = pt21.x;
@@ -77,8 +77,12 @@ CvRect drawModel(IplImage* img, std::vector<CvPoint3D32f> ep1, std::vector<CvPoi
     if(pt22.x < l) l = pt22.x;
     if(pt22.x > r) r = pt22.x;
     if(pt22.y < t) t = pt22.y;
-    if(pt22.y > b) b = pt22.y;
+    if(pt22.y > b) b = pt22.y;  
   }
+  cv::Mat m = cv::cvarrToMat(img);
+  cv::bitwise_not(filterimg, filterimg);
+  cv::bitwise_and(m, filterimg, m);
+  *img = m;
 
   l = max(0.f, l);
   r = min(widthf - 1.f, r);
@@ -173,7 +177,6 @@ int main(int argc, char **argv)
   lf.Configure("para_template_line_fitter.txt");
 
   cvNamedWindow("Edge");
-
   while(key != 27) // until 'esc'
   {
     cvSet(img_result, cvScalar(0)); // reset image
@@ -197,21 +200,24 @@ int main(int argc, char **argv)
     cvReleaseMat(&poset);
     glPopMatrix();
 
-    // Draw object model with visibility test
-    cObjModel.setModelviewMatrix(pose); // update the initial pose to object model for displaying    
+    cObjModel.setModelviewMatrix(pose); // update the initial pose to object model for displaying
     cObjModel.findVisibleSamplePoints(); // draw object model with visibility test
+    cObjModel.getVisibleArea(height, width);
 
     // Find visible edges
     std::vector<CvPoint3D32f> ep1, ep2;
    
     std::vector<CObjectModel::SamplePoint>& vsp = cObjModel.getVisibleSamplePoints();
-    
+    //std::vector<CObjectModel::SamplePoint>& vsp = cObjModel.getVisibleContoursPoints();
+    //std::cout << "number of visible points = " << vsp.size() << std::endl;
+
     // determine two end points in each common edge_mem sample points
     int edge_mem = vsp[0].edge_mem;
     ep1.push_back(vsp[0].coord3);
     int i;
-    for(i=0; i<int(vsp.size()); i++)
+    for(i=1; i<int(vsp.size()); i++)
     {
+      
       if(edge_mem == vsp[i].edge_mem)
       {
         // skip over
@@ -224,11 +230,13 @@ int main(int argc, char **argv)
         // update new edge_mem value
         edge_mem = vsp[i].edge_mem;
       }
+      
+      //cvCircle(img_result, cvPointFrom32f(vsp[i].coord2), 2, CV_RGB(255,255,255), -1, CV_AA, 0);
     }
     ep2.push_back(vsp[i-1].coord3);
 
     CvPoint3D32f originPoint={modelPosition[0],modelPosition[1],modelPosition[2]};
-    CvRect bound = drawModel(img_result, ep1, ep2, pose, param_intrinsic, CV_RGB(255, 255, 255), originPoint);
+    CvRect bound = drawModel(img_result, ep1, ep2, pose, param_intrinsic, CV_RGB(255, 255, 255), originPoint, cObjModel.contourimg);
     bound.x -= 2;
     bound.y -= 2;
     bound.width += 4;
@@ -281,11 +289,11 @@ int main(int argc, char **argv)
       ofstream centerfile;
       sprintf(buf, "/pose_position%03d.txt", int_not);
       centerfile.open((str_result_path + buf).c_str());
-      centerfile << (ptori.x - bound.x) << " " << (ptori.y - bound.y) << std::endl;
+      //centerfile << (ptori.x - bound.x) << " " << (ptori.y - bound.y) << std::endl;
       centerfile.close();
 
       // save edge template
-      cvSetImageROI(img_result, bound);
+      //cvSetImageROI(img_result, bound);
       sprintf(buf, "/edge_template%03d.png", int_not);
       cvSaveImage((str_result_path + buf).c_str(), img_result);
 

@@ -2299,6 +2299,9 @@ CMakeFiles/EBTDemo.dir/src/main.cpp.o
  /usr/local/include/opencv/cv.h
  /usr/local/include/opencv/highgui.h
  /usr/local/include/opencv2/calib3d/calib3d.hpp
+ /usr/local/include/opencv2/contrib/contrib.hpp
+ /usr/local/include/opencv2/contrib/openfabmap.hpp
+ /usr/local/include/opencv2/contrib/retina.hpp
  /usr/local/include/opencv2/core/core.hpp
  /usr/local/include/opencv2/core/core_c.h
  /usr/local/include/opencv2/core/eigen.hpp
@@ -2346,10 +2349,16 @@ CMakeFiles/EBTDemo.dir/src/main.cpp.o
  /usr/local/include/opencv2/imgproc/imgproc_c.h
  /usr/local/include/opencv2/imgproc/types_c.h
  /usr/local/include/opencv2/legacy/compat.hpp
+ /usr/local/include/opencv2/ml/ml.hpp
  /usr/local/include/opencv2/nonfree/features2d.hpp
  /usr/local/include/opencv2/nonfree/nonfree.hpp
  /usr/local/include/opencv2/objdetect/objdetect.hpp
+ /usr/local/include/opencv2/opencv.hpp
+ /usr/local/include/opencv2/photo/photo.hpp
+ /usr/local/include/opencv2/photo/photo_c.h
+ /usr/local/include/opencv2/video/background_segm.hpp
  /usr/local/include/opencv2/video/tracking.hpp
+ /usr/local/include/opencv2/video/video.hpp
  /usr/protobuf/include/google/protobuf/arena.h
  /usr/protobuf/include/google/protobuf/arena_impl.h
  /usr/protobuf/include/google/protobuf/arenastring.h

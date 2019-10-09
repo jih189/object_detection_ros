@@ -92,7 +92,7 @@ int main(int argc, char **argv)
   LFLineFitter lf;
   lf.Init();
   lf.Configure("para_template_line_fitter.txt");
-  for(int num = 0 ; num < 104 ; num++){
+  for(int num = 0 ; num < 49 ; num++){
     char buf[100];
 
     sprintf( buf, "/home/jiaming/object_tracking_2D/build/train_images/edge_template%03d.png", num);
