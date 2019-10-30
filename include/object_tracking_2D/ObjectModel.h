@@ -47,6 +47,7 @@ public:
 
   void loadObjectCADModel(const std::string& obj_name);
   void findVisibleSamplePoints(void);
+  void findSamplePointOnContour(void);
   void keepOnlyContourPoints(void);
 
   void setProjectionMatrix(CvMat* intrinsic);

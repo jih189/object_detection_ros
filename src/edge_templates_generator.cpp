@@ -80,8 +80,8 @@ CvRect drawModel(IplImage* img, std::vector<CvPoint3D32f> ep1, std::vector<CvPoi
     if(pt22.y > b) b = pt22.y;  
   }
   cv::Mat m = cv::cvarrToMat(img);
-  cv::bitwise_not(filterimg, filterimg);
-  cv::bitwise_and(m, filterimg, m);
+  //cv::bitwise_not(filterimg, filterimg);
+  //cv::bitwise_and(m, filterimg, m);
   *img = m;
 
   l = max(0.f, l);

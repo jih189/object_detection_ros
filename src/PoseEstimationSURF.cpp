@@ -240,15 +240,13 @@ int CPoseEstimationSURF::PF_estimatePosesFDCM(float maxThreshold, int numOfDetec
   // jiaming
   //displayImage = cvCreateImage(cvGetSize(inputImage),IPL_DEPTH_8U,3);
 
-  if(displayImage) cvCvtColor(inputImage, displayImage, CV_GRAY2RGB);
+  //if(displayImage) cvCvtColor(inputImage, displayImage, CV_GRAY2RGB);
 
   if(smoothSize > 0)
     cvSmooth(inputImage, inputImage, CV_GAUSSIAN, smoothSize, smoothSize);
 
   cvCanny(inputImage, edgeImage, cannyLow, cannyHigh);
 
-
-  cvSaveImage("edge_img.png", edgeImage);
   
 /*
   std::cout << "frank: filter the image\n";
@@ -325,14 +323,14 @@ int CPoseEstimationSURF::PF_estimatePosesFDCM(float maxThreshold, int numOfDetec
     tmpWind.clear();
   }
 
-
+  /*
   if(detWind.size() > 0 && displayImage)
     for(size_t i=1; i<(detWind.size()<maxDet ? detWind.size() : maxDet); i++)
       DrawDetWind(displayImage, detWind[i].x_, detWind[i].y_, detWind[i].width_, detWind[i].height_, cvScalar(255,255,0), 1);
 
   if(detWind.size() > 0 && displayImage)
     DrawDetWind(displayImage, detWind[0].x_, detWind[0].y_, detWind[0].width_, detWind[0].height_, cvScalar(0,255,255), 1);
-
+  */
   std::cout << "after NMS\n";
   std::cout << "x	y	width	height	cost		count	scale	aspect	template_id" << std::endl;
   for(size_t i=0; i<detWind.size(); i++)
@@ -375,7 +373,7 @@ int CPoseEstimationSURF::PF_estimatePosesFDCM(float maxThreshold, int numOfDetec
       CV_MAT_ELEM(*poses[i], float, 1, 3) = Y;
       CV_MAT_ELEM(*poses[i], float, 2, 3) = Z;
 
-      obj_model_->displayPoseLine(displayImage, poses[i], CV_RGB(0, 255, 0), 1, false);
+      //obj_model_->displayPoseLine(displayImage, poses[i], CV_RGB(0, 255, 0), 1, false);
     }
 
     for(int i = 0; i < numOfDet; i++)
@@ -385,7 +383,7 @@ int CPoseEstimationSURF::PF_estimatePosesFDCM(float maxThreshold, int numOfDetec
     }
 
     /*approach the object*/
-    cvSaveImage("detect_img.png", displayImage);
+    //cvSaveImage("detect_img.png", displayImage);
 
     for(int i = 0; i < numOfDet; i++)
     {

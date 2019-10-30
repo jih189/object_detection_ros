@@ -489,6 +489,7 @@ public:
   bool setImage(cv::Mat image)
   {
       //imageFilter(image);
+      cvSetZero(img_mask_);
       IplImage copy = image;
       img_input_ = static_cast<IplImage *>(&copy);
 
@@ -570,7 +571,7 @@ protected:
     if(img_edge_) cvReleaseImage(&img_edge_);
     img_edge_ = cvCreateImage(cvSize(width, height), 8, 3);
     if(img_mask_) cvReleaseImage(&img_mask_);
-    img_mask_ = cvCreateImage(cvSize(width, height), 8, 3);
+    img_mask_ = cvCreateImage(cvSize(width, height), 8, 1);
 
     return (true);
   }

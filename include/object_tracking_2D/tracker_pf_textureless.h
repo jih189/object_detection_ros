@@ -137,111 +137,97 @@ public:
       obj_model_->extractEdge(img_gray_, smooth_size_, th_canny_l_, th_canny_h_, cam_->getEdge(), img_mask_);
       obj_model_->extractEdgeOri(img_gray_, smooth_size_);
 
-      CvMat *intri_mat = cam_->getIntrinsicParams();
-      const float match_rate_threshold = 3.6;
-      const float c = 64.f;
-      //IplImage *checkimg = cvCreateImage(cvGetSize(img_gray_), 8, 3);
-      IplImage *checkimg = cvCreateImage(cvGetSize(img_gray_), 8, 1);
+      //IplImage *checkimg = cvCreateImage(cvGetSize(img_gray_), 8, 1);
       CvMat *rotatestate = cvCreateMat(4, 4, CV_32F);
       CvMat *resultstate = cvCreateMat(4, 4, CV_32F);
-      CvMat *maxmatchstate = cvCreateMat(4, 4, CV_32F);
       for (int d = 0; d < numof_det; d++)
       {
+        //cvZero(checkimg);
 
-        //cvCvtColor(img_gray_, checkimg, CV_GRAY2BGR);
-        cvZero(checkimg);
-        float maxmatch = 0.0;
+        /* use particle filter */
+        pf_->Init(resultPose[d]);
+        pf_->Propagate(noise_l_, noise_h_, true);
 
-        float match_threshold = match_rate_threshold / CV_MAT_ELEM(*(resultPose[d]), float, 2, 3);
-        if (match_threshold > maxd_)
-          match_threshold = maxd_;
-
-        float tempmatchrate = 0.0;
-        for (int approachstep = 0; approachstep < 1; approachstep++)
+        /* use particle filter */
+        //for (int approachstep = 0; approachstep < 1; approachstep++)
+        for (int p = 0; p < pf_->GetNumOfParticle(); p++)
         {
-          obj_model_->setModelviewMatrix(resultPose[d]);
-          obj_model_->findVisibleSamplePoints();
+          obj_model_->setModelviewMatrix(pf_->GetPropState(p));
+          //obj_model_->findVisibleSamplePoints();
+          obj_model_->findSamplePointOnContour();
           obj_model_->getVisibleArea(height_, width_);
           obj_model_->keepOnlyContourPoints();
 
           /* draw the contour */
           IplImage tempimg = obj_model_->contourimg;
-          cvCanny(&tempimg, checkimg, th_canny_l_, th_canny_h_);
+          //cvCanny(&tempimg, checkimg, th_canny_l_, th_canny_h_);
 
           /* draw the contour */
 
           int numOfVisiblePoints = obj_model_->getVisibleSamplePoints().size();
-          std::cout << "number of visible sample points on the contour = " << numOfVisiblePoints << std::endl;
+          //std::cout << "number of visible sample points on the contour = " << numOfVisiblePoints << std::endl;
 
           if (numOfVisiblePoints > 6)
           {
-
             obj_model_->findNormalUsingEdgeCoordCoarseOri();
             obj_model_->findEdgeCorrespondencesCoarseOri();
-            if (th_ransac_ > 0.0f)
-            {
-              obj_model_->refineEdgeCorrespondences_RANSAC(resultPose[d], th_ransac_iter_, th_ransac_);
-            }
 
             CvMat *J = NULL, *e = NULL;
 
-            edge_tracker_->PF_getJacobianAndError(resultPose[d], obj_model_->getVisibleSamplePoints(), &J, &e);
-            if (J == NULL)
-            {
-              continue;
-            }
-            int N = J->rows;
+            edge_tracker_->PF_getJacobianAndError(pf_->GetPropState(p), obj_model_->getVisibleSamplePoints(), &J, &e);
 
-            CvMat *W = cvCreateMat(N, N, CV_32F);
-            CvMat *Jt_W = cvCreateMat(6, N, CV_32F);
-            CvMat *Jt_W_J = cvCreateMat(6, 6, CV_32F);
-            CvMat *Jt_W_J_inv = cvCreateMat(6, 6, CV_32F);
-            CvMat *Jt_W_e = cvCreateMat(6, 1, CV_32F);
-            CvMat *inc = cvCreateMat(6, 1, CV_32F);
+            pf_->Update_IRLS(p, J, e, obj_model_->getNumberOfVisibleSamplePoints());
 
-            cvSetIdentity(W);
-            for (int j = 0; j < N; j++)
-            {
-              CV_MAT_ELEM(*W, float, j, j) = 1.0f / (c + CV_MAT_ELEM(*e, float, j, 0));
-            }
+            // calculate weights
+            pf_->calculateWeights(p, e, obj_model_->getVisibleSamplePoints(), maxd_, lamda_e_, lamda_v_);
 
-            cvGEMM(J, W, 1.0, NULL, 0.0, Jt_W, CV_GEMM_A_T); // J'*W
-            cvGEMM(Jt_W, J, 1.0, NULL, 0.0, Jt_W_J);         // J'*W*J
-            cvInvert(Jt_W_J, Jt_W_J_inv);                    // inv(J'*W*J)
-            cvGEMM(Jt_W, e, 1.0, NULL, 0.0, Jt_W_e);         // J'*W*e
-            cvMatMul(Jt_W_J_inv, Jt_W_e, inc);
-
-            double inc_data[6];
-            for (int j = 0; j < 6; j++)
-              inc_data[j] = 2 * CV_MAT_ELEM(*inc, float, j, 0);
-
-            TooN::Vector<6> inc_vec(inc_data);
-            SE3 M_inc = SE3::exp(inc_vec);
-
-            Matrix<4> M_prop;
-            for (int r = 0; r < 4; r++)
-              for (int c = 0; c < 4; c++)
-                M_prop[r][c] = (double)CV_MAT_ELEM(*resultPose[d], float, r, c);
-
-            Matrix<4> M_opt = M_prop * M_inc;
-
-            for (int r = 0; r < 4; r++)
-              for (int c = 0; c < 4; c++)
-                CV_MAT_ELEM(*resultPose[d], float, r, c) = (float)M_opt[r][c];
+            // release after use them
 
             if (J)
               cvReleaseMat(&J);
             if (e)
               cvReleaseMat(&e);
 
-            cvReleaseMat(&W);
-            cvReleaseMat(&Jt_W);
-            cvReleaseMat(&Jt_W_J);
-            cvReleaseMat(&Jt_W_J_inv);
-            cvReleaseMat(&Jt_W_e);
-            cvReleaseMat(&inc);
+            if (pf_->GetNumOfParticle() > 1)
+            {
+              // update the initial pose to object model for displaying
+              obj_model_->setModelviewMatrix(pf_->GetOptState(p));
+              // draw object model with visibility test
+              //obj_model_->findVisibleSamplePoints();
+              obj_model_->findSamplePointOnContour();
+              // find normal of each sampling point
+              obj_model_->findNormalUsingEdgeCoord();
+              // calculate error between sampling points and nearest edge
+              obj_model_->findEdgeCorrespondences();
+
+              e = NULL;
+              edge_tracker_->PF_getError(pf_->GetOptState(p), obj_model_->getVisibleSamplePoints(), &e);
+              // Calculate weights for optimized particles
+              pf_->calculateWeights(p, e, obj_model_->getVisibleSamplePoints(), maxd_, lamda_e_, lamda_v_, true);
+
+              if (e)
+                cvReleaseMat(&e);
+            }
           }
         }
+
+        if (pf_->GetNumOfParticle() > 1)
+          pf_->CorrectWeights();
+
+        // resampling
+        bool valid;
+        if (pf_->GetNumOfParticle() > 1)
+          valid = pf_->ResampleOpt(beta_[0], true, true); // and calculate particle mean
+        else
+          valid = pf_->Resample(beta_[0], true, true); // and calculate particle mean
+
+        if (valid) // && th_neff_ratio_*static_cast<float>(pf_->GetNumOfParticle()) < pf_->GetNeff())
+        {
+          mutex_.lock();
+          cvCopy(pf_->GetMeanState(), resultPose[d]);
+          mutex_.unlock();
+        }
+
         /*
         for(float xangle = -0.2 ; xangle <= 0.2 ; xangle += 0.2){
           for(float yangle = -0.2 ; yangle <= 0.2 ; yangle += 0.2){
@@ -374,54 +360,43 @@ public:
             CV_MAT_ELEM(*(resultPose[d]), float, r, c) = CV_MAT_ELEM(*maxmatchstate, float, r, c);
           }
         }
-*/
 
+*/
         obj_model_->setModelviewMatrix(resultPose[d]);
-        obj_model_->findVisibleSamplePoints();
         obj_model_->getVisibleArea(height_, width_);
+        for (int i = 1; i < img_mask_->width - 1; i++)
+        {
+          for (int j = 1; j < img_mask_->height - 1; j++)
+          {
+            if (obj_model_->contourimg.at<unsigned char>(j, i) == 0xFF)
+            {
+              CV_IMAGE_ELEM(img_mask_, uchar, j, i) = 255;
+            }
+          }
+        }
+
+        /*
+        obj_model_->findVisibleSamplePoints();
+        
         obj_model_->keepOnlyContourPoints();
         obj_model_->findNormalUsingEdgeCoord();
         obj_model_->findEdgeCorrespondences();
 
-        if (obj_model_->getVisibleSamplePoints().size() > 0)
+
+        for (int vp = 0; vp < obj_model_->getVisibleSamplePoints().size(); vp++)
         {
-          int detectionpoint = 1;
-          cvCircle(checkimg, cvPointFrom32f((obj_model_->getVisibleSamplePoints())[0].coord2), 3, cvScalar(255), -1, CV_AA, 0);
-          float lastx = (obj_model_->getVisibleSamplePoints())[0].coord2.x;
-          float lasty = (obj_model_->getVisibleSamplePoints())[0].coord2.y;
-
-          for (int vp = 1; vp < obj_model_->getVisibleSamplePoints().size(); vp++)
-          {
-            //if ((obj_model_->getVisibleSamplePoints())[vp].dist < match_threshold)
-            float distanceinx = std::abs((obj_model_->getVisibleSamplePoints())[vp].coord2.x - lastx);
-            float distanceiny = std::abs((obj_model_->getVisibleSamplePoints())[vp].coord2.y - lasty);
-            if (distanceinx * distanceinx + distanceiny * distanceiny > 100 )
-            {
-              cvCircle(checkimg, cvPointFrom32f((obj_model_->getVisibleSamplePoints())[vp].coord2), 3, cvScalar(255), -1, CV_AA, 0);
-              lastx = (obj_model_->getVisibleSamplePoints())[vp].coord2.x;
-              lasty = (obj_model_->getVisibleSamplePoints())[vp].coord2.y;
-              detectionpoint++;
-            }
-          }
-          std::cout << "number of avaliable tracking points is " <<  detectionpoint << std::endl;
+          cvCircle(checkimg, cvPointFrom32f((obj_model_->getVisibleSamplePoints())[vp].coord2), 3, cvScalar(255), -1, CV_AA, 0);
         }
-
+*/
         //std::cout << "number of visible points = " << obj_model_->getVisibleSamplePoints().size() << std::endl;
-        std::cout << d << " best matching rate: " << maxmatch << std::endl;
-        cvSaveImage(("check/maxmatch" + std::to_string(d) + ".png").c_str(), checkimg);
-        if (maxmatch >= 0.0)
-        {
-          detectedStates.push_back(resultPose[d]);
-        }
-        else
-        {
-          cvReleaseMat(&(resultPose[d]));
-        }
+        //std::cout << d << " best matching rate: " << maxmatch << std::endl;
+        //cvSaveImage(("check/maxmatch" + std::to_string(d) + ".png").c_str(), checkimg);
+
+        detectedStates.push_back(resultPose[d]);
       }
       cvReleaseMat(&rotatestate);
       cvReleaseMat(&resultstate);
-      cvReleaseMat(&maxmatchstate);
-      cvReleaseImage(&checkimg);
+      //cvReleaseImage(&checkimg);
 
       if (detectedStates.size() > 0)
       {
@@ -526,6 +501,7 @@ protected:
 
   virtual int tracking()
   {
+    Timer timer;
     // do annealing process only after (re-)initialization
     int num_anneal_level = frame_num_after_init_ == 0 ? num_annealing_layers_ : 1;
 
@@ -552,7 +528,10 @@ protected:
         // update the initial pose to object model for displaying
         obj_model_->setModelviewMatrix(pf_->GetPropState(p));
         // draw object model with visibility test
-        obj_model_->findVisibleSamplePoints();
+        //obj_model_->findVisibleSamplePoints();
+        obj_model_->findSamplePointOnContour();
+        obj_model_->getVisibleArea(height_, width_);
+        obj_model_->keepOnlyContourPoints();
         // find normal of each sampling point
         obj_model_->findNormalUsingEdgeCoord();
         // calculate error between sampling points and nearest edge
@@ -564,23 +543,11 @@ protected:
 
         // consider edge sample points only
         CvMat *J = NULL, *e = NULL;
+
         edge_tracker_->PF_getJacobianAndError(pf_->GetPropState(p), obj_model_->getVisibleSamplePoints(), &J, &e);
 
-        float match_threshold = 2.0 / CV_MAT_ELEM(*(pf_->GetPropState(p)), float, 2, 3);
-        if (match_threshold > maxd_)
-          match_threshold = maxd_;
-        int numofInner = 0;
-        for (int vp = 0; vp < obj_model_->getVisibleSamplePoints().size(); vp++)
-        {
-          if ((obj_model_->getVisibleSamplePoints())[vp].dist < match_threshold)
-          {
-            numofInner++;
-          }
-        }
-        if (currentMatchrate < (float)numofInner / obj_model_->getVisibleSamplePoints().size())
-          currentMatchrate = (float)numofInner / obj_model_->getVisibleSamplePoints().size();
-
         pf_->Update_IRLS(p, J, e, obj_model_->getNumberOfVisibleSamplePoints());
+
         // calculate weights
         pf_->calculateWeights(p, e, obj_model_->getVisibleSamplePoints(), maxd_, lamda_e_, lamda_v_);
         // release after use them
@@ -595,7 +562,11 @@ protected:
           // update the initial pose to object model for displaying
           obj_model_->setModelviewMatrix(pf_->GetOptState(p));
           // draw object model with visibility test
-          obj_model_->findVisibleSamplePoints();
+          //obj_model_->findVisibleSamplePoints();
+          obj_model_->findSamplePointOnContour();
+
+          obj_model_->getVisibleArea(height_, width_);
+          obj_model_->keepOnlyContourPoints();
           // find normal of each sampling point
           obj_model_->findNormalUsingEdgeCoord();
           // calculate error between sampling points and nearest edge
@@ -611,10 +582,6 @@ protected:
             cvReleaseMat(&e);
         }
       }
-
-      //std::cout << "  current match rate is " << currentMatchrate << std::endl;
-      if (currentMatchrate < 0.65)
-        return 1;
 
       // correct weights caused from considering optimized states
       if (pf_->GetNumOfParticle() > 1)
@@ -632,6 +599,45 @@ protected:
         mutex_.lock();
         cvCopy(pf_->GetMeanState(), pose_);
         mutex_.unlock();
+        obj_model_->setModelviewMatrix(pose_);
+        obj_model_->findSamplePointOnContour();
+        obj_model_->getVisibleArea(height_, width_);
+
+        /* draw the mask out */
+        for (int i = 10; i < img_mask_->width - 10; i++)
+        {
+          for (int j = 10; j < img_mask_->height - 10; j++)
+          {
+            if (obj_model_->contourimg.at<unsigned char>(j, i) == 0xFF)
+            {
+
+              CV_IMAGE_ELEM(img_mask_, uchar, j, i) = 255;
+            }
+          }
+        }
+        /*draw the mask out */
+
+        obj_model_->keepOnlyContourPoints();
+        // find normal of each sampling point
+        obj_model_->findNormalUsingEdgeCoord();
+        // calculate error between sampling points and nearest edge
+        obj_model_->findEdgeCorrespondences();
+        float match_threshold = 2.0 / CV_MAT_ELEM(*pose_, float, 2, 3);
+        if (match_threshold > maxd_)
+          match_threshold = maxd_;
+        int numofInner = 0;
+        for (int vp = 0; vp < obj_model_->getVisibleSamplePoints().size(); vp++)
+        {
+          if ((obj_model_->getVisibleSamplePoints())[vp].dist < match_threshold)
+          {
+            numofInner++;
+          }
+        }
+        currentMatchrate = (float)numofInner / obj_model_->getVisibleSamplePoints().size();
+        //std::cout << "matching rate: " << currentMatchrate << std::endl;
+        //std::cout << " number of visible points: " << obj_model_->getVisibleSamplePoints().size() << std::endl;
+        if (currentMatchrate < 0.35)
+          return 1;
       }
       else
       {

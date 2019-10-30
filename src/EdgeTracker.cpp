@@ -200,9 +200,10 @@ void CEdgeTracker::PF_getJacobianAndError(CvMat* Mprev, std::vector<CObjectModel
   double dist_max = maxd_;
   // first count the number of valid sample points
   int nov = 0;
-  for(int i=0; i<int(vSamplePt.size()); i++)
+  for(int i=0; i<int(vSamplePt.size()); i++){
     if(vSamplePt[i].dist < dist_max) // only valid points
       nov++;
+  }
   
   if(nov < 6)
     return;
