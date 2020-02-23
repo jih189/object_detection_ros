@@ -1,5 +1,4 @@
 file(REMOVE_RECURSE
-  "CMakeFiles/ETGDemo.dir/include/object_tracking_2D/utils.cpp.o"
   "CMakeFiles/ETGDemo.dir/src/edge_templates_generator.cpp.o"
   "CMakeFiles/ETGDemo.dir/src/Camera.cpp.o"
   "CMakeFiles/ETGDemo.dir/src/EdgeTracker.cpp.o"

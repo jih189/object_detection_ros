@@ -59,11 +59,15 @@ public:
     return pt2;
   }
 
-  virtual bool initTracker(std::string &obj_name, std::string &cam_name, std::string &intrinsic, std::string &distortion, int width, int height, CvMat *pose_init, std::string ach_channel)
+  virtual bool initTracker(std::string &template_directory, std::string &cam_name, std::string &intrinsic, std::string &distortion, int width, int height, CvMat *pose_init, std::string ach_channel)
   {
-    TrackerBase::initTracker(obj_name, cam_name, intrinsic, distortion, width, height, pose_init, ach_channel);
+    size_t i = template_directory.rfind('/', template_directory.length());
+    // the file name should be the object name
+    std::string object_name = template_directory.substr(i + 1, template_directory.length() - i);
 
-    initPoseEstimationSURF(width, height, obj_name, obj_name);
+    TrackerBase::initTracker(template_directory, cam_name, intrinsic, distortion, width, height, pose_init, ach_channel);
+
+    initPoseEstimationSURF(width, height, template_directory, object_name);
 
     pf_->Init(pose_init);
 
@@ -72,6 +76,7 @@ public:
 
   void generate_tracker(TrackerBase *cloned_tracker, CvMat *pose_init)
   {
+
     TrackerBase::generate_tracker(cloned_tracker, pose_init);
     pe_surf_ = ((TexturelessParticleFilterTracker *)cloned_tracker)->pe_surf_;
     pf_->Init(pose_init);
@@ -112,18 +117,17 @@ public:
   {
     if (obj_model_->getNumOfEdgeTemplates() > 0)
     {
+
+      Timer timer;
+      timer.start();
+
+      epnp ePnP;
+      ePnP.set_internal_parameters(CV_MAT_ELEM(*(cam_->getIntrinsicParams()), float, 0, 2),
+                                   CV_MAT_ELEM(*(cam_->getIntrinsicParams()), float, 1, 2),
+                                   CV_MAT_ELEM(*(cam_->getIntrinsicParams()), float, 0, 0),
+                                   CV_MAT_ELEM(*(cam_->getIntrinsicParams()), float, 1, 1));
+
       pe_surf_->setImage(img_gray_);
-
-      // calculate distance transform
-      /*
-      cv::Mat dt_input = cv::cvarrToMat(img_gray_);
-
-      cv::Mat binary(dt_input.size(), dt_input.type());
-      cv::Mat dt_image;
-
-      cv::threshold(dt_input, binary, 100, 255, cv::THRESH_BINARY_INV);
-      cv::distanceTransform(binary, dt_image, CV_DIST_L2, 5);
-*/
 
       std::vector<CvMat *> resultPose;
 
@@ -133,81 +137,117 @@ public:
       {
         return numof_det;
       }
-
-      obj_model_->extractEdge(img_gray_, smooth_size_, th_canny_l_, th_canny_h_, cam_->getEdge(), img_mask_);
-      obj_model_->extractEdgeOri(img_gray_, smooth_size_);
-
-      //IplImage *checkimg = cvCreateImage(cvGetSize(img_gray_), 8, 1);
-      CvMat *rotatestate = cvCreateMat(4, 4, CV_32F);
-      CvMat *resultstate = cvCreateMat(4, 4, CV_32F);
       for (int d = 0; d < numof_det; d++)
       {
-        //cvZero(checkimg);
+        IplImage *imageTemp = cvCreateImage(cvSize(img_gray_->width, img_gray_->height), 8, 3);
+        cvCvtColor(img_gray_, imageTemp, CV_GRAY2BGR);
+        obj_model_->displayPoseLine(imageTemp, resultPose[d], CV_RGB(255, 0, 0), 1, false);
+        cv::imshow("result image" + std::to_string(d), cv::Mat(imageTemp));
+        cvReleaseImage(&imageTemp);
+      }
 
-        /* use particle filter */
+      
+      img_edge_ = obj_model_->extractEdge(img_gray_, smooth_size_, th_canny_l_, th_canny_h_, cam_->getEdge(), img_mask_);
+      cv::imshow("edge image", cv::Mat(img_edge_));
+
+      obj_model_->extractEdgeOri(img_gray_, smooth_size_);
+
+      cv::Mat dt;
+      cv::Mat invertImage(img_edge_->height, img_edge_->width, CV_8UC1);
+
+      cv::bitwise_not(cv::Mat(img_edge_), invertImage);
+      cv::distanceTransform(invertImage, dt, CV_DIST_L2, 3);
+
+      //timer.printTimeMilliSec("preprocess");
+
+
+      for (int d = 0; d < numof_det; d++)
+      {
+        //obj_model_->displayPoseLine(img_mask_, resultPose[d], cvScalar(0), 1, false);
+
         pf_->Init(resultPose[d]);
         pf_->Propagate(noise_l_, noise_h_, true);
 
-        /* use particle filter */
-        //for (int approachstep = 0; approachstep < 1; approachstep++)
+        //Timer dtimer;
+        //dtimer.start();
         for (int p = 0; p < pf_->GetNumOfParticle(); p++)
         {
+
           obj_model_->setModelviewMatrix(pf_->GetPropState(p));
-          //obj_model_->findVisibleSamplePoints();
-          obj_model_->findSamplePointOnContour();
-          obj_model_->getVisibleArea(height_, width_);
+
+          obj_model_->findVisibleSamplePoints();
           obj_model_->keepOnlyContourPoints();
 
-          /* draw the contour */
-          IplImage tempimg = obj_model_->contourimg;
-          //cvCanny(&tempimg, checkimg, th_canny_l_, th_canny_h_);
+          //Timer ptimer;
+          //ptimer.start();
+          
+          obj_model_->refindMatching(dt, ePnP);
 
-          /* draw the contour */
+          pf_->setPropagate(p, obj_model_->getPose());
 
-          int numOfVisiblePoints = obj_model_->getVisibleSamplePoints().size();
-          //std::cout << "number of visible sample points on the contour = " << numOfVisiblePoints << std::endl;
+          obj_model_->findVisibleSamplePoints();
+          obj_model_->keepOnlyContourPoints();
+          
 
-          if (numOfVisiblePoints > 6)
+          obj_model_->findNormalUsingEdgeCoordCoarseOri();
+          obj_model_->findEdgeCorrespondencesCoarseOri();
+
+          // IplImage *imageTemp = cvCreateImage(cvSize(img_gray_->width, img_gray_->height), 8, 3);
+          // IplImage *imagerror = cvCreateImage(cvSize(img_gray_->width, img_gray_->height), 8, 3);
+          // cvCvtColor(img_gray_, imageTemp, CV_GRAY2BGR);
+
+          // if (th_ransac_ > 0.0f)
+          // {
+          // obj_model_->refineEdgeCorrespondences_RANSAC(pf_->GetPropState(p), th_ransac_iter_, th_ransac_);
+          // }
+
+          CvMat *J = NULL, *e = NULL;
+
+          edge_tracker_->PF_getJacobianAndError(obj_model_->getPose(), obj_model_->getVisibleSamplePoints(), &J, &e);
+
+          // obj_model_->displayPoseLine(imageTemp, pf_->GetPropState(p), CV_RGB(255, 0, 0), 1, false);
+          // for (int j = 0; j < obj_model_->getNumberOfVisibleSamplePoints(); j++)
+          // {
+          //   cvCircle(imageTemp, cvPointFrom32f((obj_model_->getVisibleSamplePoints())[j].coord2), 1, CV_RGB(0, 255, 0), -1, 1, 0);
+          // }
+          // obj_model_->drawPointsAndErrorCoarseOri(imagerror);
+
+          // cv::imshow("result image", cv::Mat(imageTemp));
+          // cv::imshow("error image", cv::Mat(imagerror));
+          // cvReleaseImage(&imageTemp);
+          // cvReleaseImage(&imagerror);
+
+          pf_->Update_IRLS(p, J, e, obj_model_->getNumberOfVisibleSamplePoints());
+
+          // calculate weights
+          pf_->calculateWeights(p, e, obj_model_->getVisibleSamplePoints(), maxd_, lamda_e_, lamda_v_);
+
+          // release after use them
+          if (J)
+            cvReleaseMat(&J);
+          if (e)
+            cvReleaseMat(&e);
+
+          if (pf_->GetNumOfParticle() > 1)
           {
-            obj_model_->findNormalUsingEdgeCoordCoarseOri();
-            obj_model_->findEdgeCorrespondencesCoarseOri();
+            e = NULL;
 
-            CvMat *J = NULL, *e = NULL;
-
-            edge_tracker_->PF_getJacobianAndError(pf_->GetPropState(p), obj_model_->getVisibleSamplePoints(), &J, &e);
-
-            pf_->Update_IRLS(p, J, e, obj_model_->getNumberOfVisibleSamplePoints());
-
-            // calculate weights
-            pf_->calculateWeights(p, e, obj_model_->getVisibleSamplePoints(), maxd_, lamda_e_, lamda_v_);
-
-            // release after use them
-
-            if (J)
-              cvReleaseMat(&J);
-            if (e)
-              cvReleaseMat(&e);
-
-            if (pf_->GetNumOfParticle() > 1)
+            if (CV_MAT_ELEM(*(pf_->GetOptState(p)), float, 2, 3) > 0.0 && CV_MAT_ELEM(*(pf_->GetOptState(p)), float, 2, 3) < 2.0)
             {
               // update the initial pose to object model for displaying
               obj_model_->setModelviewMatrix(pf_->GetOptState(p));
               // draw object model with visibility test
-              //obj_model_->findVisibleSamplePoints();
-              obj_model_->findSamplePointOnContour();
+              obj_model_->findVisibleSamplePoints();
               // find normal of each sampling point
               obj_model_->findNormalUsingEdgeCoord();
               // calculate error between sampling points and nearest edge
               obj_model_->findEdgeCorrespondences();
-
-              e = NULL;
               edge_tracker_->PF_getError(pf_->GetOptState(p), obj_model_->getVisibleSamplePoints(), &e);
-              // Calculate weights for optimized particles
-              pf_->calculateWeights(p, e, obj_model_->getVisibleSamplePoints(), maxd_, lamda_e_, lamda_v_, true);
-
-              if (e)
-                cvReleaseMat(&e);
             }
+            // Calculate weights for optimized particles
+            pf_->calculateWeights(p, e, obj_model_->getVisibleSamplePoints(), maxd_, lamda_e_, lamda_v_, true);
+            if (e)
+              cvReleaseMat(&e);
           }
         }
 
@@ -227,176 +267,35 @@ public:
           cvCopy(pf_->GetMeanState(), resultPose[d]);
           mutex_.unlock();
         }
-
-        /*
-        for(float xangle = -0.2 ; xangle <= 0.2 ; xangle += 0.2){
-          for(float yangle = -0.2 ; yangle <= 0.2 ; yangle += 0.2){
-            for(float zangle = -0.2 ; zangle <= 0.2 ; zangle += 0.2){
-              
-              rotate(rotatestate, xangle, yangle, zangle);
-              cvMatMul(resultPose[d], rotatestate, resultstate);
-              obj_model_->setModelviewMatrix(resultstate);
-              obj_model_->findVisibleSamplePoints();
-              obj_model_->getVisibleArea(height_, width_);
-              obj_model_->keepOnlyContourPoints();
-
-              int numOfVisiblePoints = obj_model_->getVisibleSamplePoints().size();
-              int numofInner = 0;
-
-              if(numOfVisiblePoints > 6 ){
-
-                obj_model_->findNormalUsingEdgeCoordCoarseOri();
-                obj_model_->findEdgeCorrespondencesCoarseOri();
-                CvMat *J = NULL, *e = NULL;
-
-                edge_tracker_->PF_getJacobianAndError(resultstate, obj_model_->getVisibleSamplePoints(), &J, &e);
-
-                if(J == NULL){
-                  continue;
-                }
-
-                numofInner = 0;
-                for(int vp = 0 ; vp < obj_model_->getVisibleSamplePoints().size() ; vp++){
-                  if((obj_model_->getVisibleSamplePoints())[vp].dist < match_threshold){
-                    numofInner++;
-                  }
-                }
-                
-                if((float)numofInner/numOfVisiblePoints > (tempmatchrate * 0.9)){
-                  if((float)numofInner/numOfVisiblePoints > tempmatchrate)
-                    tempmatchrate = (float)numofInner/numOfVisiblePoints;
-                }
-                else{
-                  continue;
-                }
-
-                int N = J->rows;
-
-                CvMat* W = cvCreateMat(N, N, CV_32F);
-                CvMat* Jt_W = cvCreateMat(6, N, CV_32F);
-                CvMat* Jt_W_J = cvCreateMat(6, 6, CV_32F);
-                CvMat* Jt_W_J_inv = cvCreateMat(6, 6, CV_32F);
-                CvMat* Jt_W_e = cvCreateMat(6, 1, CV_32F);
-                CvMat* inc = cvCreateMat(6, 1, CV_32F);
-
-                cvSetIdentity(W);
-                for(int j=0; j<N; j++)
-                {
-                  CV_MAT_ELEM(*W, float, j, j) = 1.0f/(c+CV_MAT_ELEM(*e, float, j, 0));
-                }
-
-                cvGEMM(J, W, 1.0, NULL, 0.0, Jt_W, CV_GEMM_A_T); // J'*W
-                cvGEMM(Jt_W, J, 1.0, NULL, 0.0, Jt_W_J); // J'*W*J
-                cvInvert(Jt_W_J, Jt_W_J_inv); // inv(J'*W*J)
-                cvGEMM(Jt_W, e, 1.0, NULL, 0.0, Jt_W_e); // J'*W*e
-                cvMatMul(Jt_W_J_inv, Jt_W_e, inc);
-
-                double inc_data[6];
-                for(int j=0; j<6; j++)
-                  inc_data[j] = 2*CV_MAT_ELEM(*inc, float, j, 0);
-
-                TooN::Vector<6> inc_vec(inc_data);
-                SE3 M_inc = SE3::exp(inc_vec);
-
-                Matrix<4> M_prop;
-                for(int r=0; r<4; r++)
-                  for(int c=0; c<4; c++)
-                    M_prop[r][c] = (double)CV_MAT_ELEM(*resultstate, float, r, c);
-
-                Matrix<4> M_opt = M_prop * M_inc;
-
-                for(int r=0; r<4; r++)
-                  for(int c=0; c<4; c++)
-                    CV_MAT_ELEM(*resultstate, float, r, c) = (float)M_opt[r][c];
-
-                if(J) cvReleaseMat(&J);
-                if(e) cvReleaseMat(&e);
-
-                cvReleaseMat(&W);
-                cvReleaseMat(&Jt_W);
-                cvReleaseMat(&Jt_W_J);
-                cvReleaseMat(&Jt_W_J_inv);
-                cvReleaseMat(&Jt_W_e);
-                cvReleaseMat(&inc);
-
-                obj_model_->setModelviewMatrix(resultstate);
-                obj_model_->findVisibleSamplePoints();
-                obj_model_->getVisibleArea(height_, width_);
-                obj_model_->keepOnlyContourPoints();
-
-                obj_model_->findNormalUsingEdgeCoordFineOri();
-                obj_model_->findEdgeCorrespondencesFineOri();
-
-                numOfVisiblePoints = obj_model_->getVisibleSamplePoints().size();
-                numofInner = 0;
-                for(int vp = 0 ; vp < numOfVisiblePoints ; vp++){
-                  if((obj_model_->getVisibleSamplePoints())[vp].dist < match_threshold){
-                    numofInner++;
-                  }
-                }
-                
-                float matchrate = (float)numofInner/numOfVisiblePoints;
-
-                if(matchrate > maxmatch){
-
-                  maxmatch = matchrate;
-                  for(int r=0; r<4; r++){ 
-                    for(int c=0; c<4; c++){
-                      CV_MAT_ELEM(*maxmatchstate, float, r, c) = CV_MAT_ELEM(*resultstate, float, r, c);
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
         
-
-        // update new state
-        for (int r = 0; r < 4; r++)
-        {
-          for (int c = 0; c < 4; c++)
-          {
-            CV_MAT_ELEM(*(resultPose[d]), float, r, c) = CV_MAT_ELEM(*maxmatchstate, float, r, c);
-          }
-        }
-
-*/
-        obj_model_->setModelviewMatrix(resultPose[d]);
-        obj_model_->getVisibleArea(height_, width_);
-        for (int i = 1; i < img_mask_->width - 1; i++)
-        {
-          for (int j = 1; j < img_mask_->height - 1; j++)
-          {
-            if (obj_model_->contourimg.at<unsigned char>(j, i) == 0xFF)
-            {
-              CV_IMAGE_ELEM(img_mask_, uchar, j, i) = 255;
-            }
-          }
-        }
-
-        /*
-        obj_model_->findVisibleSamplePoints();
-        
-        obj_model_->keepOnlyContourPoints();
-        obj_model_->findNormalUsingEdgeCoord();
-        obj_model_->findEdgeCorrespondences();
-
-
-        for (int vp = 0; vp < obj_model_->getVisibleSamplePoints().size(); vp++)
-        {
-          cvCircle(checkimg, cvPointFrom32f((obj_model_->getVisibleSamplePoints())[vp].coord2), 3, cvScalar(255), -1, CV_AA, 0);
-        }
-*/
-        //std::cout << "number of visible points = " << obj_model_->getVisibleSamplePoints().size() << std::endl;
-        //std::cout << d << " best matching rate: " << maxmatch << std::endl;
-        //cvSaveImage(("check/maxmatch" + std::to_string(d) + ".png").c_str(), checkimg);
 
         detectedStates.push_back(resultPose[d]);
+        //dtimer.printTimeMilliSec("each detection");
       }
-      cvReleaseMat(&rotatestate);
-      cvReleaseMat(&resultstate);
-      //cvReleaseImage(&checkimg);
+      timer.printTimeMilliSec("object detection!");
+      for (int d = 0; d < numof_det; d++)
+      {
+        IplImage *imageTemp = cvCloneImage(img_result_);
+        //IplImage *cropImage = cvCreateImage(cvSize(img_result_->width, img_result_->height), 8, 1);
+        //obj_model_->getVisibleArea(img_result_->height, img_result_->width, false, cropImage);
+        obj_model_->displayPoseLine(imageTemp, resultPose[d], cvScalar(0, 255, 0), 1, false);
+        //std::cout << "check\n";
+
+        obj_model_->setModelviewMatrix(resultPose[d]);
+        obj_model_->findVisibleSamplePoints();
+        obj_model_->keepOnlyContourPoints();
+
+        double currcost = obj_model_->getCMCost(dt);
+        
+        std::cout << "result " << d << " final cost = " << currcost << std::endl;
+        //if(currcost < 1.0)
+        imshow("result" + std::to_string(d), cv::Mat(imageTemp));
+        //imshow("crop" + std::to_string(d), cv::Mat(cropImage));
+
+        cvReleaseImage(&imageTemp);
+        //cvReleaseImage(&cropImage);
+      }
+      
 
       if (detectedStates.size() > 0)
       {
@@ -408,6 +307,7 @@ public:
         init_ = true;
         return 0;
       }
+      
     }
     else
     {
@@ -446,13 +346,13 @@ protected:
         cam_->getIntrinsicParams(),
         cam_->getDistortionParams(),
         obj_name);
-
+    /*
     pe_surf_->buildKdTree(
         obj_model_->getKeyframeImages(),
         obj_model_->getKeyframePoses(),
         obj_model_->getKeyframeKeypoints2D(),
         obj_model_->getKeyframeKeypoints3D(),
-        obj_model_->getKeyframeDescriptors());
+        obj_model_->getKeyframeDescriptors());*/
     return (true);
   }
 
@@ -501,7 +401,6 @@ protected:
 
   virtual int tracking()
   {
-    Timer timer;
     // do annealing process only after (re-)initialization
     int num_anneal_level = frame_num_after_init_ == 0 ? num_annealing_layers_ : 1;
 
@@ -509,44 +408,38 @@ protected:
     {
       // 'getEdge' returns Berkeley edge if it is available, otherwise returns NULL
       // 'extractEdge' extracts Canny edge if the fourth edge is NULL
-
-      obj_model_->extractEdge(img_gray_, smooth_size_, th_canny_l_, th_canny_h_, cam_->getEdge(), img_mask_);
+      img_edge_ = obj_model_->extractEdge(img_gray_, smooth_size_, th_canny_l_, th_canny_h_, cam_->getEdge(), img_mask_);
       obj_model_->extractEdgeOri(img_gray_, smooth_size_);
-
-      // reset previous drawn image
-      //if(display_)
-      //  cvCvtColor(img_gray_, img_result_, CV_GRAY2BGR); // shoud be changed in better way
 
       if (num_anneal_level == 1)
         pf_->Propagate(noise_l_, noise_h_, true);
       else
         pf_->Propagate(alpha_[l], alpha_[l], l == num_anneal_level - 1 ? true : false);
 
-      float currentMatchrate = 0.0;
       for (int p = 0; p < pf_->GetNumOfParticle(); p++)
       {
         // update the initial pose to object model for displaying
         obj_model_->setModelviewMatrix(pf_->GetPropState(p));
         // draw object model with visibility test
-        //obj_model_->findVisibleSamplePoints();
-        obj_model_->findSamplePointOnContour();
-        obj_model_->getVisibleArea(height_, width_);
+        obj_model_->findVisibleSamplePoints();
         obj_model_->keepOnlyContourPoints();
         // find normal of each sampling point
         obj_model_->findNormalUsingEdgeCoord();
         // calculate error between sampling points and nearest edge
         obj_model_->findEdgeCorrespondences();
+
+        /*
         if (th_ransac_ > 0.0f)
         {
           obj_model_->refineEdgeCorrespondences_RANSAC(pf_->GetPropState(p), th_ransac_iter_, th_ransac_);
         }
-
+*/
         // consider edge sample points only
         CvMat *J = NULL, *e = NULL;
 
         edge_tracker_->PF_getJacobianAndError(pf_->GetPropState(p), obj_model_->getVisibleSamplePoints(), &J, &e);
 
-        pf_->Update_IRLS(p, J, e, obj_model_->getNumberOfVisibleSamplePoints());
+        pf_->Update_IRLS(p, J, e, obj_model_->getNumberOfVisibleSamplePoints()); // update OptState
 
         // calculate weights
         pf_->calculateWeights(p, e, obj_model_->getVisibleSamplePoints(), maxd_, lamda_e_, lamda_v_);
@@ -559,23 +452,27 @@ protected:
         // calculate weight (likelihood now) for optimized particles
         if (pf_->GetNumOfParticle() > 1)
         {
-          // update the initial pose to object model for displaying
-          obj_model_->setModelviewMatrix(pf_->GetOptState(p));
-          // draw object model with visibility test
-          //obj_model_->findVisibleSamplePoints();
-          obj_model_->findSamplePointOnContour();
-
-          obj_model_->getVisibleArea(height_, width_);
-          obj_model_->keepOnlyContourPoints();
-          // find normal of each sampling point
-          obj_model_->findNormalUsingEdgeCoord();
-          // calculate error between sampling points and nearest edge
-          obj_model_->findEdgeCorrespondences();
-
-          if (th_ransac_ > 0.0f)
-            obj_model_->refineEdgeCorrespondences_RANSAC(pf_->GetOptState(p), th_ransac_iter_, th_ransac_);
           e = NULL;
-          edge_tracker_->PF_getError(pf_->GetOptState(p), obj_model_->getVisibleSamplePoints(), &e);
+          // check whether this opt pose state is valid
+          if (CV_MAT_ELEM(*(pf_->GetOptState(p)), float, 2, 3) > 0.001 && CV_MAT_ELEM(*(pf_->GetOptState(p)), float, 2, 3) < 1.0)
+          {
+            // update the initial pose to object model for displaying
+            obj_model_->setModelviewMatrix(pf_->GetOptState(p));
+            // draw object model with visibility test
+            obj_model_->findVisibleSamplePoints();
+            obj_model_->keepOnlyContourPoints();
+            // find normal of each sampling point
+            obj_model_->findNormalUsingEdgeCoord();
+            // calculate error between sampling points and nearest edge
+            obj_model_->findEdgeCorrespondences();
+            /*
+            if (th_ransac_ > 0.0f)
+              obj_model_->refineEdgeCorrespondences_RANSAC(pf_->GetOptState(p), th_ransac_iter_, th_ransac_);
+              */
+
+            edge_tracker_->PF_getError(pf_->GetOptState(p), obj_model_->getVisibleSamplePoints(), &e);
+          }
+
           // Calculate weights for optimized particles
           pf_->calculateWeights(p, e, obj_model_->getVisibleSamplePoints(), maxd_, lamda_e_, lamda_v_, true);
           if (e)
@@ -599,23 +496,15 @@ protected:
         mutex_.lock();
         cvCopy(pf_->GetMeanState(), pose_);
         mutex_.unlock();
-        obj_model_->setModelviewMatrix(pose_);
-        obj_model_->findSamplePointOnContour();
-        obj_model_->getVisibleArea(height_, width_);
 
-        /* draw the mask out */
-        for (int i = 10; i < img_mask_->width - 10; i++)
+        if (CV_MAT_ELEM(*pose_, float, 2, 3) <= 0.0)
         {
-          for (int j = 10; j < img_mask_->height - 10; j++)
-          {
-            if (obj_model_->contourimg.at<unsigned char>(j, i) == 0xFF)
-            {
-
-              CV_IMAGE_ELEM(img_mask_, uchar, j, i) = 255;
-            }
-          }
+          init_ = true;
+          return 1;
         }
-        /*draw the mask out */
+
+        obj_model_->setModelviewMatrix(pose_);
+        obj_model_->findVisibleSamplePoints();
 
         obj_model_->keepOnlyContourPoints();
         // find normal of each sampling point
@@ -633,17 +522,20 @@ protected:
             numofInner++;
           }
         }
-        currentMatchrate = (float)numofInner / obj_model_->getVisibleSamplePoints().size();
+        float currentMatchrate = (float)numofInner / obj_model_->getVisibleSamplePoints().size();
         //std::cout << "matching rate: " << currentMatchrate << std::endl;
         //std::cout << " number of visible points: " << obj_model_->getVisibleSamplePoints().size() << std::endl;
-        if (currentMatchrate < 0.35)
+        if (obj_model_->getVisibleSamplePoints().size() > 10 && currentMatchrate < 0.37)
+        {
+          init_ = true;
           return 1;
+        }
       }
       else
       {
         // particle filter results is not valid
         init_ = true; // (re-)init again
-        break;        // stop annealing process
+        return 1;     // stop annealing process
       }
     }
 
@@ -653,7 +545,7 @@ protected:
       for (int p = 0; p < pf_->GetNumOfParticle(); p++)
         cvCopy(pf_->GetState(p), pf_->GetPrevState(p));
     }
-    obj_model_->getVisibleArea(height_, width_);
+
     return 0;
   }
 };

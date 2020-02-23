@@ -214,45 +214,6 @@ FdcmLib/fast:
 	$(MAKE) -f 3rdparty/Fdcm/CMakeFiles/FdcmLib.dir/build.make 3rdparty/Fdcm/CMakeFiles/FdcmLib.dir/build
 .PHONY : FdcmLib/fast
 
-include/object_tracking_2D/utils.o: include/object_tracking_2D/utils.cpp.o
-
-.PHONY : include/object_tracking_2D/utils.o
-
-# target to build an object file
-include/object_tracking_2D/utils.cpp.o:
-	$(MAKE) -f CMakeFiles/ETGDemo.dir/build.make CMakeFiles/ETGDemo.dir/include/object_tracking_2D/utils.cpp.o
-	$(MAKE) -f CMakeFiles/TGDemo.dir/build.make CMakeFiles/TGDemo.dir/include/object_tracking_2D/utils.cpp.o
-	$(MAKE) -f CMakeFiles/EBTDemo.dir/build.make CMakeFiles/EBTDemo.dir/include/object_tracking_2D/utils.cpp.o
-	$(MAKE) -f CMakeFiles/TIGDemo.dir/build.make CMakeFiles/TIGDemo.dir/include/object_tracking_2D/utils.cpp.o
-	$(MAKE) -f CMakeFiles/object_tracking_2d.dir/build.make CMakeFiles/object_tracking_2d.dir/include/object_tracking_2D/utils.cpp.o
-.PHONY : include/object_tracking_2D/utils.cpp.o
-
-include/object_tracking_2D/utils.i: include/object_tracking_2D/utils.cpp.i
-
-.PHONY : include/object_tracking_2D/utils.i
-
-# target to preprocess a source file
-include/object_tracking_2D/utils.cpp.i:
-	$(MAKE) -f CMakeFiles/ETGDemo.dir/build.make CMakeFiles/ETGDemo.dir/include/object_tracking_2D/utils.cpp.i
-	$(MAKE) -f CMakeFiles/TGDemo.dir/build.make CMakeFiles/TGDemo.dir/include/object_tracking_2D/utils.cpp.i
-	$(MAKE) -f CMakeFiles/EBTDemo.dir/build.make CMakeFiles/EBTDemo.dir/include/object_tracking_2D/utils.cpp.i
-	$(MAKE) -f CMakeFiles/TIGDemo.dir/build.make CMakeFiles/TIGDemo.dir/include/object_tracking_2D/utils.cpp.i
-	$(MAKE) -f CMakeFiles/object_tracking_2d.dir/build.make CMakeFiles/object_tracking_2d.dir/include/object_tracking_2D/utils.cpp.i
-.PHONY : include/object_tracking_2D/utils.cpp.i
-
-include/object_tracking_2D/utils.s: include/object_tracking_2D/utils.cpp.s
-
-.PHONY : include/object_tracking_2D/utils.s
-
-# target to generate assembly for a file
-include/object_tracking_2D/utils.cpp.s:
-	$(MAKE) -f CMakeFiles/ETGDemo.dir/build.make CMakeFiles/ETGDemo.dir/include/object_tracking_2D/utils.cpp.s
-	$(MAKE) -f CMakeFiles/TGDemo.dir/build.make CMakeFiles/TGDemo.dir/include/object_tracking_2D/utils.cpp.s
-	$(MAKE) -f CMakeFiles/EBTDemo.dir/build.make CMakeFiles/EBTDemo.dir/include/object_tracking_2D/utils.cpp.s
-	$(MAKE) -f CMakeFiles/TIGDemo.dir/build.make CMakeFiles/TIGDemo.dir/include/object_tracking_2D/utils.cpp.s
-	$(MAKE) -f CMakeFiles/object_tracking_2d.dir/build.make CMakeFiles/object_tracking_2d.dir/include/object_tracking_2D/utils.cpp.s
-.PHONY : include/object_tracking_2D/utils.cpp.s
-
 src/Camera.o: src/Camera.cpp.o
 
 .PHONY : src/Camera.o
@@ -728,9 +689,6 @@ help:
 	@echo "... ImageLib"
 	@echo "... LineFitLib"
 	@echo "... FdcmLib"
-	@echo "... include/object_tracking_2D/utils.o"
-	@echo "... include/object_tracking_2D/utils.i"
-	@echo "... include/object_tracking_2D/utils.s"
 	@echo "... src/Camera.o"
 	@echo "... src/Camera.i"
 	@echo "... src/Camera.s"

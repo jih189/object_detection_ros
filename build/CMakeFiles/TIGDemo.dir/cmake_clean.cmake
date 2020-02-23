@@ -1,5 +1,4 @@
 file(REMOVE_RECURSE
-  "CMakeFiles/TIGDemo.dir/include/object_tracking_2D/utils.cpp.o"
   "CMakeFiles/TIGDemo.dir/src/train_image_generator.cpp.o"
   "CMakeFiles/TIGDemo.dir/src/Camera.cpp.o"
   "CMakeFiles/TIGDemo.dir/src/EdgeTracker.cpp.o"

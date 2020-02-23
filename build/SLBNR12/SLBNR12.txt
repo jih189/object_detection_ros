@@ -1,0 +1,15 @@
+14
+data/SLBNR12/edge_template000.txt
+data/SLBNR12/edge_template001.txt
+data/SLBNR12/edge_template002.txt
+data/SLBNR12/edge_template003.txt
+data/SLBNR12/edge_template004.txt
+data/SLBNR12/edge_template005.txt
+data/SLBNR12/edge_template006.txt
+data/SLBNR12/edge_template007.txt
+data/SLBNR12/edge_template008.txt
+data/SLBNR12/edge_template009.txt
+data/SLBNR12/edge_template010.txt
+data/SLBNR12/edge_template011.txt
+data/SLBNR12/edge_template012.txt
+data/SLBNR12/edge_template013.txt

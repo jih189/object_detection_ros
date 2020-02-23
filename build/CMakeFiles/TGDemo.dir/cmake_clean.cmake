@@ -1,5 +1,4 @@
 file(REMOVE_RECURSE
-  "CMakeFiles/TGDemo.dir/include/object_tracking_2D/utils.cpp.o"
   "CMakeFiles/TGDemo.dir/src/templates_generator.cpp.o"
   "CMakeFiles/TGDemo.dir/src/Camera.cpp.o"
   "CMakeFiles/TGDemo.dir/src/EdgeTracker.cpp.o"

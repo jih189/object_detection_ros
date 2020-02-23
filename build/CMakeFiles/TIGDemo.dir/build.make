@@ -57,33 +57,9 @@ include CMakeFiles/TIGDemo.dir/progress.make
 # Include the compile flags for this target's objects.
 include CMakeFiles/TIGDemo.dir/flags.make
 
-CMakeFiles/TIGDemo.dir/include/object_tracking_2D/utils.cpp.o: CMakeFiles/TIGDemo.dir/flags.make
-CMakeFiles/TIGDemo.dir/include/object_tracking_2D/utils.cpp.o: ../include/object_tracking_2D/utils.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jiaming/object_tracking_2D/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/TIGDemo.dir/include/object_tracking_2D/utils.cpp.o"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/TIGDemo.dir/include/object_tracking_2D/utils.cpp.o -c /home/jiaming/object_tracking_2D/include/object_tracking_2D/utils.cpp
-
-CMakeFiles/TIGDemo.dir/include/object_tracking_2D/utils.cpp.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/TIGDemo.dir/include/object_tracking_2D/utils.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/jiaming/object_tracking_2D/include/object_tracking_2D/utils.cpp > CMakeFiles/TIGDemo.dir/include/object_tracking_2D/utils.cpp.i
-
-CMakeFiles/TIGDemo.dir/include/object_tracking_2D/utils.cpp.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/TIGDemo.dir/include/object_tracking_2D/utils.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/jiaming/object_tracking_2D/include/object_tracking_2D/utils.cpp -o CMakeFiles/TIGDemo.dir/include/object_tracking_2D/utils.cpp.s
-
-CMakeFiles/TIGDemo.dir/include/object_tracking_2D/utils.cpp.o.requires:
-
-.PHONY : CMakeFiles/TIGDemo.dir/include/object_tracking_2D/utils.cpp.o.requires
-
-CMakeFiles/TIGDemo.dir/include/object_tracking_2D/utils.cpp.o.provides: CMakeFiles/TIGDemo.dir/include/object_tracking_2D/utils.cpp.o.requires
-	$(MAKE) -f CMakeFiles/TIGDemo.dir/build.make CMakeFiles/TIGDemo.dir/include/object_tracking_2D/utils.cpp.o.provides.build
-.PHONY : CMakeFiles/TIGDemo.dir/include/object_tracking_2D/utils.cpp.o.provides
-
-CMakeFiles/TIGDemo.dir/include/object_tracking_2D/utils.cpp.o.provides.build: CMakeFiles/TIGDemo.dir/include/object_tracking_2D/utils.cpp.o
-
-
 CMakeFiles/TIGDemo.dir/src/train_image_generator.cpp.o: CMakeFiles/TIGDemo.dir/flags.make
 CMakeFiles/TIGDemo.dir/src/train_image_generator.cpp.o: ../src/train_image_generator.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jiaming/object_tracking_2D/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/TIGDemo.dir/src/train_image_generator.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jiaming/object_tracking_2D/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/TIGDemo.dir/src/train_image_generator.cpp.o"
 	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/TIGDemo.dir/src/train_image_generator.cpp.o -c /home/jiaming/object_tracking_2D/src/train_image_generator.cpp
 
 CMakeFiles/TIGDemo.dir/src/train_image_generator.cpp.i: cmake_force
@@ -107,7 +83,7 @@ CMakeFiles/TIGDemo.dir/src/train_image_generator.cpp.o.provides.build: CMakeFile
 
 CMakeFiles/TIGDemo.dir/src/Camera.cpp.o: CMakeFiles/TIGDemo.dir/flags.make
 CMakeFiles/TIGDemo.dir/src/Camera.cpp.o: ../src/Camera.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jiaming/object_tracking_2D/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/TIGDemo.dir/src/Camera.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jiaming/object_tracking_2D/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/TIGDemo.dir/src/Camera.cpp.o"
 	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/TIGDemo.dir/src/Camera.cpp.o -c /home/jiaming/object_tracking_2D/src/Camera.cpp
 
 CMakeFiles/TIGDemo.dir/src/Camera.cpp.i: cmake_force
@@ -131,7 +107,7 @@ CMakeFiles/TIGDemo.dir/src/Camera.cpp.o.provides.build: CMakeFiles/TIGDemo.dir/s
 
 CMakeFiles/TIGDemo.dir/src/EdgeTracker.cpp.o: CMakeFiles/TIGDemo.dir/flags.make
 CMakeFiles/TIGDemo.dir/src/EdgeTracker.cpp.o: ../src/EdgeTracker.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jiaming/object_tracking_2D/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/TIGDemo.dir/src/EdgeTracker.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jiaming/object_tracking_2D/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/TIGDemo.dir/src/EdgeTracker.cpp.o"
 	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/TIGDemo.dir/src/EdgeTracker.cpp.o -c /home/jiaming/object_tracking_2D/src/EdgeTracker.cpp
 
 CMakeFiles/TIGDemo.dir/src/EdgeTracker.cpp.i: cmake_force
@@ -155,7 +131,7 @@ CMakeFiles/TIGDemo.dir/src/EdgeTracker.cpp.o.provides.build: CMakeFiles/TIGDemo.
 
 CMakeFiles/TIGDemo.dir/src/epnp.cpp.o: CMakeFiles/TIGDemo.dir/flags.make
 CMakeFiles/TIGDemo.dir/src/epnp.cpp.o: ../src/epnp.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jiaming/object_tracking_2D/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/TIGDemo.dir/src/epnp.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jiaming/object_tracking_2D/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/TIGDemo.dir/src/epnp.cpp.o"
 	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/TIGDemo.dir/src/epnp.cpp.o -c /home/jiaming/object_tracking_2D/src/epnp.cpp
 
 CMakeFiles/TIGDemo.dir/src/epnp.cpp.i: cmake_force
@@ -179,7 +155,7 @@ CMakeFiles/TIGDemo.dir/src/epnp.cpp.o.provides.build: CMakeFiles/TIGDemo.dir/src
 
 CMakeFiles/TIGDemo.dir/src/glm.cpp.o: CMakeFiles/TIGDemo.dir/flags.make
 CMakeFiles/TIGDemo.dir/src/glm.cpp.o: ../src/glm.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jiaming/object_tracking_2D/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object CMakeFiles/TIGDemo.dir/src/glm.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jiaming/object_tracking_2D/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/TIGDemo.dir/src/glm.cpp.o"
 	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/TIGDemo.dir/src/glm.cpp.o -c /home/jiaming/object_tracking_2D/src/glm.cpp
 
 CMakeFiles/TIGDemo.dir/src/glm.cpp.i: cmake_force
@@ -203,7 +179,7 @@ CMakeFiles/TIGDemo.dir/src/glm.cpp.o.provides.build: CMakeFiles/TIGDemo.dir/src/
 
 CMakeFiles/TIGDemo.dir/src/HomoTransform.cpp.o: CMakeFiles/TIGDemo.dir/flags.make
 CMakeFiles/TIGDemo.dir/src/HomoTransform.cpp.o: ../src/HomoTransform.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jiaming/object_tracking_2D/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building CXX object CMakeFiles/TIGDemo.dir/src/HomoTransform.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jiaming/object_tracking_2D/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object CMakeFiles/TIGDemo.dir/src/HomoTransform.cpp.o"
 	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/TIGDemo.dir/src/HomoTransform.cpp.o -c /home/jiaming/object_tracking_2D/src/HomoTransform.cpp
 
 CMakeFiles/TIGDemo.dir/src/HomoTransform.cpp.i: cmake_force
@@ -227,7 +203,7 @@ CMakeFiles/TIGDemo.dir/src/HomoTransform.cpp.o.provides.build: CMakeFiles/TIGDem
 
 CMakeFiles/TIGDemo.dir/src/ModelImport.cpp.o: CMakeFiles/TIGDemo.dir/flags.make
 CMakeFiles/TIGDemo.dir/src/ModelImport.cpp.o: ../src/ModelImport.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jiaming/object_tracking_2D/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Building CXX object CMakeFiles/TIGDemo.dir/src/ModelImport.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jiaming/object_tracking_2D/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building CXX object CMakeFiles/TIGDemo.dir/src/ModelImport.cpp.o"
 	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/TIGDemo.dir/src/ModelImport.cpp.o -c /home/jiaming/object_tracking_2D/src/ModelImport.cpp
 
 CMakeFiles/TIGDemo.dir/src/ModelImport.cpp.i: cmake_force
@@ -251,7 +227,7 @@ CMakeFiles/TIGDemo.dir/src/ModelImport.cpp.o.provides.build: CMakeFiles/TIGDemo.
 
 CMakeFiles/TIGDemo.dir/src/objectmodel.cpp.o: CMakeFiles/TIGDemo.dir/flags.make
 CMakeFiles/TIGDemo.dir/src/objectmodel.cpp.o: ../src/objectmodel.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jiaming/object_tracking_2D/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Building CXX object CMakeFiles/TIGDemo.dir/src/objectmodel.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jiaming/object_tracking_2D/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Building CXX object CMakeFiles/TIGDemo.dir/src/objectmodel.cpp.o"
 	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/TIGDemo.dir/src/objectmodel.cpp.o -c /home/jiaming/object_tracking_2D/src/objectmodel.cpp
 
 CMakeFiles/TIGDemo.dir/src/objectmodel.cpp.i: cmake_force
@@ -275,7 +251,7 @@ CMakeFiles/TIGDemo.dir/src/objectmodel.cpp.o.provides.build: CMakeFiles/TIGDemo.
 
 CMakeFiles/TIGDemo.dir/src/ParticleFilter.cpp.o: CMakeFiles/TIGDemo.dir/flags.make
 CMakeFiles/TIGDemo.dir/src/ParticleFilter.cpp.o: ../src/ParticleFilter.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jiaming/object_tracking_2D/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_10) "Building CXX object CMakeFiles/TIGDemo.dir/src/ParticleFilter.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jiaming/object_tracking_2D/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Building CXX object CMakeFiles/TIGDemo.dir/src/ParticleFilter.cpp.o"
 	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/TIGDemo.dir/src/ParticleFilter.cpp.o -c /home/jiaming/object_tracking_2D/src/ParticleFilter.cpp
 
 CMakeFiles/TIGDemo.dir/src/ParticleFilter.cpp.i: cmake_force
@@ -299,7 +275,7 @@ CMakeFiles/TIGDemo.dir/src/ParticleFilter.cpp.o.provides.build: CMakeFiles/TIGDe
 
 CMakeFiles/TIGDemo.dir/src/PoseEstimationSURF.cpp.o: CMakeFiles/TIGDemo.dir/flags.make
 CMakeFiles/TIGDemo.dir/src/PoseEstimationSURF.cpp.o: ../src/PoseEstimationSURF.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jiaming/object_tracking_2D/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_11) "Building CXX object CMakeFiles/TIGDemo.dir/src/PoseEstimationSURF.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jiaming/object_tracking_2D/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_10) "Building CXX object CMakeFiles/TIGDemo.dir/src/PoseEstimationSURF.cpp.o"
 	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/TIGDemo.dir/src/PoseEstimationSURF.cpp.o -c /home/jiaming/object_tracking_2D/src/PoseEstimationSURF.cpp
 
 CMakeFiles/TIGDemo.dir/src/PoseEstimationSURF.cpp.i: cmake_force
@@ -323,7 +299,6 @@ CMakeFiles/TIGDemo.dir/src/PoseEstimationSURF.cpp.o.provides.build: CMakeFiles/T
 
 # Object files for target TIGDemo
 TIGDemo_OBJECTS = \
-"CMakeFiles/TIGDemo.dir/include/object_tracking_2D/utils.cpp.o" \
 "CMakeFiles/TIGDemo.dir/src/train_image_generator.cpp.o" \
 "CMakeFiles/TIGDemo.dir/src/Camera.cpp.o" \
 "CMakeFiles/TIGDemo.dir/src/EdgeTracker.cpp.o" \
@@ -338,7 +313,6 @@ TIGDemo_OBJECTS = \
 # External object files for target TIGDemo
 TIGDemo_EXTERNAL_OBJECTS =
 
-TIGDemo: CMakeFiles/TIGDemo.dir/include/object_tracking_2D/utils.cpp.o
 TIGDemo: CMakeFiles/TIGDemo.dir/src/train_image_generator.cpp.o
 TIGDemo: CMakeFiles/TIGDemo.dir/src/Camera.cpp.o
 TIGDemo: CMakeFiles/TIGDemo.dir/src/EdgeTracker.cpp.o
@@ -358,33 +332,30 @@ TIGDemo: /usr/lib/x86_64-linux-gnu/libXmu.so
 TIGDemo: /usr/lib/x86_64-linux-gnu/libXi.so
 TIGDemo: /usr/lib/liblapack.so
 TIGDemo: /usr/lib/libblas.so
-TIGDemo: /usr/local/lib/libopencv_videostab.so.2.4.9
-TIGDemo: /usr/local/lib/libopencv_ts.a
-TIGDemo: /usr/local/lib/libopencv_superres.so.2.4.9
-TIGDemo: /usr/local/lib/libopencv_stitching.so.2.4.9
-TIGDemo: /usr/local/lib/libopencv_contrib.so.2.4.9
+TIGDemo: /home/jiaming/opencv-2.4.9/build/lib/libopencv_videostab.so.2.4.9
+TIGDemo: /home/jiaming/opencv-2.4.9/build/lib/libopencv_ts.a
+TIGDemo: /home/jiaming/opencv-2.4.9/build/lib/libopencv_superres.so.2.4.9
+TIGDemo: /home/jiaming/opencv-2.4.9/build/lib/libopencv_stitching.so.2.4.9
+TIGDemo: /home/jiaming/opencv-2.4.9/build/lib/libopencv_contrib.so.2.4.9
 TIGDemo: 3rdparty/Fdcm/libFdcmLib.so
 TIGDemo: 3rdparty/Fitline/libLineFitLib.so
 TIGDemo: 3rdparty/Image/libImageLib.so
-TIGDemo: /home/jiaming/tensorflow/bazel-bin/tensorflow/libtensorflow_cc.so.1.14.0
-TIGDemo: /home/jiaming/tensorflow/bazel-bin/tensorflow/libtensorflow_framework.so
-TIGDemo: /home/jiaming/tensorflow/bazel-bin/tensorflow/libtensorflow_framework.so.1
-TIGDemo: /usr/local/lib/libopencv_nonfree.so.2.4.9
-TIGDemo: /usr/local/lib/libopencv_ocl.so.2.4.9
-TIGDemo: /usr/local/lib/libopencv_gpu.so.2.4.9
-TIGDemo: /usr/local/lib/libopencv_photo.so.2.4.9
-TIGDemo: /usr/local/lib/libopencv_objdetect.so.2.4.9
-TIGDemo: /usr/local/lib/libopencv_legacy.so.2.4.9
-TIGDemo: /usr/local/lib/libopencv_video.so.2.4.9
-TIGDemo: /usr/local/lib/libopencv_ml.so.2.4.9
-TIGDemo: /usr/local/lib/libopencv_calib3d.so.2.4.9
-TIGDemo: /usr/local/lib/libopencv_features2d.so.2.4.9
-TIGDemo: /usr/local/lib/libopencv_highgui.so.2.4.9
-TIGDemo: /usr/local/lib/libopencv_imgproc.so.2.4.9
-TIGDemo: /usr/local/lib/libopencv_flann.so.2.4.9
-TIGDemo: /usr/local/lib/libopencv_core.so.2.4.9
+TIGDemo: /home/jiaming/opencv-2.4.9/build/lib/libopencv_nonfree.so.2.4.9
+TIGDemo: /home/jiaming/opencv-2.4.9/build/lib/libopencv_ocl.so.2.4.9
+TIGDemo: /home/jiaming/opencv-2.4.9/build/lib/libopencv_gpu.so.2.4.9
+TIGDemo: /home/jiaming/opencv-2.4.9/build/lib/libopencv_photo.so.2.4.9
+TIGDemo: /home/jiaming/opencv-2.4.9/build/lib/libopencv_objdetect.so.2.4.9
+TIGDemo: /home/jiaming/opencv-2.4.9/build/lib/libopencv_legacy.so.2.4.9
+TIGDemo: /home/jiaming/opencv-2.4.9/build/lib/libopencv_video.so.2.4.9
+TIGDemo: /home/jiaming/opencv-2.4.9/build/lib/libopencv_ml.so.2.4.9
+TIGDemo: /home/jiaming/opencv-2.4.9/build/lib/libopencv_calib3d.so.2.4.9
+TIGDemo: /home/jiaming/opencv-2.4.9/build/lib/libopencv_features2d.so.2.4.9
+TIGDemo: /home/jiaming/opencv-2.4.9/build/lib/libopencv_highgui.so.2.4.9
+TIGDemo: /home/jiaming/opencv-2.4.9/build/lib/libopencv_imgproc.so.2.4.9
+TIGDemo: /home/jiaming/opencv-2.4.9/build/lib/libopencv_flann.so.2.4.9
+TIGDemo: /home/jiaming/opencv-2.4.9/build/lib/libopencv_core.so.2.4.9
 TIGDemo: CMakeFiles/TIGDemo.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/jiaming/object_tracking_2D/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_12) "Linking CXX executable TIGDemo"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/jiaming/object_tracking_2D/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_11) "Linking CXX executable TIGDemo"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/TIGDemo.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
@@ -392,7 +363,6 @@ CMakeFiles/TIGDemo.dir/build: TIGDemo
 
 .PHONY : CMakeFiles/TIGDemo.dir/build
 
-CMakeFiles/TIGDemo.dir/requires: CMakeFiles/TIGDemo.dir/include/object_tracking_2D/utils.cpp.o.requires
 CMakeFiles/TIGDemo.dir/requires: CMakeFiles/TIGDemo.dir/src/train_image_generator.cpp.o.requires
 CMakeFiles/TIGDemo.dir/requires: CMakeFiles/TIGDemo.dir/src/Camera.cpp.o.requires
 CMakeFiles/TIGDemo.dir/requires: CMakeFiles/TIGDemo.dir/src/EdgeTracker.cpp.o.requires

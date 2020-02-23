@@ -1,0 +1,11 @@
+data/SBARB6200ZZ-30/edge_template000.txt
+data/SBARB6200ZZ-30/edge_template001.txt
+data/SBARB6200ZZ-30/edge_template002.txt
+data/SBARB6200ZZ-30/edge_template003.txt
+data/SBARB6200ZZ-30/edge_template004.txt
+data/SBARB6200ZZ-30/edge_template005.txt
+data/SBARB6200ZZ-30/edge_template006.txt
+data/SBARB6200ZZ-30/edge_template007.txt
+data/SBARB6200ZZ-30/edge_template008.txt
+data/SBARB6200ZZ-30/edge_template009.txt
+data/SBARB6200ZZ-30/edge_template010.txt

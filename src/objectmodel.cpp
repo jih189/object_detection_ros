@@ -11,6 +11,7 @@
 #include <omp.h> // openmp
 #include "object_tracking_2D/Timer.h"
 #include "object_tracking_2D/ModelImport.h"
+#include "object_tracking_2D/epnp.h"
 
 #include <boost/filesystem.hpp>
 #include <stdexcept>
@@ -36,8 +37,9 @@ CObjectModel::CObjectModel(string obj_name, int width, int height, CvMat *intrin
 
   meshmodel_ = NULL;
   num_keyframes_ = 0;
+
   loadObjectCADModel(obj_name);
-  loadKeyframes(obj_name);
+  //loadKeyframes(obj_name); // key frame is not needed now.
 
   num_edge_templates_ = 0;
   loadEdgeTemplates(obj_name);
@@ -562,7 +564,8 @@ void CObjectModel::loadEdgeTemplates(const std::string &obj_name)
 
   // Compute filename
   fs::path path(obj_name);
-  string templateFileName(path.parent_path().string() + "/" + path.stem().string() + ".txt");
+  //string templateFileName(path.parent_path().string() + "/" + path.stem().string() + ".txt");
+  string templateFileName(obj_name + '/' + path.stem().string() + ".txt");
 
   fstream file;
   file.open(templateFileName.c_str());
@@ -581,7 +584,7 @@ void CObjectModel::loadEdgeTemplates(const std::string &obj_name)
     std::cout << "num_edge_templates_ " << num_edge_templates_ << std::endl;
 
     // Read templates - png & xml files
-    string data_dir = path.parent_path().string() + "/";
+    string data_dir = path.string();
     char buf[50];
     edge_template_poses_.resize(num_edge_templates_);
     for (int i = 0; i < num_edge_templates_; i++)
@@ -590,46 +593,56 @@ void CObjectModel::loadEdgeTemplates(const std::string &obj_name)
       edge_template_poses_[i] = (CvMat *)cvLoad((data_dir + "/" + buf).c_str());
       assert(edge_template_poses_[i]);
     }
-  }
-
-  // jiaming hu: load the pose position
-  std::cout << "reading pose positions \n";
-  pose_positions_.clear();
-  string data_dir = path.parent_path().string();
-  for (int i = 0; i < num_edge_templates_; i++)
-  {
-    char buf[50];
-    sprintf(buf, "pose_position%03d.txt", i);
-    ifstream inFile;
-    inFile.open((data_dir + "/" + buf).c_str());
-    float posex;
-    float posey;
-    inFile >> posex >> posey;
-    pose_positions_.push_back({posex, posey});
-    inFile.close();
+    // jiaming hu: load the pose position
+    std::cout << "reading pose positions \n";
+    pose_positions_.clear();
+    for (int i = 0; i < num_edge_templates_; i++)
+    {
+      char buf[50];
+      sprintf(buf, "pose_position%03d.txt", i);
+      ifstream inFile;
+      inFile.open((data_dir + "/" + buf).c_str());
+      float posex;
+      float posey;
+      inFile >> posex >> posey;
+      pose_positions_.push_back({posex, posey});
+      inFile.close();
+    }
   }
 }
 
 void CObjectModel::keepOnlyContourPoints(void)
 {
-  if (visible_contours_points_.size() == 0)
-    return;
-  visible_sample_points_.clear();
-  float lastx = visible_contours_points_[0].coord2.x;
-  float lasty = visible_contours_points_[0].coord2.y;
-  visible_sample_points_.push_back(visible_contours_points_[0]);
+  IplImage *onlineImage = cvCreateImage(cvSize(width_, height_), 8, 1);
 
-  for (int vp = 1; vp < visible_contours_points_.size(); vp++)
+  getVisibleArea(height_, width_, true, onlineImage);
+  visible_contours_points_.clear();
+  findNonZero(cv::Mat(onlineImage), visible_contours_points_);  // todo this could cause error
+
+  // random shuffle
+  std::random_shuffle(visible_contours_points_.begin(), visible_contours_points_.end());
+
+  visible_contours_points_.resize(50);
+
+  
+  cvDilate(onlineImage, onlineImage, NULL, 1);
+
+  std::vector<SamplePoint> contourSamplePoints;
+  for (int i = 0; i < visible_sample_points_.size(); i++)
   {
-    float distanceinx = std::abs(visible_contours_points_[vp].coord2.x - lastx);
-    float distanceiny = std::abs(visible_contours_points_[vp].coord2.y - lasty);
-    if (distanceinx * distanceinx + distanceiny * distanceiny > 30)
+    if (int(visible_sample_points_[i].coord2.y) < 0 || int(visible_sample_points_[i].coord2.y) > height_ || int(visible_sample_points_[i].coord2.x) < 0 || int(visible_sample_points_[i].coord2.x) > width_)
     {
-      visible_sample_points_.push_back(visible_contours_points_[vp]);
-      lastx = visible_contours_points_[vp].coord2.x;
-      lasty = visible_contours_points_[vp].coord2.y;
+      continue;
     }
+    if (CV_IMAGE_ELEM(onlineImage, char, int(visible_sample_points_[i].coord2.y), int(visible_sample_points_[i].coord2.x)) != 0)
+      contourSamplePoints.push_back(visible_sample_points_[i]);
   }
+  visible_sample_points_.clear();
+  for (int i = 0; i < contourSamplePoints.size(); i++)
+    visible_sample_points_.push_back(contourSamplePoints[i]);
+
+
+  cvReleaseImage(&onlineImage);
 }
 
 void CObjectModel::findSamplePointOnContour(void)
@@ -1210,10 +1223,12 @@ void CObjectModel::extractEdgeOri(IplImage *img, int smoothSize /*=1*/)
 
   cvSobel(imgG, img_gx_, 1, 0, 3); // 1st order derivative in x direction
   cvSobel(imgG, img_gy_, 0, 1, 3); // 1st order derivative in y direction
+
   cvReleaseImage(&imgG);
 }
 
-void CObjectModel::extractEdge(IplImage *img, int smoothSize /*=1*/, int cannyLow /*=20*/, int cannyHigh /*=40*/, IplImage *edge /*=NULL*/, IplImage *filterImage /*=NULL*/)
+// jiaming: we need to update the edge extract for object contour!!! img_mask_ was used for tensorflow, but not needed anymore
+IplImage *CObjectModel::extractEdge(IplImage *img, int smoothSize /*=1*/, int cannyLow /*=20*/, int cannyHigh /*=40*/, IplImage *edge /*=NULL*/, IplImage *filterImage /*=NULL*/)
 {
   assert(img->nChannels == 1);
 
@@ -1238,57 +1253,16 @@ void CObjectModel::extractEdge(IplImage *img, int smoothSize /*=1*/, int cannyLo
     // GM shield model: 20, 120
     // ICRA exp setting: 20, 40
     // ICCV'11 transparent object: 20, 60
-    if (filterImage == NULL)
-    {
-      cvCanny(imgG, img_edge_, cannyLow, cannyHigh);
-    }
-    else
-    {
-      cvCanny(imgG, img_edge_, cannyLow, cannyHigh);
-      // filter out
-      /* tensorflow need
-      for(int i = 0; i < img_edge_->width; i++){
-        for(int j = 0; j < img_edge_->height; j++){
-          if(CV_IMAGE_ELEM(filterImage,uchar, j, 3 * i + 0) == 0 &&
-             CV_IMAGE_ELEM(filterImage,uchar, j, 3 * i + 1) == 0 &&
-             CV_IMAGE_ELEM(filterImage,uchar, j, 3 * i + 2) == 0){
-      
-            CV_IMAGE_ELEM(img_edge_,uchar, j, i) = 0;
-          }
-        }
-      }
-      */
-    }
+    cvCanny(imgG, img_edge_, cannyLow, cannyHigh);
   }
   else
   {
     // Copy edges and use it
-    if (filterImage == NULL)
-    {
-      //std::cout << "filter image is null\n";
-      cvCopy(edge, img_edge_);
-    }
-    else
-    {
-      cvCopy(edge, img_edge_);
-      // filter out
-      for (int i = 0; i < img_edge_->width; i++)
-      {
-        for (int j = 0; j < img_edge_->height; j++)
-        {
-          if (CV_IMAGE_ELEM(filterImage, uchar, j, 3 * i + 0) == 0 &&
-              CV_IMAGE_ELEM(filterImage, uchar, j, 3 * i + 1) == 0 &&
-              CV_IMAGE_ELEM(filterImage, uchar, j, 3 * i + 2) == 0)
-          {
-
-            CV_IMAGE_ELEM(img_edge_, uchar, j, i) = 0;
-          }
-        }
-      }
-    }
+    cvCopy(edge, img_edge_);
   }
 
   cvReleaseImage(&imgG);
+  return img_edge_;
 }
 
 bool CObjectModel::_withinOri(float o1, float o2, float oth)
@@ -1313,16 +1287,13 @@ void CObjectModel::drawPointsAndErrorCoarseOri(IplImage *img_dest)
 
   for (int i = 0; i < int(visible_sample_points_.size()); i++)
   {
-    if (visible_sample_points_[i].dist < maxd_) // only valid points
-    {
-      cvLine(img_dest,
-             cvPoint(int(visible_sample_points_[i].coord2.x), int(visible_sample_points_[i].coord2.y)),
-             cvPoint(
-                 int(visible_sample_points_[i].coord2.x + visible_sample_points_[i].dist * visible_sample_points_[i].nuv.x),
-                 int(visible_sample_points_[i].coord2.y + visible_sample_points_[i].dist * visible_sample_points_[i].nuv.y)),
-             CV_RGB(255, 0, 0), 1, draw_type_, 0);
-      cvCircle(img_dest, cvPointFrom32f(visible_sample_points_[i].coord2), 1, CV_RGB(0, 255, 0), -1, draw_type_, 0);
-    }
+    cvLine(img_dest,
+           cvPoint(int(visible_sample_points_[i].coord2.x), int(visible_sample_points_[i].coord2.y)),
+           cvPoint(
+               int(visible_sample_points_[i].coord2.x + visible_sample_points_[i].dist * visible_sample_points_[i].nuv.x),
+               int(visible_sample_points_[i].coord2.y + visible_sample_points_[i].dist * visible_sample_points_[i].nuv.y)),
+           CV_RGB(0, 255, 255), 1, draw_type_, 0);
+    cvCircle(img_dest, cvPointFrom32f(visible_sample_points_[i].coord2), 1, CV_RGB(0, 255, 0), -1, draw_type_, 0);
   }
 }
 
@@ -1334,9 +1305,6 @@ void CObjectModel::drawPointsAndErrorFineOri(IplImage *img_dest)
   {
     if (visible_sample_points_[i].dist < maxd_) // only valid points
     {
-      //if(visible_sample_points_[i].edge_pt2.x <= 0.f)
-      //  std::cout << "a" << std::endl;
-
       if (visible_sample_points_[i].edge_pt2.x == 0.f && visible_sample_points_[i].edge_pt2.y == 0.f)
         continue;
 
@@ -1345,13 +1313,11 @@ void CObjectModel::drawPointsAndErrorFineOri(IplImage *img_dest)
              cvPoint(int(visible_sample_points_[i].edge_pt2.x), int(visible_sample_points_[i].edge_pt2.y)),
              CV_RGB(255, 0, 0), 1, draw_type_, 0);
       cvCircle(img_dest, cvPointFrom32f(visible_sample_points_[i].coord2), 1, CV_RGB(0, 255, 0), -1, draw_type_, 0);
-      
     }
-    /*
-    else{
+    else
+    {
       cvCircle(img_dest, cvPointFrom32f(visible_sample_points_[i].coord2), 1, CV_RGB(255, 0, 0), -1, draw_type_, 0);
     }
-    */
   }
 }
 
@@ -1710,6 +1676,155 @@ int CObjectModel::refineEdgeCorrespondences_RANSAC(CvMat *E, int N /*=1000*/, do
   return int(iter);
 }
 
+float CObjectModel::getCMCost(cv::Mat &dt){
+  float cost = 0.0;
+  float pixelcount = 0;
+  for (int p = 0; p < visible_sample_points_.size(); p++)
+  {
+    if (int(visible_sample_points_[p].coord2.x) < 0 || int(visible_sample_points_[p].coord2.x) >= width_)
+      continue;
+    if (int(visible_sample_points_[p].coord2.y) < 0 || int(visible_sample_points_[p].coord2.y) >= height_)
+      continue;
+    cost += dt.at<float>(int(visible_sample_points_[p].coord2.y), int(visible_sample_points_[p].coord2.x));
+    pixelcount++;
+  }
+  /*
+  for (int p = 0; p < visible_contours_points_.size(); p++)
+  {
+    if (int(visible_contours_points_[p].x) < 0 || int(visible_contours_points_[p].x) >= width_)
+      continue;
+    if (int(visible_contours_points_[p].y) < 0 || int(visible_contours_points_[p].y) >= height_)
+      continue;
+    cost += dt.at<float>(int(visible_contours_points_[p].y), int(visible_contours_points_[p].x));
+    pixelcount++;
+  }*/
+  return cost/pixelcount;
+}
+
+void CObjectModel::refindMatching(cv::Mat &dt, epnp &ePnP)
+{
+
+  //Apply simple chamfer template matching
+  float minscore = 0.0;
+  int fitx = 0;
+  int fity = 0;
+  float fitth = 0.0;
+  float fitsc = 1.0;
+  int centerx = 0;
+  int centery = 0;
+
+  for (int p = 0; p < visible_sample_points_.size(); p++)
+  {
+    if (int(visible_sample_points_[p].coord2.x) < 0 || int(visible_sample_points_[p].coord2.x) >= width_)
+      continue;
+    if (int(visible_sample_points_[p].coord2.y) < 0 || int(visible_sample_points_[p].coord2.y) >= height_)
+      continue;
+    minscore += dt.at<float>(int(visible_sample_points_[p].coord2.y), int(visible_sample_points_[p].coord2.x));
+    centerx += int(visible_sample_points_[p].coord2.x);
+    centery += int(visible_sample_points_[p].coord2.y);
+  }
+  for (int p = 0; p < visible_contours_points_.size(); p++)
+  {
+    if (int(visible_contours_points_[p].x) < 0 || int(visible_contours_points_[p].x) >= width_)
+      continue;
+    if (int(visible_contours_points_[p].y) < 0 || int(visible_contours_points_[p].y) >= height_)
+      continue;
+    minscore += dt.at<float>(int(visible_contours_points_[p].y), int(visible_contours_points_[p].x));
+  }
+  //std::cout << "current score = " << minscore << std::endl;
+  if (visible_sample_points_.size() == 0)
+  {
+    return;
+  }
+  centerx /= visible_sample_points_.size();
+  centery /= visible_sample_points_.size();
+
+  // todo: the cost should be changed for object is on the side
+  int seachSize = 6;
+  
+  for (int i = -seachSize; i < seachSize; i++)
+  {
+    for (int j = -seachSize; j < seachSize; j++)
+    {
+      for (float th = -0.35; th < 0.35; th += 0.05)
+      {
+        for (float sc = 1.0; sc <= 1.0; sc += 0.03)
+        {
+          float score = 0.0;
+          for (int p = 0; p < visible_sample_points_.size(); p++)
+          {
+            int x = sc * (int(visible_sample_points_[p].coord2.x) + i - centerx);
+            int y = sc * (int(visible_sample_points_[p].coord2.y) + j - centery);
+            int xt = x * cos(th) - y * sin(th) + centerx;
+            int yt = x * sin(th) + y * cos(th) + centery;
+
+            score += dt.at<float>(yt, xt);
+            if (score > minscore)
+              break;
+          }
+          for (int p = 0; p < visible_contours_points_.size(); p++)
+          {
+
+            int x = sc * (int(visible_contours_points_[p].x) + i - centerx);
+            int y = sc * (int(visible_contours_points_[p].y) + j - centery);
+            int xt = x * cos(th) - y * sin(th) + centerx;
+            int yt = x * sin(th) + y * cos(th) + centery;
+            score += dt.at<float>(yt, xt);
+            if (score > minscore)
+              break;
+          }
+          if (score < minscore)
+          {
+            minscore = score;
+            fitx = i;
+            fity = j;
+            fitth = th;
+            fitsc = sc;
+          }
+        }
+      }
+    }
+  }
+  ePnP.set_maximum_number_of_correspondences(visible_sample_points_.size());
+  ePnP.reset_correspondences();
+
+  for (int p = 0; p < visible_sample_points_.size(); p++)
+  {
+
+    int x = fitsc * (int(visible_sample_points_[p].coord2.x) + fitx - centerx);
+    int y = fitsc * (int(visible_sample_points_[p].coord2.y) + fity - centery);
+    double xt = x * cos(fitth) - y * sin(fitth) + centerx;
+    double yt = x * sin(fitth) + y * cos(fitth) + centery;
+
+    ePnP.add_correspondence(visible_sample_points_[p].coord3.x, visible_sample_points_[p].coord3.y, visible_sample_points_[p].coord3.z, xt, yt);
+  }
+  double R_est[3][3], T_est[3];
+  ePnP.compute_pose(R_est, T_est);
+  CvMat *P = cvCreateMat(4, 4, CV_32F);
+  CV_MAT_ELEM(*P, float, 0, 0) = R_est[0][0];
+  CV_MAT_ELEM(*P, float, 0, 1) = R_est[0][1];
+  CV_MAT_ELEM(*P, float, 0, 2) = R_est[0][2];
+
+  CV_MAT_ELEM(*P, float, 1, 0) = R_est[1][0];
+  CV_MAT_ELEM(*P, float, 1, 1) = R_est[1][1];
+  CV_MAT_ELEM(*P, float, 1, 2) = R_est[1][2];
+
+  CV_MAT_ELEM(*P, float, 2, 0) = R_est[2][0];
+  CV_MAT_ELEM(*P, float, 2, 1) = R_est[2][1];
+  CV_MAT_ELEM(*P, float, 2, 2) = R_est[2][2];
+
+  CV_MAT_ELEM(*P, float, 0, 3) = T_est[0];
+  CV_MAT_ELEM(*P, float, 1, 3) = T_est[1];
+  CV_MAT_ELEM(*P, float, 2, 3) = T_est[2];
+
+  CV_MAT_ELEM(*P, float, 3, 0) = 0;
+  CV_MAT_ELEM(*P, float, 3, 1) = 0;
+  CV_MAT_ELEM(*P, float, 3, 2) = 0;
+  CV_MAT_ELEM(*P, float, 3, 3) = 1;
+  setModelviewMatrix(P);
+  cvReleaseMat(&P);
+}
+
 void CObjectModel::determineSharpEdges(GLMmodel *model, float th_sharp, std::vector<std::pair<CvPoint3D32f, CvPoint3D32f>> &sharp_edges, std::vector<std::pair<CvPoint3D32f, CvPoint3D32f>> &dull_edges, std::vector<std::pair<CvPoint3D32f, CvPoint3D32f>> &dull_normals)
 {
   // Determine sharp edges
@@ -1997,24 +2112,31 @@ void CObjectModel::loadObjectCADModel(const std::string &obj_name)
   if (meshmodel_ != NULL)
     free(meshmodel_);
 
-  // Check path existance
+  // search the obj file under the path
+  size_t i = obj_name.rfind('/', obj_name.length());
+  std::string obj_file_name = obj_name.substr(i + 1, obj_name.length() - i) + ".obj";
+  std::string obj_file_name_wo_obj = obj_name.substr(i + 1, obj_name.length() - i);
+  std::cout << "object file " << obj_file_name << std::endl;
+  std::cout << "path " << obj_name + '/' + obj_file_name << std::endl;
 
-  fs::path path(obj_name);
+  // Check path existance
+  fs::path path(obj_name + '/' + obj_file_name);
   if (!fs::exists(path) || !fs::is_regular_file(path))
   {
-    throw std::runtime_error("File path '" + obj_name + "' is invalid.");
+    throw std::runtime_error("File path '" + obj_name + '/' + obj_file_name + "' is invalid.");
   }
 
 #ifdef USE_ASSIMP
-  meshmodel_ = loadObject(obj_name);
+  meshmodel_ = loadObject(obj_name + '/' + obj_file_name);
 #else
   // Check file extension
   if (path.extension() != ".obj")
   {
-    throw std::runtime_error("File path '" + obj_name + "' is does not have extension '.obj'.\n"
-                                                        "Build with Assimp support for other model types.");
+    throw std::runtime_error("File path '" + obj_name + '/' + obj_file_name + "' is does not have extension '.obj'.\n"
+                                                                              "Build with Assimp support for other model types.");
   }
-  meshmodel_ = glmReadOBJ((char *)(obj_name).c_str());
+
+  meshmodel_ = glmReadOBJ((char *)(obj_name + '/' + obj_file_name).c_str());
 #endif
 
   if (!meshmodel_)
@@ -2028,7 +2150,7 @@ void CObjectModel::loadObjectCADModel(const std::string &obj_name)
   // Load or generate sampling points along the sharp edges
 
   // load sharp edges (tracking edges) if exist
-  CvMat *Mobj = (CvMat *)cvLoad((obj_name + std::string(".xml")).c_str());
+  CvMat *Mobj = (CvMat *)cvLoad((obj_name + '/' + obj_file_name_wo_obj + std::string(".xml")).c_str());
   if (Mobj)
   {
     // matrix dimension: (2 * num of edges) by 3
@@ -2093,7 +2215,7 @@ void CObjectModel::loadObjectCADModel(const std::string &obj_name)
     start_idx += dull_normals_.size();
     for (int i = 0; i < dull_normals_.size(); i++)
       setPoint(&A, i + start_idx, dull_normals_[i].second);
-    cvSave((obj_name + std::string(".xml")).c_str(), &A);
+    cvSave((obj_name + '/' + obj_file_name_wo_obj + std::string(".xml")).c_str(), &A);
     free(f_buf);
   }
 
@@ -2224,65 +2346,25 @@ float CObjectModel::getTriangleArea(GLMmodel *m, int tri_idx)
   float area = (a_dx * b_dx + a_dy * b_dy + a_dz * b_dz) / 2.0f;
   return area;
 }
-void CObjectModel::getVisibleArea(int height, int width)
+
+void CObjectModel::getVisibleArea(int height, int width, bool onlyEdge, IplImage *output)
 {
-  //Timer timer;
-  //timer.start();
-  visible_contours_points_.clear();
-  visible_onObject_points_.clear();
-  cv::Mat img(height, width, CV_8U, cv::Scalar(0));
-  int numOfTri = meshmodel_->numtriangles;
-  for (int t = 0; t < numOfTri; t++)
+  // ensure the edgeImage is initilized outside
+  IplImage *colorImage = cvCreateImage(cvSize(width, height), 8, 3);
+  glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, colorImage->imageData);
+
+  cvFlip(colorImage, colorImage, 0);
+  if (onlyEdge)
   {
-
-    int vi1 = meshmodel_->triangles[t].vindices[0];
-    int vi2 = meshmodel_->triangles[t].vindices[1];
-    int vi3 = meshmodel_->triangles[t].vindices[2];
-
-    float vc1x = meshmodel_->vertices[3 * (vi1) + 0];
-    float vc1y = meshmodel_->vertices[3 * (vi1) + 1];
-    float vc1z = meshmodel_->vertices[3 * (vi1) + 2];
-
-    float vc2x = meshmodel_->vertices[3 * (vi2) + 0];
-    float vc2y = meshmodel_->vertices[3 * (vi2) + 1];
-    float vc2z = meshmodel_->vertices[3 * (vi2) + 2];
-
-    float vc3x = meshmodel_->vertices[3 * (vi3) + 0];
-    float vc3y = meshmodel_->vertices[3 * (vi3) + 1];
-    float vc3z = meshmodel_->vertices[3 * (vi3) + 2];
-
-    CvPoint3D32f tmp1 = CvPoint3D32f{meshmodel_->vertices[3 * (vi1) + 0], meshmodel_->vertices[3 * (vi1) + 1], meshmodel_->vertices[3 * (vi1) + 2]};
-    CvPoint3D32f tmp2 = CvPoint3D32f{meshmodel_->vertices[3 * (vi2) + 0], meshmodel_->vertices[3 * (vi2) + 1], meshmodel_->vertices[3 * (vi2) + 2]};
-    CvPoint3D32f tmp3 = CvPoint3D32f{meshmodel_->vertices[3 * (vi3) + 0], meshmodel_->vertices[3 * (vi3) + 1], meshmodel_->vertices[3 * (vi3) + 2]};
-
-    CvPoint2D32f vc1_2d = project3Dto2D(tmp1);
-    CvPoint2D32f vc2_2d = project3Dto2D(tmp2);
-    CvPoint2D32f vc3_2d = project3Dto2D(tmp3);
-
-    vector<cv::Point> pts;
-    pts.push_back(vc1_2d);
-    pts.push_back(vc2_2d);
-    pts.push_back(vc3_2d);
-
-    cv::fillConvexPoly(img, pts, 255);
+    cvCanny(colorImage, output, 20, 40);
+  }
+  else
+  {
+    cvCvtColor(colorImage, output, CV_RGB2GRAY);
+    cvThreshold(output, output, 100, 255, CV_THRESH_BINARY);
   }
 
-  cv::erode(img, contourimg, cv::Mat(5, 5, CV_8U), cv::Point(-1, -1), 1);
-
-  for (int i = 0; i < int(visible_sample_points_.size()); i++)
-  {
-    if (contourimg.at<unsigned char>((int)visible_sample_points_[i].coord2.y, (int)visible_sample_points_[i].coord2.x) != 0xFF)
-    {
-      visible_contours_points_.push_back(visible_sample_points_[i]);
-    }
-    else
-    {
-      visible_onObject_points_.push_back(visible_sample_points_[i]);
-    }
-  }
-
-  //timer.printTimeMilliSec("drawVisibleSection");
-  //cv::imwrite( "contour.png", contourimg );
+  cvReleaseImage(&colorImage);
 }
 
 bool CObjectModel::isEnoughValidSamplePoints(double th_ratio /*=0.5*/, int &count)

@@ -22,6 +22,7 @@ public:
 
   void Init(CvMat* X = NULL);             // init states and member variables
   void Init(int i, CvMat* X = NULL);      // init a state and member variables
+  void setPropagate(int i, CvMat* X);     // set the propagate state of the i particle
   void Propagate(float noiseRateLow, float noiseRateHigh, bool bCompAR = false);        // propagate particles based on AR process
   void Update(int i, CvMat* J, CvMat* e, int NumOfVisibleSamplePoint, float lamda = 1.0f);    // update
   void Update_IRLS(int i, CvMat* J, CvMat* e, int NumOfVisibleSamplePoint);    // update using IRLS

@@ -92,21 +92,21 @@ int main(int argc, char **argv)
   LFLineFitter lf;
   lf.Init();
   lf.Configure("para_template_line_fitter.txt");
-  for(int num = 0 ; num < 49 ; num++){
+  for(int num = 0 ; num < 67 ; num++){
     char buf[100];
 
-    sprintf( buf, "/home/jiaming/object_tracking_2D/build/train_images/edge_template%03d.png", num);
+    sprintf( buf, "/home/jiaming/object_tracking_2D/build/data_newobject/edge_template%03d.png", num);
     std::cout << buf << std::endl;
 
     // fit lines
     IplImage *img_result= cvLoadImage(buf, 0);
     lf.FitLine(img_result);
-    sprintf(buf, "/home/jiaming/object_tracking_2D/build/train_images/edge_template_line%03d.png", num);
+    sprintf(buf, "/home/jiaming/object_tracking_2D/build/data_newobject/edge_template_line%03d.png", num);
     lf.DisplayEdgeMap(img_result, buf);
     cvReleaseImage(&img_result);
 
     
-    sprintf(buf, "/home/jiaming/object_tracking_2D/build/train_images/edge_template%03d.txt", num);
+    sprintf(buf, "/home/jiaming/object_tracking_2D/build/data_newobject/edge_template%03d.txt", num);
     lf.SaveEdgeMap(buf);
   }
 

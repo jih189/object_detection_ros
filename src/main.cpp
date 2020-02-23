@@ -9,14 +9,16 @@
 #include <boost/algorithm/string.hpp>
 
 #include "opencv2/opencv.hpp"
+
 using namespace cv;
+using namespace std;
 
 namespace po = boost::program_options;
 
 int main(int argc, char **argv)
 {
   std::string tracker_name;
-  std::string obj_name;
+  std::string template_directory;
   std::string input;
   std::string intrinsic;
   std::string distortion;
@@ -41,7 +43,7 @@ int main(int argc, char **argv)
   bool use_tracking;
 
   po::options_description desc("Tracker options");
-  desc.add_options()("help,h", "produce help message")("tracker,t", po::value<std::string>(&tracker_name)->default_value("irls"), "name tracker (irls, pf, pf_textureless)")("obj-name,o", po::value<std::string>(&obj_name), "name of traget object")("input,i", po::value<std::string>(&input), "name of camera (e.g. flea) or image sequence path (e.g. dir/seq1/)")("sample-step,s", po::value<float>(&sample_step)->default_value(0.005f), "sample step")("num-particle,n", po::value<int>(&n)->default_value(1), "number of particles")("save-txt", po::value<bool>(&save_rslt_txt)->default_value(false), "save results in text file")("save-img", po::value<bool>(&save_rslt_img)->default_value(false), "save results in image files")("save-path", po::value<std::string>(&str_result_path), "save results in image files")
+  desc.add_options()("help,h", "produce help message")("tracker,t", po::value<std::string>(&tracker_name)->default_value("irls"), "name tracker (irls, pf, pf_textureless)")("obj-name,o", po::value<std::string>(&template_directory), "name of traget object")("input,i", po::value<std::string>(&input), "name of camera (e.g. flea) or image sequence path (e.g. dir/seq1/)")("sample-step,s", po::value<float>(&sample_step)->default_value(0.005f), "sample step")("num-particle,n", po::value<int>(&n)->default_value(1), "number of particles")("save-txt", po::value<bool>(&save_rslt_txt)->default_value(false), "save results in text file")("save-img", po::value<bool>(&save_rslt_img)->default_value(false), "save results in image files")("save-path", po::value<std::string>(&str_result_path), "save results in image files")
 
       ("display", po::value<bool>(&display)->default_value(true), "display results or not")("network", po::value<bool>(&net)->default_value(false), "use network mode or not")("width", po::value<int>(&width)->default_value(640), "width")("height", po::value<int>(&height)->default_value(480), "height")("intrinsic", po::value<std::string>(&intrinsic)->default_value("Intrinsics_normal.xml"), "intrinsic parameters")("distortion", po::value<std::string>(&distortion)->default_value("Distortion_normal.xml"), "distortion parameters")("dull_edge", po::value<bool>(&dull_edge)->default_value(false), "consider dull edges")("th_cm", po::value<float>(&th_cm)->default_value(0.2f), "threshold of chamfer matching")("init_pose", po::value<std::string>(&pose_init_str), "init pose")
       // AKAN
@@ -61,7 +63,7 @@ int main(int argc, char **argv)
     //sns_init();
   }
 
-  if (obj_name.empty())
+  if (template_directory.empty())
   {
     std::cerr << "obj-name should be specified." << std::endl;
     return 1;
@@ -110,7 +112,8 @@ int main(int argc, char **argv)
     }
   }
 
-  VideoCapture cap("testvideo.webm");
+  /*
+  VideoCapture cap(0);
 
   // Check if camera opened successfully
   if (!cap.isOpened())
@@ -118,8 +121,9 @@ int main(int argc, char **argv)
     cout << "Error opening video stream or file" << endl;
     return -1;
   }
+  */
 
-  std::cout << "\nprepare done!\n";
+  Mat inputImg = imread(input, CV_LOAD_IMAGE_COLOR);
 
   TrackerBase *origin_tracker_;
   origin_tracker_ = new TexturelessParticleFilterTracker();
@@ -128,7 +132,7 @@ int main(int argc, char **argv)
   ((TexturelessParticleFilterTracker *)origin_tracker_)->initParticleFilter();
 
   origin_tracker_->setSampleStep(sample_step);
-  origin_tracker_->setMaxSearchDistance(8);
+  origin_tracker_->setMaxSearchDistance(5);
   origin_tracker_->setDisplay(display);
   origin_tracker_->setNetworkMode(false);
   origin_tracker_->setConsideringDullEdges(dull_edge);
@@ -136,11 +140,12 @@ int main(int argc, char **argv)
   origin_tracker_->setValidSamplePointsRatio(0.85);
   origin_tracker_->setMinKeypointMatches(12);
 
-  origin_tracker_->setCannyHigh(90);
-  origin_tracker_->setCannyLow(80);
+  // set the parameters of edge detection
+  origin_tracker_->setCannyHigh(20);
+  origin_tracker_->setCannyLow(15);
 
   input = "ach";
-  origin_tracker_->initTracker(obj_name, input, intrinsic, distortion, width, height, pose_init, ach_channel);
+  origin_tracker_->initTracker(template_directory, input, intrinsic, distortion, width, height, pose_init, ach_channel);
 
   int numofframe = 0;
 
@@ -149,21 +154,39 @@ int main(int argc, char **argv)
   int lifetime[10];
   int numOfDetections = 0;
   std::vector<TrackerBase *> trackers;
+
+  origin_tracker_->setImage(inputImg);
+  std::vector<LMDetWind> detWind;
+  std::vector<CvMat *> detectedState;
+  Timer timer;
+  timer.start();
+  numOfDetections = ((TexturelessParticleFilterTracker *)origin_tracker_)->pose_detection(5, detWind, detectedState);
+  timer.printTimeMilliSec("object detection");
+
+  /*
+  
   while (1)
   {
-
+    Timer timer;
+    timer.start();
     Mat frame;
     // Capture frame-by-frame
     cap >> frame;
+    if (istrack == false)
+      fastNlMeansDenoisingColored(frame, frame, 9, 9);
+    
     numofframe++;
 
     // If the frame is empty, break immediately
     if (frame.empty())
       break;
+
     origin_tracker_->setImage(frame);
 
     if (istrack == false)
     {
+      for (int li = 0; li < 10; li++)
+        lifetime[li] = 0;
 
       // clean the trackers
       while (!trackers.empty())
@@ -174,14 +197,12 @@ int main(int argc, char **argv)
       origin_tracker_->init_ = true;
       std::vector<LMDetWind> detWind;
       std::vector<CvMat *> detectedState;
-      Timer timer;
-      timer.start();
+
       numOfDetections = ((TexturelessParticleFilterTracker *)origin_tracker_)->pose_detection(5, detWind, detectedState);
       timer.printTimeMilliSec("pose detection");
-      std::cout << "number of detections " << numOfDetections << std::endl;
       if (numOfDetections > 0)
       {
-        istrack = true; // todo
+        istrack = false; // todo
         numOfTracking = numOfDetections;
 
         for (int nt = 0; nt < numOfDetections; nt++)
@@ -196,8 +217,8 @@ int main(int argc, char **argv)
           trackers[nt]->setNetworkMode(false);
           trackers[nt]->setConsideringDullEdges(dull_edge);
           trackers[nt]->setTracking(true);
-          trackers[nt]->setCannyHigh(90);
-          trackers[nt]->setCannyLow(80);
+          trackers[nt]->setCannyHigh(55);
+          trackers[nt]->setCannyLow(30);
           try
           {
             ((TexturelessParticleFilterTracker *)trackers[nt])->generate_tracker(origin_tracker_, detectedState[nt]);
@@ -213,28 +234,26 @@ int main(int argc, char **argv)
     }
     else
     {
-      //std::cout << "number of tracking-> " << numOfTracking << std::endl;
-      for (int nt = 0; nt < numOfDetections; nt++)
+      for (int nt = 0; nt < min(numOfDetections, 10); nt++)
       {
         if (lifetime[nt] <= 0)
         {
           continue;
         }
-        Timer timer;
-        timer.start();
         int trackresult = trackers[nt]->tracking();
-        timer.printTimeMilliSec("object tracking");
-        trackers[nt]->renderResults();
         if (trackresult != 0)
         {
           lifetime[nt]--;
           numOfTracking--;
+          continue;
         }
+        trackers[nt]->renderResults();
       }
-      if (numOfTracking == 0)
+      if (numOfTracking <= 0)
       {
         istrack = false;
       }
+      timer.printTimeMilliSec("object tracking");
     }
     Mat img_edge = origin_tracker_->getEdgeImage();
     Mat img_result = origin_tracker_->getResultImage();
@@ -242,7 +261,7 @@ int main(int argc, char **argv)
 
     // Display the resulting frame
     imshow("Frame", frame);
-    imshow("Edge", img_edge);
+    //imshow("Edge", img_edge);
     imshow("Result", img_result);
     imshow("Mask", img_mask);
 
@@ -251,13 +270,23 @@ int main(int argc, char **argv)
     if (c == 27)
       break;
   }
-  std::cout << "number of frame is " << numofframe << std::endl;
+
   // When everything done, release the video capture object
   cap.release();
+  */
+  //Mat img_edge = origin_tracker_->getEdgeImage();
+  // Mat img_result = origin_tracker_->getResultImage();
+  //Mat img_mask = origin_tracker_->getMaskImage();
 
+  // Display the resulting frame
+  //imshow("Frame", inputImg);
+  //imshow("Edge", img_edge);
+  // imshow("Result", img_result);
+  //imshow("Mask", img_mask);
+  waitKey(0);
   // Closes all the frames
   destroyAllWindows();
- 
+
   origin_tracker_->clean();
   delete origin_tracker_;
   return (0);

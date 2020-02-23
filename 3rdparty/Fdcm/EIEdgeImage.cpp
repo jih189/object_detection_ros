@@ -119,6 +119,7 @@ void EIEdgeImage::Read(const char* fileName)
 		lines_[i].Read(fin);
 	}
 
+    // quantize angle for all line segements
 	SetLines2Grid();
 	SetDirections();
 

@@ -6,9 +6,11 @@
 #include <vector>
 #include "tensorflow/core/framework/tensor.h"
 #include "tensorflow/core/public/session.h"
-#include <opencv/cv.h>
-#include <opencv/highgui.h>
-
+//#include <opencv/cv.h>
+//#include <opencv/highgui.h>
+#include <opencv2/core/core.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/highgui/highgui.hpp>
 
 using tensorflow::Tensor;
 using tensorflow::Status;

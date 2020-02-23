@@ -17,8 +17,10 @@
 #include "ObjectModel.h"
 #include "EdgeTracker.h"
 #include "Timer.h"
+#include "epnp.h"
 
 // tensorflow headers
+/*
 #include <utility>
 #include <vector>
 #include "tensorflow/cc/ops/const_op.h"
@@ -34,7 +36,7 @@
 #include "tensorflow/core/public/session.h"
 #include "tensorflow/core/util/command_line_flags.h"
 #include "utils.h"
-
+*/
 //#include <imageReceiver.h>
 //#include "/home/acosgun/repos/ach/include/ach.h"
 //#include "sns.h"
@@ -45,12 +47,13 @@ using namespace cv;
 using boost::asio::ip::tcp;
 
 // tensorflow using
+/*
 using tensorflow::Flag;
 using tensorflow::Tensor;
 using tensorflow::Status;
 using tensorflow::string;
 using tensorflow::int32;
-
+*/
 class TrackerBase
 {
 public:
@@ -78,7 +81,7 @@ public:
     , display_init_result_(false)
     , display_edge_result_(true)
     , display_grayscale_image_(false)
-    , smooth_size_(1)
+    , smooth_size_(7)
     , obj_name_("")
     , frame_num_(0)
     , frame_num_after_init_(0)
@@ -113,16 +116,16 @@ public:
     if(obj_model_)      delete obj_model_;
     // 'img_input_' is aleady released
     if(img_gray_)       cvReleaseImage(&img_gray_);
-    if(img_gray_tracking)       cvReleaseImage(&img_gray_tracking);
+    //if(img_gray_tracking)       cvReleaseImage(&img_gray_tracking);
     if(img_result_)     cvReleaseImage(&img_result_);
-    if(img_edge_)       cvReleaseImage(&img_edge_);
+    //if(img_edge_)       cvReleaseImage(&img_edge_);// memeory error
     if(img_mask_)       cvReleaseImage(&img_mask_);
 
     //cvReleaseMat(&pose_);
     //cvReleaseMat(&pose_init_);
     //cvReleaseMat(&covariance_);
-    if(ofs_pose_.is_open())      ofs_pose_.close();
-    if(ofs_time_.is_open())      ofs_time_.close();
+    //if(ofs_pose_.is_open())      ofs_pose_.close();
+    //if(ofs_time_.is_open())      ofs_time_.close();
   }
 
   virtual bool initTracker(std::string &obj_name, std::string &cam_name, std::string &intrinsic, std::string &distortion, int width, int height, CvMat* pose_init, std::string ach_channel)
@@ -139,23 +142,20 @@ public:
 	//rec.Init(ach_channel.c_str(), width, height);
       }
 
-    obj_name_ = obj_name;
+    // crop the object name from path
+    size_t i = obj_name.rfind('/', obj_name.length());
+    obj_name_ = obj_name.substr(i+1, obj_name.length() - i);
+
     width_ = width;
     height_ = height;
     initCamera(cam_name, intrinsic, distortion, width, height);
     initEdgeTracker(width, height, cam_->getIntrinsicParams(), maxd_, limityrot_);
-/*
-    std::cout << "jiaming check Intrinsic\n";
-    for(int i = 0; i < 3; i++){
-      for(int j = 0; j < 3; j++){
-        std::cout << CV_MAT_ELEM(*(cam_->getIntrinsicParams()), float, i, j) << " ";
-      }
-      std::cout << std::endl;
-    }
-*/  
+
     initObjectModel(obj_name, width, height, cam_->getIntrinsicParams(), sample_step_, maxd_, dulledge_, edge_tracker_);
+    std::cout << "after init object model\n";
     initImages(width, height);
 
+/*
     if(save_rslt_txt_)
     {
       if(!ofs_pose_.is_open())
@@ -163,14 +163,14 @@ public:
       if(!ofs_time_.is_open())
         ofs_time_.open((str_result_path_ + std::string("/time.txt")).c_str());
     }
-
+*/
     cvCopy(pose_init, pose_init_);
     cvCopy(pose_init_, pose_);
 
     // jiaming hu: initialize tensorflow
     // Set dirs variables
     /*
-    string ROOTDIR = "/home/jiaming/catkin_ws/";
+    string ROOTDIR = "/home/jiaming/catkin_ws/"; // this is commentted out
     string LABELS = "labels_map.pbtxt";
     string GRAPH = "frozen_inference_graph.pb";
 
@@ -444,7 +444,7 @@ public:
   {
     hsvFilt = thresholds;
   }
-
+/*
   bool imageFilter(cv::Mat image){
       // jiaming: tensorflow processing
       // clean edge image
@@ -485,7 +485,7 @@ public:
 
       return true;
   }
-
+*/
   bool setImage(cv::Mat image)
   {
       //imageFilter(image);
@@ -501,7 +501,7 @@ public:
   virtual void renderResults()
   {
     obj_model_->displayPoseLine(img_result_, pose_, CV_RGB(255, 0, 0), 1, false);
-    obj_model_->displaySamplePointsAndErrors(img_edge_);
+    //obj_model_->displaySamplePointsAndErrors(img_edge_);
   }
 
   virtual void displayResults()
@@ -558,7 +558,8 @@ protected:
   {
     if(obj_model_) delete obj_model_;
     obj_model_ = new CObjectModel(name, width, height, intrinsic, sample_step, maxd, dulledge, edge_tracker);
-    obj_model_->loadObjectCADModel(name);
+
+    //obj_model_->loadObjectCADModel(name);
     return (true);
   }
   
@@ -754,6 +755,7 @@ protected:
   int* hsvFilt;
 
   // tensorflow variables
+  /*
   std::map<int, std::string> labelsMap;
   Tensor tensor;
   std::vector<Tensor> outputs;
@@ -763,4 +765,5 @@ protected:
   std::unique_ptr<tensorflow::Session> session;
   string inputLayer;
   vector<string> outputLayer;
+  */
 };

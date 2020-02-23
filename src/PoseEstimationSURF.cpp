@@ -11,10 +11,8 @@
 
 using namespace cv;
 
-CPoseEstimationSURF::CPoseEstimationSURF(int width, int height, std::string& img_path, CObjectModel* obj_model, CvMat* intrinsic_params, CvMat* distortion_params, std::string& objName, bool dispaly/*=true*/)
-  : verbose_(false)
-  , display_(dispaly)
-  , draw_type_(CV_AA) // anti-aliasing drawing (CV_AA is 16), about 2ms more required
+CPoseEstimationSURF::CPoseEstimationSURF(int width, int height, std::string &template_path, CObjectModel *obj_model, CvMat *intrinsic_params, CvMat *distortion_params, std::string &objName, bool dispaly /*=true*/)
+    : verbose_(false), display_(dispaly), draw_type_(CV_AA) // anti-aliasing drawing (CV_AA is 16), about 2ms more required
 {
   ms_ = cvCreateMemStorage(0);
   // tested different hessian threshold (200, 500, 5000), but no significant performance change
@@ -30,7 +28,7 @@ CPoseEstimationSURF::CPoseEstimationSURF(int width, int height, std::string& img
   seq_descriptors_ = NULL;
 
   // create an image showing the result
-  img_result_ = cvCreateImage(cvSize(width*2, height), 8, 3);
+  img_result_ = cvCreateImage(cvSize(width * 2, height), 8, 3);
 
   // creat and init
   pose_ = cvCreateMat(4, 4, CV_32F);
@@ -40,20 +38,16 @@ CPoseEstimationSURF::CPoseEstimationSURF(int width, int height, std::string& img
   distortion_ = distortion_params;
 
   // check that there is the file
-  //string templateFileName( img_path + "/" + objName + ".txt");
-  string templateFileName( objName);
-  templateFileName[templateFileName.size()-3] = 't';
-  templateFileName[templateFileName.size()-2] = 'x';
-  templateFileName[templateFileName.size()-1] = 't';
-  cout << templateFileName << endl;
-  std::cout<<templateFileName.c_str()<<std::endl;
+  string templateFileName(template_path + '/' + objName + ".txt");
+
+  std::cout << "template file name: = " << templateFileName.c_str() << std::endl;
   fstream file;
   file.open(templateFileName.c_str());
-  if(file.is_open())
+  if (file.is_open())
   {
     file.close();
-    lf_.Configure("/home/jiaming/catkin_ws/para_line_fitter.txt");
-    lm_.Configure("/home/jiaming/catkin_ws/para_line_matcher.txt");
+    lf_.Configure((template_path + "/para_line_fitter.txt").c_str());
+    lm_.Configure((template_path + "/para_line_matcher.txt").c_str());
     lf_.Init();
     lm_.Init(templateFileName.c_str());
   }
@@ -67,9 +61,9 @@ CPoseEstimationSURF::~CPoseEstimationSURF(void)
   cvReleaseMat(&pose_);
 }
 
-void CPoseEstimationSURF::buildKdTree(vector<IplImage*>& keyframe, vector<CvMat*>& pose, vector<CvMat*>& keypoint2D, vector<CvMat*>& keypoint3D, vector<CvMat*>& descriptor)
+void CPoseEstimationSURF::buildKdTree(vector<IplImage *> &keyframe, vector<CvMat *> &pose, vector<CvMat *> &keypoint2D, vector<CvMat *> &keypoint3D, vector<CvMat *> &descriptor)
 {
-  if(keyframe.size() == 0 || pose.size() == 0 || keypoint2D.size() == 0 || keypoint3D.size() == 0 || descriptor.size() == 0)
+  if (keyframe.size() == 0 || pose.size() == 0 || keypoint2D.size() == 0 || keypoint3D.size() == 0 || descriptor.size() == 0)
     return;
 
   assert(keyframe.size() == keypoint2D.size());
@@ -81,7 +75,7 @@ void CPoseEstimationSURF::buildKdTree(vector<IplImage*>& keyframe, vector<CvMat*
   // Save keyframe descriptor into CvMat
   int dims = descriptor[0]->cols;
   int row = 0;
-  for(int i=0; i < keyframe.size(); i++)
+  for (int i = 0; i < keyframe.size(); i++)
   {
     row += keypoint2D[i]->rows;
   }
@@ -94,15 +88,15 @@ void CPoseEstimationSURF::buildKdTree(vector<IplImage*>& keyframe, vector<CvMat*
 
   // Save keyframe descriptor into CvMat
   int k = 0;
-  for(int h = 0; h < keyframe.size(); h++)
+  for (int h = 0; h < keyframe.size(); h++)
   {
-    for(int i = 0; i < keypoint2D[h]->rows; i++ )
+    for (int i = 0; i < keypoint2D[h]->rows; i++)
     {
-      keyframe_keypoints_2d_[i+k] = CV_MAT_ELEM(*keypoint2D[h], CvPoint2D32f, i, 0);
-      keyframe_keypoints_3d_[i+k] = CV_MAT_ELEM(*keypoint3D[h], CvPoint3D32f, i, 0);
-      keyframe_lut_[i+k] = h;
-      for(int j=0; j<dims; j++)
-        kfd.at<float>(i+k, j) = CV_MAT_ELEM(*descriptor[h], float, i, j);
+      keyframe_keypoints_2d_[i + k] = CV_MAT_ELEM(*keypoint2D[h], CvPoint2D32f, i, 0);
+      keyframe_keypoints_3d_[i + k] = CV_MAT_ELEM(*keypoint3D[h], CvPoint3D32f, i, 0);
+      keyframe_lut_[i + k] = h;
+      for (int j = 0; j < dims; j++)
+        kfd.at<float>(i + k, j) = CV_MAT_ELEM(*descriptor[h], float, i, j);
     }
     k += keypoint2D[h]->rows;
   }
@@ -110,13 +104,15 @@ void CPoseEstimationSURF::buildKdTree(vector<IplImage*>& keyframe, vector<CvMat*
   kfd_ = kfd;
 }
 
-CvMat* CPoseEstimationSURF::estimatePose(int &num_of_corr)
+CvMat *CPoseEstimationSURF::estimatePose(int &num_of_corr)
 {
   // Using keyframes + EPnP RANSAC
 
   // Clear earlier storage and sequence
-  if(seq_keypoints_)    cvClearSeq(seq_keypoints_);
-  if(seq_descriptors_)  cvClearSeq(seq_descriptors_);
+  if (seq_keypoints_)
+    cvClearSeq(seq_keypoints_);
+  if (seq_descriptors_)
+    cvClearSeq(seq_descriptors_);
   cvClearMemStorage(ms_);
 
   // Extract SURF features on test images.
@@ -128,13 +124,13 @@ CvMat* CPoseEstimationSURF::estimatePose(int &num_of_corr)
 
   // Copy image and object images
   cvSetImageROI(img_result_, cvRect(0, 0, img_object_->width, img_object_->height));
-  cvCvtColor(keyframe_images_[keyframe_idx_], img_result_, CV_GRAY2BGR );
-  cvSetImageROI(img_result_, cvRect( img_object_->width, 0, img_input_->width, img_input_->height ) );
-  cvCvtColor(img_input_, img_result_, CV_GRAY2BGR );
+  cvCvtColor(keyframe_images_[keyframe_idx_], img_result_, CV_GRAY2BGR);
+  cvSetImageROI(img_result_, cvRect(img_object_->width, 0, img_input_->width, img_input_->height));
+  cvCvtColor(img_input_, img_result_, CV_GRAY2BGR);
   cvResetImageROI(img_result_);
 
   // If the number of correspondence is smaller than 4, finish
-  if(num_of_corr < 4)
+  if (num_of_corr < 4)
   {
     printf("Insufficient matches...(%d)\n", num_of_corr);
     num_of_corr = 0;
@@ -143,13 +139,13 @@ CvMat* CPoseEstimationSURF::estimatePose(int &num_of_corr)
   }
 
   // Display inliers/outliers
-  for(int i=0; i<int(inliers_obj_2d_.size()); i++)
-    cvLine(img_result_, cvPointFrom32f(inliers_obj_2d_[i]), 
-    cvPoint(cvRound(inliers_img_2d_[i].x)+img_object_->width, cvRound(inliers_img_2d_[i].y)), CV_RGB(0,255,0), 1, draw_type_, 0);
+  for (int i = 0; i < int(inliers_obj_2d_.size()); i++)
+    cvLine(img_result_, cvPointFrom32f(inliers_obj_2d_[i]),
+           cvPoint(cvRound(inliers_img_2d_[i].x) + img_object_->width, cvRound(inliers_img_2d_[i].y)), CV_RGB(0, 255, 0), 1, draw_type_, 0);
 
-  for(int i=0; i<int(outliers_obj_2d_.size()); i++)
-    cvLine(img_result_, cvPointFrom32f(outliers_obj_2d_[i]), 
-    cvPoint(cvRound(outliers_img_2d_[i].x) + img_object_->width, cvRound(outliers_img_2d_[i].y)), CV_RGB(255,100,100), 1, draw_type_, 0);
+  for (int i = 0; i < int(outliers_obj_2d_.size()); i++)
+    cvLine(img_result_, cvPointFrom32f(outliers_obj_2d_[i]),
+           cvPoint(cvRound(outliers_img_2d_[i].x) + img_object_->width, cvRound(outliers_img_2d_[i].y)), CV_RGB(255, 100, 100), 1, draw_type_, 0);
 
   // Draw object
   obj_model_->displayPoseLine(img_result_, pose_, CV_RGB(255, 255, 0), 1, true); // on the right side
@@ -157,13 +153,15 @@ CvMat* CPoseEstimationSURF::estimatePose(int &num_of_corr)
   return pose_;
 }
 
-void CPoseEstimationSURF::PF_estimatePoses(int &num_of_corr, int numOfParticle, vector<CvMat*>& states)
+void CPoseEstimationSURF::PF_estimatePoses(int &num_of_corr, int numOfParticle, vector<CvMat *> &states)
 {
   // Using keyframes + EPnP + random draw
-  
+
   // Clear earlier storage and sequence
-  if(seq_keypoints_)    cvClearSeq(seq_keypoints_);
-  if(seq_descriptors_)  cvClearSeq(seq_descriptors_);
+  if (seq_keypoints_)
+    cvClearSeq(seq_keypoints_);
+  if (seq_descriptors_)
+    cvClearSeq(seq_descriptors_);
   cvClearMemStorage(ms_);
 
   // Extract SURF features on test images.
@@ -172,9 +170,9 @@ void CPoseEstimationSURF::PF_estimatePoses(int &num_of_corr, int numOfParticle, 
   // Find the initial correspondence with Nearest Neighborhood
   findCorrespondenceNN_FLANN(seq_keypoints_, seq_descriptors_, corr_, keyframe_images_.size());
 
-  int noc = int(corr_.size()/2); // noc: number of correspondence
+  int noc = int(corr_.size() / 2); // noc: number of correspondence
 
-  if(noc < 9)
+  if (noc < 9)
   {
     num_of_corr = noc;
   }
@@ -186,50 +184,49 @@ void CPoseEstimationSURF::PF_estimatePoses(int &num_of_corr, int numOfParticle, 
 
   // If the number of correspondence is smaller than 4, finish
   //if(num_of_corr <= 4)
-  if(num_of_corr < 9)
+  if (num_of_corr < 9)
   {
     printf("Insufficient matches...(%d)\n", num_of_corr);
     return;
   }
 
-  if(display_)
+  if (display_)
   {
     // copy image and object images
     cvSetImageROI(img_result_, cvRect(0, 0, img_object_->width, img_object_->height));
-    cvCvtColor(keyframe_images_[keyframe_idx_], img_result_, CV_GRAY2BGR );
-    cvSetImageROI(img_result_, cvRect( img_object_->width, 0, img_input_->width, img_input_->height ) );
-    cvCvtColor(img_input_, img_result_, CV_GRAY2BGR );
+    cvCvtColor(keyframe_images_[keyframe_idx_], img_result_, CV_GRAY2BGR);
+    cvSetImageROI(img_result_, cvRect(img_object_->width, 0, img_input_->width, img_input_->height));
+    cvCvtColor(img_input_, img_result_, CV_GRAY2BGR);
     cvResetImageROI(img_result_);
 
     inliers_obj_2d_.resize(noc);
     inliers_img_2d_.resize(noc);
-    for(int i = 0; i < noc; i++)
+    for (int i = 0; i < noc; i++)
     {
-      inliers_obj_2d_[i] = keyframe_keypoints_2d_[corr_[i*2]];
-      inliers_img_2d_[i] = input_keypoints_2d_[corr_[i*2+1]];
+      inliers_obj_2d_[i] = keyframe_keypoints_2d_[corr_[i * 2]];
+      inliers_img_2d_[i] = input_keypoints_2d_[corr_[i * 2 + 1]];
     }
 
     // display correspondence
-    for(int i=0; i<noc; i++)
+    for (int i = 0; i < noc; i++)
       cvLine(
-      img_result_, 
-      cvPointFrom32f(inliers_obj_2d_[i]), 
-      cvPoint(cvRound(inliers_img_2d_[i].x) + img_object_->width, cvRound(inliers_img_2d_[i].y)), 
-      CV_RGB(0,255,255), 
-      1, 
-      draw_type_, 
-      0
-      );
+          img_result_,
+          cvPointFrom32f(inliers_obj_2d_[i]),
+          cvPoint(cvRound(inliers_img_2d_[i].x) + img_object_->width, cvRound(inliers_img_2d_[i].y)),
+          CV_RGB(0, 255, 255),
+          1,
+          draw_type_,
+          0);
   }
   return;
 }
 
-bool sortBySize(const LMDetWind& left, const LMDetWind& right)
+bool sortBySize(const LMDetWind &left, const LMDetWind &right)
 {
   return (left.width_ * left.height_ > right.width_ * right.height_);
 }
 
-int CPoseEstimationSURF::PF_estimatePosesFDCM(float maxThreshold, int numOfDetections, vector<CvMat*>& states, vector<LMDetWind> &detWind, int smoothSize/*=1*/, int cannyLow/*=20*/, int cannyHigh/*=40*/, IplImage* displayImage/*=NULL*/) // the display image is used to filter edge
+int CPoseEstimationSURF::PF_estimatePosesFDCM(float maxThreshold, int numOfDetections, vector<CvMat *> &states, vector<LMDetWind> &detWind, int smoothSize /*=1*/, int cannyLow /*=20*/, int cannyHigh /*=40*/, IplImage *displayImage /*=NULL*/) // the display image is used to filter edge
 {
   Timer timer;
   timer.start();
@@ -238,17 +235,18 @@ int CPoseEstimationSURF::PF_estimatePosesFDCM(float maxThreshold, int numOfDetec
   IplImage *edgeImage = cvCloneImage(inputImage);
 
   // jiaming
-  //displayImage = cvCreateImage(cvGetSize(inputImage),IPL_DEPTH_8U,3);
+  //displayImage = cvCreateImage(cvGetSize(inputImage), IPL_DEPTH_8U, 3);
 
-  //if(displayImage) cvCvtColor(inputImage, displayImage, CV_GRAY2RGB);
+  cvCopy(inputImage, displayImage);
 
-  if(smoothSize > 0)
+  if (smoothSize > 0)
     cvSmooth(inputImage, inputImage, CV_GAUSSIAN, smoothSize, smoothSize);
 
   cvCanny(inputImage, edgeImage, cannyLow, cannyHigh);
+  // cv::imshow("edge", cv::Mat(edgeImage));
+  // cv::waitKey(0);
 
-  
-/*
+  /*
   std::cout << "frank: filter the image\n";
   // filter out the edge image
 
@@ -277,76 +275,22 @@ int CPoseEstimationSURF::PF_estimatePosesFDCM(float maxThreshold, int numOfDetec
   std::cout << detWind.size() << " detections..." << std::endl;
 
   std::cout << "x	y	width	height	cost		count	scale	aspect	template_id" << std::endl;
-  for(size_t i=0; i<detWind.size(); i++)
+  for (size_t i = 0; i < detWind.size(); i++)
   {
     std::cout << detWind[i].x_ << "	" << detWind[i].y_ << "	" << detWind[i].width_ << "	" << detWind[i].height_ << "	" << detWind[i].cost_ << "	" << detWind[i].count_ << "	" << detWind[i].scale_ << "	" << detWind[i].aspect_ << "	" << detWind[i].tidx_ << std::endl;
+    DrawDetWind(displayImage, detWind[i].x_, detWind[i].y_, detWind[i].width_, detWind[i].height_, cvScalar(255), 3);
   }
 
-  int maxDet = lm_.GetNumOfTemplates();
+  if (edgeImage)
+    cvReleaseImage(&edgeImage);
 
-  if(detWind.size() != 0){
-    // Non-maxima suppressions -- jiaming hu
-    vector<LMDetWind> tmpWind = detWind;
-
-    std::sort(tmpWind.begin(), tmpWind.end(), &sortBySize);
-    unsigned int temp_size = detWind.size();
-
-    detWind.clear();
-    detWind.push_back(tmpWind[0]);
-    for(unsigned int i = 1 ; i < temp_size ; i++)
-    {
-      bool hasNewItem = true;
-      for(unsigned int j = 0; j < detWind.size(); j++)
-      {
-        if(tmpWind[i].x_ > detWind[j].x_ + detWind[j].width_ || detWind[j].x_ > tmpWind[i].x_ + tmpWind[i].width_){ // check whether two rectangles overlap
-          continue;
-        }
-
-        if(tmpWind[i].y_ > detWind[j].y_ + detWind[j].height_ || detWind[j].y_ > tmpWind[i].y_ + tmpWind[i].height_){
-          continue;
-        }
-
-        float overlappingArea = (std::min(tmpWind[i].x_+tmpWind[i].width_,detWind[j].x_+detWind[j].width_) - 
-                                 std::max(tmpWind[i].x_,detWind[j].x_)) * 
-                                (std::min(tmpWind[i].y_+tmpWind[i].height_,detWind[j].y_+detWind[j].height_) - 
-                                 std::max(tmpWind[i].y_,detWind[j].y_));
-        if(overlappingArea / (tmpWind[i].width_ * tmpWind[i].height_) > 0.55)// && detWind[j].cost_ < tmpWind[i].cost_ )
-        {
-          hasNewItem = false;
-          break;
-        }
-      }
-      if(hasNewItem){
-        detWind.push_back(tmpWind[i]);
-      }
-    }
-    tmpWind.clear();
-  }
-
-  /*
-  if(detWind.size() > 0 && displayImage)
-    for(size_t i=1; i<(detWind.size()<maxDet ? detWind.size() : maxDet); i++)
-      DrawDetWind(displayImage, detWind[i].x_, detWind[i].y_, detWind[i].width_, detWind[i].height_, cvScalar(255,255,0), 1);
-
-  if(detWind.size() > 0 && displayImage)
-    DrawDetWind(displayImage, detWind[0].x_, detWind[0].y_, detWind[0].width_, detWind[0].height_, cvScalar(0,255,255), 1);
-  */
-  std::cout << "after NMS\n";
-  std::cout << "x	y	width	height	cost		count	scale	aspect	template_id" << std::endl;
-  for(size_t i=0; i<detWind.size(); i++)
-  {
-    std::cout << detWind[i].x_ << "	" << detWind[i].y_ << "	" << detWind[i].width_ << "	" << detWind[i].height_ << "	" << detWind[i].cost_ << "	" << detWind[i].count_ << "	" << detWind[i].scale_ << "	" << detWind[i].aspect_ << "	" << detWind[i].tidx_ << std::endl;
-  }
-
-  if(edgeImage)   cvReleaseImage(&edgeImage);
-
-  if(detWind.size() > 0)
+  if (detWind.size() > 0)
   {
     // Calculate coarse pose
     float lamda = 1.0f;
 
     int numOfDet = detWind.size();
-    vector<CvMat*> poses;
+    vector<CvMat *> poses;
     //vector<float> vweight;
     poses.resize(numOfDet);
     //vweight.resize(numOfDet);
@@ -358,16 +302,16 @@ int CPoseEstimationSURF::PF_estimatePosesFDCM(float maxThreshold, int numOfDetec
     float tx = 0.0;
     float ty = 0.0;
     // get the pose of template which matches the object
-    for(int i = 0; i<numOfDet; i++)
+    for (int i = 0; i < numOfDet; i++)
     {
       poses[i] = cvCreateMat(4, 4, CV_32F);
       cvCopy(obj_model_->getEdgeTemplatePose(static_cast<int>(detWind[i].tidx_)), poses[i]);
-      int x = detWind[i].x_ + (int)((obj_model_->getPosePosition(static_cast<int>(detWind[i].tidx_))).x*detWind[i].scale_);  //detWind[i].width_/2;
-      int y = detWind[i].y_ + (int)((obj_model_->getPosePosition(static_cast<int>(detWind[i].tidx_))).y*detWind[i].scale_);  //detWind[i].height_/2;
-      
-      float Z = (CV_MAT_ELEM(*poses[i], float, 2, 3)/detWind[i].scale_);
-      float X = ((float(x) - u0)*Z-tx)/fx;
-      float Y = ((float(y) - v0)*Z-ty)/fy;
+      int x = detWind[i].x_ + (int)((obj_model_->getPosePosition(static_cast<int>(detWind[i].tidx_))).x * detWind[i].scale_); //detWind[i].width_/2;
+      int y = detWind[i].y_ + (int)((obj_model_->getPosePosition(static_cast<int>(detWind[i].tidx_))).y * detWind[i].scale_); //detWind[i].height_/2;
+
+      float Z = (CV_MAT_ELEM(*poses[i], float, 2, 3) / detWind[i].scale_);
+      float X = ((float(x) - u0) * Z - tx) / fx;
+      float Y = ((float(y) - v0) * Z - ty) / fy;
 
       CV_MAT_ELEM(*poses[i], float, 0, 3) = X;
       CV_MAT_ELEM(*poses[i], float, 1, 3) = Y;
@@ -376,16 +320,16 @@ int CPoseEstimationSURF::PF_estimatePosesFDCM(float maxThreshold, int numOfDetec
       //obj_model_->displayPoseLine(displayImage, poses[i], CV_RGB(0, 255, 0), 1, false);
     }
 
-    for(int i = 0; i < numOfDet; i++)
+    for (int i = 0; i < numOfDet; i++)
     {
       states.push_back(cvCreateMat(4, 4, CV_32F));
       cvCopy(poses[i], states[i]);
     }
 
     /*approach the object*/
-    //cvSaveImage("detect_img.png", displayImage);
+    //cvReleaseImage(&displayImage);
 
-    for(int i = 0; i < numOfDet; i++)
+    for (int i = 0; i < numOfDet; i++)
     {
       cvReleaseMat(&poses[i]);
     }
@@ -396,69 +340,71 @@ int CPoseEstimationSURF::PF_estimatePosesFDCM(float maxThreshold, int numOfDetec
   return detWind.size();
 }
 
-void CPoseEstimationSURF::findCorrespondenceNN_FLANN(const CvSeq* imageKeypoints, const CvSeq* imageDescriptors, vector<int>& ptpairs, int numOfKeyframes)
+void CPoseEstimationSURF::findCorrespondenceNN_FLANN(const CvSeq *imageKeypoints, const CvSeq *imageDescriptors, vector<int> &ptpairs, int numOfKeyframes)
 {
-  if(imageDescriptors->total == 0)
+  if (imageDescriptors->total == 0)
   {
     ptpairs.clear();
     return;
   }
 
-  CvSeqReader kreader, reader; 
-  int dims = imageDescriptors->elem_size/sizeof(float);
+  CvSeqReader kreader, reader;
+  int dims = imageDescriptors->elem_size / sizeof(float);
   cv::Mat id(imageDescriptors->total, dims, CV_32F); // imageDescriptors
   input_keypoints_2d_.resize(imageDescriptors->total);
 
   // save image descriptor into CvMat
-  cvStartReadSeq( imageKeypoints, &kreader );
-  cvStartReadSeq( imageDescriptors, &reader );
-  for(int i = 0; i < imageDescriptors->total; i++ )
+  cvStartReadSeq(imageKeypoints, &kreader);
+  cvStartReadSeq(imageDescriptors, &reader);
+  for (int i = 0; i < imageDescriptors->total; i++)
   {
-    const CvSURFPoint* kp = (const CvSURFPoint*)kreader.ptr;
-    const float* descriptor = (const float*)reader.ptr;
-    CV_NEXT_SEQ_ELEM( kreader.seq->elem_size, kreader );
-    CV_NEXT_SEQ_ELEM( reader.seq->elem_size, reader );
+    const CvSURFPoint *kp = (const CvSURFPoint *)kreader.ptr;
+    const float *descriptor = (const float *)reader.ptr;
+    CV_NEXT_SEQ_ELEM(kreader.seq->elem_size, kreader);
+    CV_NEXT_SEQ_ELEM(reader.seq->elem_size, reader);
     input_keypoints_2d_[i] = (*kp).pt;
-    for(int j=0; j<dims; j++)
+    for (int j = 0; j < dims; j++)
       id.at<float>(i, j) = descriptor[j];
   }
 
   // find feature correspondences
-  double th_ratio = 0.6;      // ratio test threshold
+  double th_ratio = 0.6; // ratio test threshold
   cv::Mat indices(kfd_.rows, 2, CV_32S);
   cv::Mat dists(kfd_.rows, 2, CV_32F);
 
-  cv::flann::Index flann_index(id, cv::flann::KDTreeIndexParams(4));  // using 4 randomized kdtrees
-  flann_index.knnSearch(kfd_, indices, dists, 2, cv::flann::SearchParams(64)); // maximum number of leafs 
+  cv::flann::Index flann_index(id, cv::flann::KDTreeIndexParams(4));           // using 4 randomized kdtrees
+  flann_index.knnSearch(kfd_, indices, dists, 2, cv::flann::SearchParams(64)); // maximum number of leafs
 
   ptpairs.clear();
   vector<int> idxpairs;
 
   // check results and save to 'ptpairs'
-  int* indices_ptr = indices.ptr<int>(0);
-  float* dists_ptr = dists.ptr<float>(0);
-  for (int i=0; i<indices.rows; ++i) {
-    if (dists_ptr[2*i] < th_ratio*dists_ptr[2*i+1]) {
-      ptpairs.push_back(i); // image index
-      ptpairs.push_back(indices_ptr[2*i]); // object index
-      idxpairs.push_back(keyframe_lut_[indices_ptr[2*i]]);
+  int *indices_ptr = indices.ptr<int>(0);
+  float *dists_ptr = dists.ptr<float>(0);
+  for (int i = 0; i < indices.rows; ++i)
+  {
+    if (dists_ptr[2 * i] < th_ratio * dists_ptr[2 * i + 1])
+    {
+      ptpairs.push_back(i);                  // image index
+      ptpairs.push_back(indices_ptr[2 * i]); // object index
+      idxpairs.push_back(keyframe_lut_[indices_ptr[2 * i]]);
     }
   }
 
   vector<int> cnt_buf;
   cnt_buf.resize(numOfKeyframes);
 
-  for(int i=0; i<idxpairs.size(); i++)
+  for (int i = 0; i < idxpairs.size(); i++)
   {
-	  if(idxpairs[i]<cnt_buf.size() && idxpairs[i] > -1)
-    cnt_buf[idxpairs[i]]++;
+    if (idxpairs[i] < cnt_buf.size() && idxpairs[i] > -1)
+      cnt_buf[idxpairs[i]]++;
   }
 
   keyframe_idx_ = 0; // default
   int max_cnt = 0;
-  for(int i=0; i<numOfKeyframes; i++)
+  for (int i = 0; i < numOfKeyframes; i++)
   {
-    if(max_cnt < cnt_buf[i])
+    if (max_cnt < cnt_buf[i])
     {
       max_cnt = cnt_buf[i];
       keyframe_idx_ = i;
@@ -468,25 +414,25 @@ void CPoseEstimationSURF::findCorrespondenceNN_FLANN(const CvSeq* imageKeypoints
   assert(keyframe_idx_ >= 0);
   printf("Matched keyframe: %d\n", keyframe_idx_);
   vector<int> ptpairs_new;
-  for(int i=0; i<idxpairs.size(); i++)
+  for (int i = 0; i < idxpairs.size(); i++)
   {
-    if(idxpairs[i] == keyframe_idx_)
+    if (idxpairs[i] == keyframe_idx_)
     {
       // check adding correspondence is already saved
       bool added = false;
-      for(int j=0; j<int(ptpairs_new.size()/2); j++)
+      for (int j = 0; j < int(ptpairs_new.size() / 2); j++)
       {
-        if(ptpairs_new[2*j] == ptpairs[2*i])
+        if (ptpairs_new[2 * j] == ptpairs[2 * i])
         {
           added = true;
           break;
         }
       }
 
-      if(!added)
+      if (!added)
       {
-        ptpairs_new.push_back(ptpairs[2*i]);
-        ptpairs_new.push_back(ptpairs[2*i+1]);
+        ptpairs_new.push_back(ptpairs[2 * i]);
+        ptpairs_new.push_back(ptpairs[2 * i + 1]);
       }
     }
   }
@@ -495,7 +441,7 @@ void CPoseEstimationSURF::findCorrespondenceNN_FLANN(const CvSeq* imageKeypoints
 }
 
 // EPnP version
-int CPoseEstimationSURF::refineCorrespondenceEpnpRANSAC(const vector<int>& ptpairs, vector<CvPoint2D32f>& objOutliers, vector<CvPoint3D32f>& objOutliers3D, vector<CvPoint2D32f>& imgOutliers, vector<CvPoint2D32f>& objInliers, vector<CvPoint3D32f>& objInliers3D, vector<CvPoint2D32f>& imgInliers, CvMat* pmPose)
+int CPoseEstimationSURF::refineCorrespondenceEpnpRANSAC(const vector<int> &ptpairs, vector<CvPoint2D32f> &objOutliers, vector<CvPoint3D32f> &objOutliers3D, vector<CvPoint2D32f> &imgOutliers, vector<CvPoint2D32f> &objInliers, vector<CvPoint3D32f> &objInliers3D, vector<CvPoint2D32f> &imgInliers, CvMat *pmPose)
 {
   const int NOM = 7; // number of model parameters
 
@@ -507,18 +453,18 @@ int CPoseEstimationSURF::refineCorrespondenceEpnpRANSAC(const vector<int>& ptpai
   const float th = 20;
   const double p = 0.99;
 
-  n = int(ptpairs.size()/2);
-  if( n < 8 ) // at least 8 points are needed to estimate fundamental matrix
+  n = int(ptpairs.size() / 2);
+  if (n < 8) // at least 8 points are needed to estimate fundamental matrix
     return -1;
 
   objOutliers.resize(n);
   imgOutliers.resize(n);
   objOutliers3D.resize(n);
-  for(int i = 0; i < n; i++ )
+  for (int i = 0; i < n; i++)
   {
-    objOutliers[i] = keyframe_keypoints_2d_[ptpairs[i*2]];
-    imgOutliers[i] = input_keypoints_2d_[ptpairs[i*2+1]];
-    objOutliers3D[i] = keyframe_keypoints_3d_[ptpairs[i*2]];
+    objOutliers[i] = keyframe_keypoints_2d_[ptpairs[i * 2]];
+    imgOutliers[i] = input_keypoints_2d_[ptpairs[i * 2 + 1]];
+    objOutliers3D[i] = keyframe_keypoints_3d_[ptpairs[i * 2]];
   }
 
   epnp ePnP;
@@ -538,12 +484,12 @@ int CPoseEstimationSURF::refineCorrespondenceEpnpRANSAC(const vector<int>& ptpai
 
   CvRNG rng = cvRNG(cvGetTickCount());
   int rand_idx[NOM];
-  CvMat* P = cvCreateMat(3,4,CV_32F);
-  CvMat* P2 = cvCreateMat(3,4,CV_32F);
-  CvMat* x3d_h = cvCreateMat(4, n, CV_32F);
-  CvMat* x2d_proj = cvCreateMat(3, n, CV_32F);
+  CvMat *P = cvCreateMat(3, 4, CV_32F);
+  CvMat *P2 = cvCreateMat(3, 4, CV_32F);
+  CvMat *x3d_h = cvCreateMat(4, n, CV_32F);
+  CvMat *x2d_proj = cvCreateMat(3, n, CV_32F);
 
-  for(int i=0; i<n; i++)
+  for (int i = 0; i < n; i++)
   {
     CV_MAT_ELEM(*x3d_h, float, 0, i) = objOutliers3D[i].x;
     CV_MAT_ELEM(*x3d_h, float, 1, i) = objOutliers3D[i].y;
@@ -553,20 +499,20 @@ int CPoseEstimationSURF::refineCorrespondenceEpnpRANSAC(const vector<int>& ptpai
 
   double R_est[3][3], T_est[3];
 
-  while(iter < k && iter < max_k)
+  while (iter < k && iter < max_k)
   {
     // sampling
-    for(int i=0; i<NOM; i++)
+    for (int i = 0; i < NOM; i++)
     {
-      int temp_idx= 0;
+      int temp_idx = 0;
       bool found = true;
-      while(found)
+      while (found)
       {
         temp_idx = cvRandInt(&rng) % n;
         found = false;
-        for(int j=0; j<i; j++)
+        for (int j = 0; j < i; j++)
         {
-          if(rand_idx[j] == temp_idx)
+          if (rand_idx[j] == temp_idx)
             found = true;
         }
       }
@@ -574,7 +520,7 @@ int CPoseEstimationSURF::refineCorrespondenceEpnpRANSAC(const vector<int>& ptpai
     }
     // model parameters fitted to rand_idx
     ePnP.reset_correspondences();
-    for(int i=0; i<NOM; i++)
+    for (int i = 0; i < NOM; i++)
     {
       ePnP.add_correspondence(objOutliers3D[rand_idx[i]].x, objOutliers3D[rand_idx[i]].y, objOutliers3D[rand_idx[i]].z, imgOutliers[rand_idx[i]].x, imgOutliers[rand_idx[i]].y);
     }
@@ -602,24 +548,23 @@ int CPoseEstimationSURF::refineCorrespondenceEpnpRANSAC(const vector<int>& ptpai
     // x2d_proj = P * x3d_h
     cvGEMM(P2, x3d_h, 1, NULL, 0, x2d_proj, 0);
 
-
-    for(int i=0; i<n; i++)
+    for (int i = 0; i < n; i++)
     {
       float u = CV_MAT_ELEM(*x2d_proj, float, 0, i);
       float v = CV_MAT_ELEM(*x2d_proj, float, 1, i);
       float w = CV_MAT_ELEM(*x2d_proj, float, 2, i);
 
-      CV_MAT_ELEM(*x2d_proj, float, 0, i) = u/w;
-      CV_MAT_ELEM(*x2d_proj, float, 1, i) = v/w;
+      CV_MAT_ELEM(*x2d_proj, float, 0, i) = u / w;
+      CV_MAT_ELEM(*x2d_proj, float, 1, i) = v / w;
       // save reprojection error to third rows
-      CV_MAT_ELEM(*x2d_proj, float, 2, i) = sqrt((u/w - imgOutliers[i].x)*(u/w - imgOutliers[i].x) + (v/w - imgOutliers[i].y)*(v/w - imgOutliers[i].y));
+      CV_MAT_ELEM(*x2d_proj, float, 2, i) = sqrt((u / w - imgOutliers[i].x) * (u / w - imgOutliers[i].x) + (v / w - imgOutliers[i].y) * (v / w - imgOutliers[i].y));
     }
 
     // Count number of inliers
     int noi = 0;
-    for(int i=0; i<n; i++) 
+    for (int i = 0; i < n; i++)
     {
-      if(rand_idx[i] != i && CV_MAT_ELEM(*x2d_proj, float, 2, i)  < th)
+      if (rand_idx[i] != i && CV_MAT_ELEM(*x2d_proj, float, 2, i) < th)
       {
         inlier_idx[i] = 1;
         noi++;
@@ -628,28 +573,29 @@ int CPoseEstimationSURF::refineCorrespondenceEpnpRANSAC(const vector<int>& ptpai
         inlier_idx[i] = 0;
     }
 
-    if(noi > best_noi) 
+    if (noi > best_noi)
     {
-      for(int i=0; i<NOM; i++)
+      for (int i = 0; i < NOM; i++)
         inlier_idx[rand_idx[i]] = 1;
       best_noi = noi;
       best_inlier_idx = inlier_idx;
       // Determine adaptive number of iteration
-      double e = 1. - (double)best_noi/(double)n;
-      k = (int)(log(1. - p)/log(1. - pow(1.-e, NOM)));
+      double e = 1. - (double)best_noi / (double)n;
+      k = (int)(log(1. - p) / log(1. - pow(1. - e, NOM)));
     }
 
     iter++;
-    if(verbose_) printf("(%d/%d) iter: %d/%d\n", iter, k, best_noi, n);
+    if (verbose_)
+      printf("(%d/%d) iter: %d/%d\n", iter, k, best_noi, n);
   }
 
-  if(best_noi > 0)
+  if (best_noi > 0)
   {
-    ePnP.set_maximum_number_of_correspondences(best_noi+NOM);
+    ePnP.set_maximum_number_of_correspondences(best_noi + NOM);
     ePnP.reset_correspondences();
-    for(int i=0; i<n; i++)
+    for (int i = 0; i < n; i++)
     {
-      if(best_inlier_idx[i])
+      if (best_inlier_idx[i])
         ePnP.add_correspondence(objOutliers3D[i].x, objOutliers3D[i].y, objOutliers3D[i].z, imgOutliers[i].x, imgOutliers[i].y);
     }
 
@@ -673,7 +619,7 @@ int CPoseEstimationSURF::refineCorrespondenceEpnpRANSAC(const vector<int>& ptpai
     CV_MAT_ELEM(*pmPose, float, 3, 3) = 1.0;
   }
 
-  // Display estimated pose
+// Display estimated pose
 #if 0
   cout << "Found pose:" << endl;
   ePnP.print_pose(R_est, T_est);
@@ -685,9 +631,9 @@ int CPoseEstimationSURF::refineCorrespondenceEpnpRANSAC(const vector<int>& ptpai
   objInliers3D.clear();
   vector<CvPoint2D32f> pt1_out, pt2_out;
   vector<CvPoint3D32f> pt3_out;
-  for(int i=0; i<n; i++)
+  for (int i = 0; i < n; i++)
   {
-    if(best_inlier_idx[i] == 1) // inliers only
+    if (best_inlier_idx[i] == 1) // inliers only
     {
       objInliers.push_back(objOutliers[i]);
       imgInliers.push_back(imgOutliers[i]);
@@ -714,7 +660,7 @@ int CPoseEstimationSURF::refineCorrespondenceEpnpRANSAC(const vector<int>& ptpai
 }
 
 // EPnP for PF version
-int CPoseEstimationSURF::PF_estimateMultiplePosesEpnp(const vector<int>& ptpairs, vector<CvPoint2D32f>& objOutliers, vector<CvPoint3D32f>& objOutliers3D, vector<CvPoint2D32f>& imgOutliers, vector<CvPoint2D32f>& objInliers, vector<CvPoint3D32f>& objInliers3D, vector<CvPoint2D32f>& imgInliers, vector<CvMat*>& states, int numOfParticle)
+int CPoseEstimationSURF::PF_estimateMultiplePosesEpnp(const vector<int> &ptpairs, vector<CvPoint2D32f> &objOutliers, vector<CvPoint3D32f> &objOutliers3D, vector<CvPoint2D32f> &imgOutliers, vector<CvPoint2D32f> &objInliers, vector<CvPoint3D32f> &objInliers3D, vector<CvPoint2D32f> &imgInliers, vector<CvMat *> &states, int numOfParticle)
 {
   // For accurate estimation 'NOM' should be larger than '6'
   const int NOM = 7; // number of model parameters
@@ -724,18 +670,18 @@ int CPoseEstimationSURF::PF_estimateMultiplePosesEpnp(const vector<int>& ptpairs
   const float th = 20;
   const double p = 0.99;
 
-  noc = int(ptpairs.size()/2);
-  if( noc < NOM )
+  noc = int(ptpairs.size() / 2);
+  if (noc < NOM)
     return -1;
 
   objOutliers.resize(noc);
   imgOutliers.resize(noc);
   objOutliers3D.resize(noc);
-  for(int i = 0; i < noc; i++ )
+  for (int i = 0; i < noc; i++)
   {
-    objOutliers[i] = keyframe_keypoints_2d_[ptpairs[i*2]];
-    imgOutliers[i] = input_keypoints_2d_[ptpairs[i*2+1]];
-    objOutliers3D[i] = keyframe_keypoints_3d_[ptpairs[i*2]];
+    objOutliers[i] = keyframe_keypoints_2d_[ptpairs[i * 2]];
+    imgOutliers[i] = input_keypoints_2d_[ptpairs[i * 2 + 1]];
+    objOutliers3D[i] = keyframe_keypoints_3d_[ptpairs[i * 2]];
     //cout << objOutliers3D[i].x << " " << objOutliers3D[i].y << " " << objOutliers3D[i].z << endl;
   }
 
@@ -756,12 +702,12 @@ int CPoseEstimationSURF::PF_estimateMultiplePosesEpnp(const vector<int>& ptpairs
 
   CvRNG rng = cvRNG(cvGetTickCount());
   int rand_idx[NOM];
-  CvMat* P = cvCreateMat(3,4,CV_32F);
-  CvMat* P2 = cvCreateMat(3,4,CV_32F);
-  CvMat* x3d_h = cvCreateMat(4, noc, CV_32F);
-  CvMat* x2d_proj = cvCreateMat(3, noc, CV_32F);
+  CvMat *P = cvCreateMat(3, 4, CV_32F);
+  CvMat *P2 = cvCreateMat(3, 4, CV_32F);
+  CvMat *x3d_h = cvCreateMat(4, noc, CV_32F);
+  CvMat *x2d_proj = cvCreateMat(3, noc, CV_32F);
 
-  for(int i=0; i<noc; i++)
+  for (int i = 0; i < noc; i++)
   {
     CV_MAT_ELEM(*x3d_h, float, 0, i) = objOutliers3D[i].x;
     CV_MAT_ELEM(*x3d_h, float, 1, i) = objOutliers3D[i].y;
@@ -773,20 +719,20 @@ int CPoseEstimationSURF::PF_estimateMultiplePosesEpnp(const vector<int>& ptpairs
 
   float *weight = new float[numOfParticle];
 
-  for(int par=0; par<numOfParticle; par++)
+  for (int par = 0; par < numOfParticle; par++)
   {
     // sampling
-    for(int i=0; i<NOM; i++)
+    for (int i = 0; i < NOM; i++)
     {
-      int temp_idx= 0;
+      int temp_idx = 0;
       bool found = true;
-      while(found)
+      while (found)
       {
         temp_idx = cvRandInt(&rng) % noc;
         found = false;
-        for(int j=0; j<i; j++)
+        for (int j = 0; j < i; j++)
         {
-          if(rand_idx[j] == temp_idx)
+          if (rand_idx[j] == temp_idx)
             found = true;
         }
       }
@@ -794,12 +740,11 @@ int CPoseEstimationSURF::PF_estimateMultiplePosesEpnp(const vector<int>& ptpairs
     }
     // model parameters fitted to rand_idx
     ePnP.reset_correspondences();
-    for(int i=0; i<NOM; i++)
+    for (int i = 0; i < NOM; i++)
     {
       ePnP.add_correspondence(objOutliers3D[rand_idx[i]].x, objOutliers3D[rand_idx[i]].y, objOutliers3D[rand_idx[i]].z, imgOutliers[rand_idx[i]].x, imgOutliers[rand_idx[i]].y);
     }
     double err = ePnP.compute_pose_gn(R_est, T_est);
-
 
     // project rest points into the image plane
     CV_MAT_ELEM(*P, float, 0, 0) = R_est[0][0];
@@ -823,24 +768,23 @@ int CPoseEstimationSURF::PF_estimateMultiplePosesEpnp(const vector<int>& ptpairs
     // >> x2d_proj = P * x3d_h
     cvGEMM(P2, x3d_h, 1, NULL, 0, x2d_proj, 0);
 
-
-    for(int i=0; i<noc; i++)
+    for (int i = 0; i < noc; i++)
     {
       float u = CV_MAT_ELEM(*x2d_proj, float, 0, i);
       float v = CV_MAT_ELEM(*x2d_proj, float, 1, i);
       float w = CV_MAT_ELEM(*x2d_proj, float, 2, i);
 
-      CV_MAT_ELEM(*x2d_proj, float, 0, i) = u/w;
-      CV_MAT_ELEM(*x2d_proj, float, 1, i) = v/w;
+      CV_MAT_ELEM(*x2d_proj, float, 0, i) = u / w;
+      CV_MAT_ELEM(*x2d_proj, float, 1, i) = v / w;
       // save reprojection error to third rows
-      CV_MAT_ELEM(*x2d_proj, float, 2, i) = (u/w - imgOutliers[i].x)*(u/w - imgOutliers[i].x) + (v/w - imgOutliers[i].y)*(v/w - imgOutliers[i].y);
+      CV_MAT_ELEM(*x2d_proj, float, 2, i) = (u / w - imgOutliers[i].x) * (u / w - imgOutliers[i].x) + (v / w - imgOutliers[i].y) * (v / w - imgOutliers[i].y);
     }
 
     // count number of inliers
     int noi = 0;
-    for(int i=0; i<noc; i++) 
+    for (int i = 0; i < noc; i++)
     {
-      if(rand_idx[i] != i && CV_MAT_ELEM(*x2d_proj, float, 2, i)  < th*th)
+      if (rand_idx[i] != i && CV_MAT_ELEM(*x2d_proj, float, 2, i) < th * th)
       {
         inlier_idx[i] = 1;
         noi++;
@@ -867,43 +811,45 @@ int CPoseEstimationSURF::PF_estimateMultiplePosesEpnp(const vector<int>& ptpairs
     CV_MAT_ELEM(*states[par], float, 3, 3) = 1.0;
 
     float lamda = 3.0f;
-    weight[par] = exp(-lamda*(float)(noc-NOM-noi)/float(noc-NOM));
+    weight[par] = exp(-lamda * (float)(noc - NOM - noi) / float(noc - NOM));
   }
 
   // randomly draw from weight
   float sum = 0.0f;
-  for(int i=0; i<numOfParticle; i++)   sum += weight[i];
-  for(int i=0; i<numOfParticle; i++)   weight[i] = weight[i]/sum; // normalize
+  for (int i = 0; i < numOfParticle; i++)
+    sum += weight[i];
+  for (int i = 0; i < numOfParticle; i++)
+    weight[i] = weight[i] / sum; // normalize
 
   float *idx = new float[numOfParticle];
-  float *cumsum = new float[numOfParticle+1];
-  assert(numOfParticle>0);
-  idx[0] = (float)rand()/(float)RAND_MAX/(float)numOfParticle;
-  for(int i=1; i<numOfParticle; i++)
-    idx[i] = idx[i-1] + 1.0f/(float)numOfParticle;
+  float *cumsum = new float[numOfParticle + 1];
+  assert(numOfParticle > 0);
+  idx[0] = (float)rand() / (float)RAND_MAX / (float)numOfParticle;
+  for (int i = 1; i < numOfParticle; i++)
+    idx[i] = idx[i - 1] + 1.0f / (float)numOfParticle;
   cumsum[0] = 0.0f;
-  for(int i=1; i<numOfParticle+1; i++)
-    cumsum[i] = cumsum[i-1] + weight[i-1];
+  for (int i = 1; i < numOfParticle + 1; i++)
+    cumsum[i] = cumsum[i - 1] + weight[i - 1];
 
   int *outindex = new int[numOfParticle];
-  for(int i=0; i<numOfParticle; i++)
+  for (int i = 0; i < numOfParticle; i++)
   {
     outindex[i] = 0;
   }
-  for(int i=0; i<numOfParticle; i++)
+  for (int i = 0; i < numOfParticle; i++)
   {
-    for(int j=1; j<numOfParticle+1; j++)
+    for (int j = 1; j < numOfParticle + 1; j++)
     {
-      if(idx[i] > cumsum[j-1] && idx[i] <= cumsum[j])
+      if (idx[i] > cumsum[j - 1] && idx[i] <= cumsum[j])
       {
-        outindex[i] = j-1;
+        outindex[i] = j - 1;
         break;
       }
     }
   }
 
   // update resampled results to states
-  for(int i=0; i<numOfParticle; i++)
+  for (int i = 0; i < numOfParticle; i++)
   {
     cvCopy(states[outindex[i]], states[i]);
   }
@@ -921,13 +867,8 @@ int CPoseEstimationSURF::PF_estimateMultiplePosesEpnp(const vector<int>& ptpairs
   return noc;
 }
 
-void CPoseEstimationSURF::setImage(IplImage* img)
+void CPoseEstimationSURF::setImage(IplImage *img)
 {
   // Update test image
   cvCopy(img, img_input_);
 }
-
-
-
-
-

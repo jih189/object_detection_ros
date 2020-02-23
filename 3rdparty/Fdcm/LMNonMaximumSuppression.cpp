@@ -52,7 +52,8 @@ bool LMNonMaximumSuppression::IsOverlapping(LMDetWind &curWind,vector<LMDetWind>
 {
 	for(unsigned int i=0; i< wind.size(); i++)
 	{
-		if( OverlapRatio( curWind, wind[i] ) >= overlapThresh)
+		//if( OverlapRatio( curWind, wind[i] ) >= overlapThresh)
+		if( OverlapRatio( curWind, wind[i] ) >= overlapThresh && curWind.scale_ <= wind[i].scale_)
 		{
 			wind[i].count_++;			
 			return true;

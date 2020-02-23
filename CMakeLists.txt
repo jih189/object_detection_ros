@@ -53,7 +53,12 @@ find_package( Boost    1.43 REQUIRED )
 find_package( OpenGL   1.10 REQUIRED )
 find_package( GLEW     1.10 REQUIRED )
 find_package( GLUT    2.8.1 REQUIRED )
-find_package( OpenCV  2.4.9 REQUIRED )
+
+set(OpenCV_DIR /home/jiaming/opencv-2.4.9/build)
+set(OpenCV_FOUND TRUE)
+
+find_package( OpenCV 2.4.9 REQUIRED)
+message(STATUS "OPENCV_VERSION:  ${OPENCV_VERSION}")
 find_package( LAPACK    3.5 REQUIRED )
 find_package( OpenMP        REQUIRED )
 
@@ -104,7 +109,7 @@ set(CPACK_DEBIAN_PACKAGE_DEPENDS   "libboost-dev    (>= 1.43),
                                     libglew-dev     (>= 1.10),
                                     libglew-dev     (>= 1.10),
                                     freeglut3-dev   (>= 2.8.1),
-                                    libopencv-dev   (>= 2.4),
+				    libopencv-dev      (>= 2.4),
                                     liblapack3      (>= 3.5)")
 
 
@@ -141,20 +146,21 @@ set(FITLINE_LIBS ${FITLINE_LIBS}
 set(IMAGE_LIBS ${IMAGE_LIBS}
         ${PROJECT_BINARY_DIR}/3rdparty/Image/libImageLib.so)
 
-set(TENSORFLOW_LIBS "/home/jiaming/tensorflow/bazel-bin/tensorflow/libtensorflow_cc.so.1.14.0"
-	"/home/jiaming/tensorflow/bazel-bin/tensorflow/libtensorflow_framework.so"
-	"/home/jiaming/tensorflow/bazel-bin/tensorflow/libtensorflow_framework.so.1")
+#set(TENSORFLOW_LIBS "/home/jiaming/tensorflow/bazel-bin/tensorflow/libtensorflow_cc.so.1.14.0"
+#	"/home/jiaming/tensorflow/bazel-bin/tensorflow/libtensorflow_framework.so"
+#	"/home/jiaming/tensorflow/bazel-bin/tensorflow/libtensorflow_framework.so.1")
+
 
 include_directories( ${EBT_SOURCE_DIR}/3rdparty)
 include_directories( ${OpenCV_INCLUDE_DIRS} )
 include_directories( ${Boost_INCLUDE_DIR} )
 include_directories( ${EBT_SOURCE_DIR}/include)
 include_directories( "/usr/local/include/eigen3")
-include_directories( "/home/jiaming/tensorflow/")
-include_directories( "/home/jiaming/tensorflow/bazel-genfiles/")
-include_directories( "/home/jiaming/tensorflow/tensorflow/")
-include_directories( "/home/jiaming/tensorflow/third-party/")
-include_directories( "/usr/protobuf/include/")
+#include_directories( "/home/jiaming/tensorflow/")
+#include_directories( "/home/jiaming/tensorflow/bazel-genfiles/")
+#include_directories( "/home/jiaming/tensorflow/tensorflow/")
+#include_directories( "/home/jiaming/tensorflow/third-party/")
+#include_directories( "/usr/protobuf/include/")
 
 #include_directories( ${EBT_SOURCE_DIR})
 
@@ -181,8 +187,9 @@ set(incs
                 include/object_tracking_2D/ParticleFilter.h
                 include/object_tracking_2D/imageReceiver.h
                 include/object_tracking_2D/non_randomness.h
-		include/object_tracking_2D/utils.h
-		include/object_tracking_2D/utils.cpp)
+		#include/object_tracking_2D/utils.h
+		#include/object_tracking_2D/utils.cpp
+)
 
 set(srcs
                 src/Camera.cpp
@@ -219,7 +226,8 @@ set(libs
                 ${FDCM_LIBS}
                 ${FITLINE_LIBS}
                 ${IMAGE_LIBS}
-		${TENSORFLOW_LIBS})
+		#${TENSORFLOW_LIBS}
+        )
 
 
 

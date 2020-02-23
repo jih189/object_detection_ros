@@ -75,23 +75,13 @@ void LMDistanceImage::ConstructDTs(EIEdgeImage& ei)
 #else
     
     dtImages_.resize(nDirections_);
-#pragma omp parallel for
+    #pragma omp parallel for
     for (int i=0 ; i<ei.nDirections_ ; i++)
     {
         Image<uchar> image(width_,height_,false);
         dtImages_[i].Resize(width_,height_,false);
         ei.ConstructDirectionImage(i, &image);
         DistanceTransform::CompDT(&image, &dtImages_[i], false);
-
-		// jiaming hu: save the direction image
-		/*
-		cv::Mat tempImage = cv::Mat(height_,width_, CV_8UC1, cv::Scalar(0));
-		for(int t = 0 ; t < height_ ; t++){
-			for(int j = 0 ; j < width_ ; j++){
-				tempImage.at<uchar>(t, j) = image.Access(j, t);
-			}
-		}
-		*/
     }
 #endif
 }

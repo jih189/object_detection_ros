@@ -24,6 +24,7 @@ OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include "LMLineMatcher.h"
 #include <omp.h> // openmp
 
+
 LMLineMatcher::LMLineMatcher()
 {
 	dbImages_ = NULL;
@@ -781,8 +782,8 @@ void LMLineMatcher::SingleShapeDetectionWithVaryingQuerySizeForROC(LFLineFitter 
 
 void LMLineMatcher::DetectBruteForce(EIEdgeImage& dbImage, double detectionThreshold, double scale, MatchingCostMap &matchingCostMap, int &costMapIndex)
 {
-//#pragma omp parallel for
 	// detection with different aspect ratios
+	//#pragma omp parallel for
 	for(int a = minSearchAspect_  ; a<= maxSearchAspect_ ; a++)	
 	{			
 		EIEdgeImage tdbImage;
@@ -815,8 +816,7 @@ void LMLineMatcher::DetectBruteForce(EIEdgeImage& dbImage, double detectionThres
 
 		if(min(width,height)==0)
 			continue;
-
-
+			
 		int y0 = 0;
 		for (int y=-(int)miny; y<queryImage_.height_-(int)maxy; y += searchStepSize_)
 		{
@@ -1047,8 +1047,8 @@ void LMLineMatcher::DetectBruteForceVaryingTemplateSize(EIEdgeImage& dbImage, do
 							line.Translate(ltrans);
 
 							// get cost of line according to the image
-							double sum = queryDistanceImage_.idtImages_[tdbImage.directionIndices_[k]].Sum((int)line.sx_,(int)line.sy_,(int)line.ex_,(int)line.ey_, currentcount);
-                                                        cost += sum;
+							double sum = queryDistanceImage_.idtImages_[tdbImage.directionIndices_[k]].Sum((int)line.sx_, (int)line.sy_, (int)line.ex_, (int)line.ey_, currentcount);
+                            cost += sum;
 							if (cost > currentDetectionThreshold)
 							{
 								cost = 1e+10;
@@ -1056,7 +1056,7 @@ void LMLineMatcher::DetectBruteForceVaryingTemplateSize(EIEdgeImage& dbImage, do
 							}
 						}
 						cost *= factor;
-                                                cost /= queryDistanceImage_.maxCost_;
+                        cost /= queryDistanceImage_.maxCost_;
 					}
 					imageIdx = x0 + y0*width;
 					matchingCostMap.costMap_[costMapIndex][imageIdx] = cost; // costMapIndex is the combinition of the size and other; imageIdx is position of the template
@@ -1266,7 +1266,7 @@ void LMLineMatcher::MultiShapeDetectionWithVaryingTemplateSize(LFLineFitter &lf,
     vector<LMDetWind> detWindAll;
     for(int t=0; t<ndbImages_; t++)
     {
-        LMNonMaximumSuppression::ComputeDetection(matchingCostMap[t], maxThreshold, overlapThreshold, detWind,varyingQuerySize);
+        LMNonMaximumSuppression::ComputeDetection(matchingCostMap[t], maxThreshold, overlapThreshold, detWind, varyingQuerySize);
         for(size_t i=0; i<detWind.size(); i++)
         {
             detWind[i].tidx_ = t;
