@@ -4,16 +4,15 @@
 CEdgeTracker::CEdgeTracker(int width, int height, CvMat *intrinsic, int maxd, bool limityrot /*=false*/)
     : width_(width), height_(height), pose_(NULL), intrinsic_(NULL), alpha_(1.f)
 {
+
+  
   pose_ = cvCreateMat(4, 4, CV_32F);
   covariance_ = cvCreateMat(6, 6, CV_32F);
 
   width_ = width;
   height_ = height;
-
   intrinsic_ = cvCreateMat(3, 3, CV_32F);
-
   cvCopy(intrinsic, intrinsic_);
-
   ja_[0][0] = static_cast<double>(CV_MAT_ELEM(*intrinsic_, float, 0, 0));
   ja_[0][1] = 0.0;
   ja_[1][1] = static_cast<double>(CV_MAT_ELEM(*intrinsic_, float, 1, 1));

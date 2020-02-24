@@ -11,58 +11,6 @@
  ../3rdparty/Fdcm/../Image/ImageIO.h
  /home/jiaming/object_tracking_2D/3rdparty/Fdcm/EIEdgeImage.cpp
  /home/jiaming/object_tracking_2D/3rdparty/Fdcm/EIEdgeImage.h
- /home/jiaming/opencv-2.4.9/include/opencv/cv.h
- /home/jiaming/opencv-2.4.9/include/opencv/highgui.h
- /home/jiaming/opencv-2.4.9/modules/calib3d/include/opencv2/calib3d/calib3d.hpp
- /home/jiaming/opencv-2.4.9/modules/core/include/opencv2/core/core.hpp
- /home/jiaming/opencv-2.4.9/modules/core/include/opencv2/core/core_c.h
- /home/jiaming/opencv-2.4.9/modules/core/include/opencv2/core/eigen.hpp
- /home/jiaming/opencv-2.4.9/modules/core/include/opencv2/core/internal.hpp
- /home/jiaming/opencv-2.4.9/modules/core/include/opencv2/core/mat.hpp
- /home/jiaming/opencv-2.4.9/modules/core/include/opencv2/core/operations.hpp
- /home/jiaming/opencv-2.4.9/modules/core/include/opencv2/core/types_c.h
- /home/jiaming/opencv-2.4.9/modules/core/include/opencv2/core/version.hpp
- /home/jiaming/opencv-2.4.9/modules/features2d/include/opencv2/features2d/features2d.hpp
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/all_indices.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/allocator.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/any.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/autotuned_index.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/composite_index.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/config.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/defines.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/dist.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/dynamic_bitset.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/flann.hpp
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/flann_base.hpp
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/general.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/ground_truth.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/heap.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/hierarchical_clustering_index.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/index_testing.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/kdtree_index.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/kdtree_single_index.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/kmeans_index.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/linear_index.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/logger.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/lsh_index.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/lsh_table.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/matrix.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/miniflann.hpp
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/nn_index.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/params.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/random.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/result_set.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/sampling.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/saving.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/timer.h
- /home/jiaming/opencv-2.4.9/modules/highgui/include/opencv2/highgui/highgui.hpp
- /home/jiaming/opencv-2.4.9/modules/highgui/include/opencv2/highgui/highgui_c.h
- /home/jiaming/opencv-2.4.9/modules/imgproc/include/opencv2/imgproc/imgproc.hpp
- /home/jiaming/opencv-2.4.9/modules/imgproc/include/opencv2/imgproc/imgproc_c.h
- /home/jiaming/opencv-2.4.9/modules/imgproc/include/opencv2/imgproc/types_c.h
- /home/jiaming/opencv-2.4.9/modules/legacy/include/opencv2/legacy/compat.hpp
- /home/jiaming/opencv-2.4.9/modules/objdetect/include/opencv2/objdetect/objdetect.hpp
- /home/jiaming/opencv-2.4.9/modules/video/include/opencv2/video/tracking.hpp
 3rdparty/Fdcm/CMakeFiles/FdcmLib.dir/LMDirectionalIntegralDistanceImage.cpp.o
  ../3rdparty/Fdcm/../Image/Image.h
  /home/jiaming/object_tracking_2D/3rdparty/Fdcm/LMDirectionalIntegralDistanceImage.cpp
@@ -79,58 +27,6 @@
  /home/jiaming/object_tracking_2D/3rdparty/Fdcm/LMDetWind.h
  /home/jiaming/object_tracking_2D/3rdparty/Fdcm/LMDisplay.cpp
  /home/jiaming/object_tracking_2D/3rdparty/Fdcm/LMDisplay.h
- /home/jiaming/opencv-2.4.9/include/opencv/cv.h
- /home/jiaming/opencv-2.4.9/include/opencv/highgui.h
- /home/jiaming/opencv-2.4.9/modules/calib3d/include/opencv2/calib3d/calib3d.hpp
- /home/jiaming/opencv-2.4.9/modules/core/include/opencv2/core/core.hpp
- /home/jiaming/opencv-2.4.9/modules/core/include/opencv2/core/core_c.h
- /home/jiaming/opencv-2.4.9/modules/core/include/opencv2/core/eigen.hpp
- /home/jiaming/opencv-2.4.9/modules/core/include/opencv2/core/internal.hpp
- /home/jiaming/opencv-2.4.9/modules/core/include/opencv2/core/mat.hpp
- /home/jiaming/opencv-2.4.9/modules/core/include/opencv2/core/operations.hpp
- /home/jiaming/opencv-2.4.9/modules/core/include/opencv2/core/types_c.h
- /home/jiaming/opencv-2.4.9/modules/core/include/opencv2/core/version.hpp
- /home/jiaming/opencv-2.4.9/modules/features2d/include/opencv2/features2d/features2d.hpp
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/all_indices.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/allocator.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/any.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/autotuned_index.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/composite_index.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/config.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/defines.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/dist.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/dynamic_bitset.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/flann.hpp
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/flann_base.hpp
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/general.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/ground_truth.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/heap.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/hierarchical_clustering_index.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/index_testing.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/kdtree_index.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/kdtree_single_index.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/kmeans_index.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/linear_index.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/logger.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/lsh_index.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/lsh_table.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/matrix.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/miniflann.hpp
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/nn_index.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/params.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/random.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/result_set.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/sampling.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/saving.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/timer.h
- /home/jiaming/opencv-2.4.9/modules/highgui/include/opencv2/highgui/highgui.hpp
- /home/jiaming/opencv-2.4.9/modules/highgui/include/opencv2/highgui/highgui_c.h
- /home/jiaming/opencv-2.4.9/modules/imgproc/include/opencv2/imgproc/imgproc.hpp
- /home/jiaming/opencv-2.4.9/modules/imgproc/include/opencv2/imgproc/imgproc_c.h
- /home/jiaming/opencv-2.4.9/modules/imgproc/include/opencv2/imgproc/types_c.h
- /home/jiaming/opencv-2.4.9/modules/legacy/include/opencv2/legacy/compat.hpp
- /home/jiaming/opencv-2.4.9/modules/objdetect/include/opencv2/objdetect/objdetect.hpp
- /home/jiaming/opencv-2.4.9/modules/video/include/opencv2/video/tracking.hpp
 3rdparty/Fdcm/CMakeFiles/FdcmLib.dir/LMDistanceImage.cpp.o
  ../3rdparty/Fdcm/../Fdcm/MMFunctions.h
  ../3rdparty/Fdcm/../Fitline/LFLineFitter.h
@@ -144,58 +40,6 @@
  /home/jiaming/object_tracking_2D/3rdparty/Fdcm/LMDirectionalIntegralDistanceImage.h
  /home/jiaming/object_tracking_2D/3rdparty/Fdcm/LMDistanceImage.cpp
  /home/jiaming/object_tracking_2D/3rdparty/Fdcm/LMDistanceImage.h
- /home/jiaming/opencv-2.4.9/include/opencv/cv.h
- /home/jiaming/opencv-2.4.9/include/opencv/highgui.h
- /home/jiaming/opencv-2.4.9/modules/calib3d/include/opencv2/calib3d/calib3d.hpp
- /home/jiaming/opencv-2.4.9/modules/core/include/opencv2/core/core.hpp
- /home/jiaming/opencv-2.4.9/modules/core/include/opencv2/core/core_c.h
- /home/jiaming/opencv-2.4.9/modules/core/include/opencv2/core/eigen.hpp
- /home/jiaming/opencv-2.4.9/modules/core/include/opencv2/core/internal.hpp
- /home/jiaming/opencv-2.4.9/modules/core/include/opencv2/core/mat.hpp
- /home/jiaming/opencv-2.4.9/modules/core/include/opencv2/core/operations.hpp
- /home/jiaming/opencv-2.4.9/modules/core/include/opencv2/core/types_c.h
- /home/jiaming/opencv-2.4.9/modules/core/include/opencv2/core/version.hpp
- /home/jiaming/opencv-2.4.9/modules/features2d/include/opencv2/features2d/features2d.hpp
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/all_indices.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/allocator.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/any.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/autotuned_index.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/composite_index.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/config.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/defines.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/dist.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/dynamic_bitset.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/flann.hpp
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/flann_base.hpp
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/general.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/ground_truth.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/heap.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/hierarchical_clustering_index.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/index_testing.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/kdtree_index.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/kdtree_single_index.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/kmeans_index.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/linear_index.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/logger.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/lsh_index.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/lsh_table.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/matrix.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/miniflann.hpp
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/nn_index.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/params.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/random.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/result_set.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/sampling.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/saving.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/timer.h
- /home/jiaming/opencv-2.4.9/modules/highgui/include/opencv2/highgui/highgui.hpp
- /home/jiaming/opencv-2.4.9/modules/highgui/include/opencv2/highgui/highgui_c.h
- /home/jiaming/opencv-2.4.9/modules/imgproc/include/opencv2/imgproc/imgproc.hpp
- /home/jiaming/opencv-2.4.9/modules/imgproc/include/opencv2/imgproc/imgproc_c.h
- /home/jiaming/opencv-2.4.9/modules/imgproc/include/opencv2/imgproc/types_c.h
- /home/jiaming/opencv-2.4.9/modules/legacy/include/opencv2/legacy/compat.hpp
- /home/jiaming/opencv-2.4.9/modules/objdetect/include/opencv2/objdetect/objdetect.hpp
- /home/jiaming/opencv-2.4.9/modules/video/include/opencv2/video/tracking.hpp
 3rdparty/Fdcm/CMakeFiles/FdcmLib.dir/LMLineMatcher.cpp.o
  ../3rdparty/Fdcm/../Fdcm/MMFunctions.h
  ../3rdparty/Fdcm/../Fitline/LFLineFitter.h
@@ -215,58 +59,6 @@
  /home/jiaming/object_tracking_2D/3rdparty/Fdcm/LMNonMaximumSuppression.h
  /home/jiaming/object_tracking_2D/3rdparty/Fdcm/MMFunctions.h
  /home/jiaming/object_tracking_2D/3rdparty/Fdcm/MatchingCostMap.h
- /home/jiaming/opencv-2.4.9/include/opencv/cv.h
- /home/jiaming/opencv-2.4.9/include/opencv/highgui.h
- /home/jiaming/opencv-2.4.9/modules/calib3d/include/opencv2/calib3d/calib3d.hpp
- /home/jiaming/opencv-2.4.9/modules/core/include/opencv2/core/core.hpp
- /home/jiaming/opencv-2.4.9/modules/core/include/opencv2/core/core_c.h
- /home/jiaming/opencv-2.4.9/modules/core/include/opencv2/core/eigen.hpp
- /home/jiaming/opencv-2.4.9/modules/core/include/opencv2/core/internal.hpp
- /home/jiaming/opencv-2.4.9/modules/core/include/opencv2/core/mat.hpp
- /home/jiaming/opencv-2.4.9/modules/core/include/opencv2/core/operations.hpp
- /home/jiaming/opencv-2.4.9/modules/core/include/opencv2/core/types_c.h
- /home/jiaming/opencv-2.4.9/modules/core/include/opencv2/core/version.hpp
- /home/jiaming/opencv-2.4.9/modules/features2d/include/opencv2/features2d/features2d.hpp
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/all_indices.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/allocator.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/any.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/autotuned_index.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/composite_index.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/config.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/defines.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/dist.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/dynamic_bitset.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/flann.hpp
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/flann_base.hpp
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/general.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/ground_truth.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/heap.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/hierarchical_clustering_index.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/index_testing.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/kdtree_index.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/kdtree_single_index.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/kmeans_index.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/linear_index.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/logger.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/lsh_index.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/lsh_table.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/matrix.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/miniflann.hpp
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/nn_index.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/params.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/random.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/result_set.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/sampling.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/saving.h
- /home/jiaming/opencv-2.4.9/modules/flann/include/opencv2/flann/timer.h
- /home/jiaming/opencv-2.4.9/modules/highgui/include/opencv2/highgui/highgui.hpp
- /home/jiaming/opencv-2.4.9/modules/highgui/include/opencv2/highgui/highgui_c.h
- /home/jiaming/opencv-2.4.9/modules/imgproc/include/opencv2/imgproc/imgproc.hpp
- /home/jiaming/opencv-2.4.9/modules/imgproc/include/opencv2/imgproc/imgproc_c.h
- /home/jiaming/opencv-2.4.9/modules/imgproc/include/opencv2/imgproc/types_c.h
- /home/jiaming/opencv-2.4.9/modules/legacy/include/opencv2/legacy/compat.hpp
- /home/jiaming/opencv-2.4.9/modules/objdetect/include/opencv2/objdetect/objdetect.hpp
- /home/jiaming/opencv-2.4.9/modules/video/include/opencv2/video/tracking.hpp
 3rdparty/Fdcm/CMakeFiles/FdcmLib.dir/LMNonMaximumSuppression.cpp.o
  /home/jiaming/object_tracking_2D/3rdparty/Fdcm/LMDetWind.h
  /home/jiaming/object_tracking_2D/3rdparty/Fdcm/LMNonMaximumSuppression.cpp

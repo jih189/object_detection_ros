@@ -11,11 +11,13 @@ CCamera::CCamera(std::string &img_path, bool color, int imgIdx, std::string &int
   m_nImgIdx     = imgIdx;
   intrinsic_    = (CvMat*)cvLoad(intrinsic.c_str());
   distortion_   = (CvMat*)cvLoad(distortion.c_str());
-  img_ext_      = "png"; //imgext;
+  img_ext_      = imgext;
+
+  std::cout << "size of intrinsic " << intrinsic_->rows << ": " << intrinsic_->cols << std::endl;
 
   // Check the image resolution and save it
   std::stringstream ss;
-  ss << m_strImgPath << /*"/" << /*"img" << */std::setw(5) << std::setfill('0') << m_nImgIdx << "." << img_ext_;
+  ss << m_strImgPath;// << /*"/" << /*"img" << */std::setw(5) << std::setfill('0') << m_nImgIdx << "." << img_ext_;
   std::cout<<ss.str().c_str()<<std::endl;
   IplImage* image = cvLoadImage(ss.str().c_str(), color_ ? CV_LOAD_IMAGE_COLOR : CV_LOAD_IMAGE_GRAYSCALE);
   width_ = image->width;

@@ -34,10 +34,10 @@ cmake_force:
 SHELL = /bin/sh
 
 # The CMake executable.
-CMAKE_COMMAND = /usr/local/bin/cmake
+CMAKE_COMMAND = /usr/bin/cmake
 
 # The command to remove a file.
-RM = /usr/local/bin/cmake -E remove -f
+RM = /usr/bin/cmake -E remove -f
 
 # Escaping for special characters.
 EQUALS = =
@@ -330,30 +330,52 @@ EBTDemo: /usr/lib/x86_64-linux-gnu/libGLEW.so
 EBTDemo: /usr/lib/x86_64-linux-gnu/libglut.so
 EBTDemo: /usr/lib/x86_64-linux-gnu/libXmu.so
 EBTDemo: /usr/lib/x86_64-linux-gnu/libXi.so
-EBTDemo: /usr/lib/liblapack.so
-EBTDemo: /usr/lib/libblas.so
-EBTDemo: /home/jiaming/opencv-2.4.9/build/lib/libopencv_videostab.so.2.4.9
-EBTDemo: /home/jiaming/opencv-2.4.9/build/lib/libopencv_ts.a
-EBTDemo: /home/jiaming/opencv-2.4.9/build/lib/libopencv_superres.so.2.4.9
-EBTDemo: /home/jiaming/opencv-2.4.9/build/lib/libopencv_stitching.so.2.4.9
-EBTDemo: /home/jiaming/opencv-2.4.9/build/lib/libopencv_contrib.so.2.4.9
+EBTDemo: /usr/lib/x86_64-linux-gnu/liblapack.so
+EBTDemo: /usr/lib/x86_64-linux-gnu/libblas.so
+EBTDemo: /usr/lib/x86_64-linux-gnu/libopencv_shape.so.3.2.0
+EBTDemo: /usr/lib/x86_64-linux-gnu/libopencv_stitching.so.3.2.0
+EBTDemo: /usr/lib/x86_64-linux-gnu/libopencv_superres.so.3.2.0
+EBTDemo: /usr/lib/x86_64-linux-gnu/libopencv_videostab.so.3.2.0
+EBTDemo: /usr/lib/x86_64-linux-gnu/libopencv_aruco.so.3.2.0
+EBTDemo: /usr/lib/x86_64-linux-gnu/libopencv_bgsegm.so.3.2.0
+EBTDemo: /usr/lib/x86_64-linux-gnu/libopencv_bioinspired.so.3.2.0
+EBTDemo: /usr/lib/x86_64-linux-gnu/libopencv_ccalib.so.3.2.0
+EBTDemo: /usr/lib/x86_64-linux-gnu/libopencv_datasets.so.3.2.0
+EBTDemo: /usr/lib/x86_64-linux-gnu/libopencv_dpm.so.3.2.0
+EBTDemo: /usr/lib/x86_64-linux-gnu/libopencv_face.so.3.2.0
+EBTDemo: /usr/lib/x86_64-linux-gnu/libopencv_freetype.so.3.2.0
+EBTDemo: /usr/lib/x86_64-linux-gnu/libopencv_fuzzy.so.3.2.0
+EBTDemo: /usr/lib/x86_64-linux-gnu/libopencv_hdf.so.3.2.0
+EBTDemo: /usr/lib/x86_64-linux-gnu/libopencv_line_descriptor.so.3.2.0
+EBTDemo: /usr/lib/x86_64-linux-gnu/libopencv_optflow.so.3.2.0
+EBTDemo: /usr/lib/x86_64-linux-gnu/libopencv_plot.so.3.2.0
+EBTDemo: /usr/lib/x86_64-linux-gnu/libopencv_reg.so.3.2.0
+EBTDemo: /usr/lib/x86_64-linux-gnu/libopencv_saliency.so.3.2.0
+EBTDemo: /usr/lib/x86_64-linux-gnu/libopencv_stereo.so.3.2.0
+EBTDemo: /usr/lib/x86_64-linux-gnu/libopencv_structured_light.so.3.2.0
+EBTDemo: /usr/lib/x86_64-linux-gnu/libopencv_surface_matching.so.3.2.0
+EBTDemo: /usr/lib/x86_64-linux-gnu/libopencv_text.so.3.2.0
+EBTDemo: /usr/lib/x86_64-linux-gnu/libopencv_ximgproc.so.3.2.0
+EBTDemo: /usr/lib/x86_64-linux-gnu/libopencv_xobjdetect.so.3.2.0
+EBTDemo: /usr/lib/x86_64-linux-gnu/libopencv_xphoto.so.3.2.0
 EBTDemo: 3rdparty/Fdcm/libFdcmLib.so
 EBTDemo: 3rdparty/Fitline/libLineFitLib.so
 EBTDemo: 3rdparty/Image/libImageLib.so
-EBTDemo: /home/jiaming/opencv-2.4.9/build/lib/libopencv_nonfree.so.2.4.9
-EBTDemo: /home/jiaming/opencv-2.4.9/build/lib/libopencv_ocl.so.2.4.9
-EBTDemo: /home/jiaming/opencv-2.4.9/build/lib/libopencv_gpu.so.2.4.9
-EBTDemo: /home/jiaming/opencv-2.4.9/build/lib/libopencv_photo.so.2.4.9
-EBTDemo: /home/jiaming/opencv-2.4.9/build/lib/libopencv_objdetect.so.2.4.9
-EBTDemo: /home/jiaming/opencv-2.4.9/build/lib/libopencv_legacy.so.2.4.9
-EBTDemo: /home/jiaming/opencv-2.4.9/build/lib/libopencv_video.so.2.4.9
-EBTDemo: /home/jiaming/opencv-2.4.9/build/lib/libopencv_ml.so.2.4.9
-EBTDemo: /home/jiaming/opencv-2.4.9/build/lib/libopencv_calib3d.so.2.4.9
-EBTDemo: /home/jiaming/opencv-2.4.9/build/lib/libopencv_features2d.so.2.4.9
-EBTDemo: /home/jiaming/opencv-2.4.9/build/lib/libopencv_highgui.so.2.4.9
-EBTDemo: /home/jiaming/opencv-2.4.9/build/lib/libopencv_imgproc.so.2.4.9
-EBTDemo: /home/jiaming/opencv-2.4.9/build/lib/libopencv_flann.so.2.4.9
-EBTDemo: /home/jiaming/opencv-2.4.9/build/lib/libopencv_core.so.2.4.9
+EBTDemo: /usr/lib/x86_64-linux-gnu/libopencv_video.so.3.2.0
+EBTDemo: /usr/lib/x86_64-linux-gnu/libopencv_viz.so.3.2.0
+EBTDemo: /usr/lib/x86_64-linux-gnu/libopencv_phase_unwrapping.so.3.2.0
+EBTDemo: /usr/lib/x86_64-linux-gnu/libopencv_rgbd.so.3.2.0
+EBTDemo: /usr/lib/x86_64-linux-gnu/libopencv_calib3d.so.3.2.0
+EBTDemo: /usr/lib/x86_64-linux-gnu/libopencv_features2d.so.3.2.0
+EBTDemo: /usr/lib/x86_64-linux-gnu/libopencv_flann.so.3.2.0
+EBTDemo: /usr/lib/x86_64-linux-gnu/libopencv_objdetect.so.3.2.0
+EBTDemo: /usr/lib/x86_64-linux-gnu/libopencv_ml.so.3.2.0
+EBTDemo: /usr/lib/x86_64-linux-gnu/libopencv_highgui.so.3.2.0
+EBTDemo: /usr/lib/x86_64-linux-gnu/libopencv_photo.so.3.2.0
+EBTDemo: /usr/lib/x86_64-linux-gnu/libopencv_videoio.so.3.2.0
+EBTDemo: /usr/lib/x86_64-linux-gnu/libopencv_imgcodecs.so.3.2.0
+EBTDemo: /usr/lib/x86_64-linux-gnu/libopencv_imgproc.so.3.2.0
+EBTDemo: /usr/lib/x86_64-linux-gnu/libopencv_core.so.3.2.0
 EBTDemo: CMakeFiles/EBTDemo.dir/link.txt
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/jiaming/object_tracking_2D/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_11) "Linking CXX executable EBTDemo"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/EBTDemo.dir/link.txt --verbose=$(VERBOSE)

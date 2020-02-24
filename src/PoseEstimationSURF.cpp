@@ -7,7 +7,6 @@
 
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
-#include <opencv2/contrib/contrib.hpp>
 
 using namespace cv;
 
@@ -15,8 +14,6 @@ CPoseEstimationSURF::CPoseEstimationSURF(int width, int height, std::string &tem
     : verbose_(false), display_(dispaly), draw_type_(CV_AA) // anti-aliasing drawing (CV_AA is 16), about 2ms more required
 {
   ms_ = cvCreateMemStorage(0);
-  // tested different hessian threshold (200, 500, 5000), but no significant performance change
-  surf_params_ = cvSURFParams(50, 3);
 
   // allocate images
   img_input_ = cvCreateImage(cvSize(width, height), 8, 1);
@@ -52,8 +49,6 @@ CPoseEstimationSURF::CPoseEstimationSURF(int width, int height, std::string &tem
     lm_.Init(templateFileName.c_str());
   }
 
-  // HACK:
-  cv::initModule_nonfree(); // for SURF feature
 }
 
 CPoseEstimationSURF::~CPoseEstimationSURF(void)
@@ -104,122 +99,6 @@ void CPoseEstimationSURF::buildKdTree(vector<IplImage *> &keyframe, vector<CvMat
   kfd_ = kfd;
 }
 
-CvMat *CPoseEstimationSURF::estimatePose(int &num_of_corr)
-{
-  // Using keyframes + EPnP RANSAC
-
-  // Clear earlier storage and sequence
-  if (seq_keypoints_)
-    cvClearSeq(seq_keypoints_);
-  if (seq_descriptors_)
-    cvClearSeq(seq_descriptors_);
-  cvClearMemStorage(ms_);
-
-  // Extract SURF features on test images.
-  cvExtractSURF(img_input_, 0, &seq_keypoints_, &seq_descriptors_, ms_, surf_params_);
-  // Find the initial correspondence with Nearest Neighborhood
-  findCorrespondenceNN_FLANN(seq_keypoints_, seq_descriptors_, corr_, keyframe_images_.size());
-  // Refine the correspondences with RANSAC and estimate pose
-  num_of_corr = refineCorrespondenceEpnpRANSAC(corr_, outliers_obj_2d_, outliers_obj_3d_, outliers_img_2d_, inliers_obj_2d_, inliers_obj_3d_, inliers_img_2d_, pose_);
-
-  // Copy image and object images
-  cvSetImageROI(img_result_, cvRect(0, 0, img_object_->width, img_object_->height));
-  cvCvtColor(keyframe_images_[keyframe_idx_], img_result_, CV_GRAY2BGR);
-  cvSetImageROI(img_result_, cvRect(img_object_->width, 0, img_input_->width, img_input_->height));
-  cvCvtColor(img_input_, img_result_, CV_GRAY2BGR);
-  cvResetImageROI(img_result_);
-
-  // If the number of correspondence is smaller than 4, finish
-  if (num_of_corr < 4)
-  {
-    printf("Insufficient matches...(%d)\n", num_of_corr);
-    num_of_corr = 0;
-    cvSetIdentity(pose_);
-    return pose_;
-  }
-
-  // Display inliers/outliers
-  for (int i = 0; i < int(inliers_obj_2d_.size()); i++)
-    cvLine(img_result_, cvPointFrom32f(inliers_obj_2d_[i]),
-           cvPoint(cvRound(inliers_img_2d_[i].x) + img_object_->width, cvRound(inliers_img_2d_[i].y)), CV_RGB(0, 255, 0), 1, draw_type_, 0);
-
-  for (int i = 0; i < int(outliers_obj_2d_.size()); i++)
-    cvLine(img_result_, cvPointFrom32f(outliers_obj_2d_[i]),
-           cvPoint(cvRound(outliers_img_2d_[i].x) + img_object_->width, cvRound(outliers_img_2d_[i].y)), CV_RGB(255, 100, 100), 1, draw_type_, 0);
-
-  // Draw object
-  obj_model_->displayPoseLine(img_result_, pose_, CV_RGB(255, 255, 0), 1, true); // on the right side
-
-  return pose_;
-}
-
-void CPoseEstimationSURF::PF_estimatePoses(int &num_of_corr, int numOfParticle, vector<CvMat *> &states)
-{
-  // Using keyframes + EPnP + random draw
-
-  // Clear earlier storage and sequence
-  if (seq_keypoints_)
-    cvClearSeq(seq_keypoints_);
-  if (seq_descriptors_)
-    cvClearSeq(seq_descriptors_);
-  cvClearMemStorage(ms_);
-
-  // Extract SURF features on test images.
-  cvExtractSURF(img_input_, 0, &seq_keypoints_, &seq_descriptors_, ms_, surf_params_);
-
-  // Find the initial correspondence with Nearest Neighborhood
-  findCorrespondenceNN_FLANN(seq_keypoints_, seq_descriptors_, corr_, keyframe_images_.size());
-
-  int noc = int(corr_.size() / 2); // noc: number of correspondence
-
-  if (noc < 9)
-  {
-    num_of_corr = noc;
-  }
-  else
-  {
-    // estimate multiple poses using ePnP
-    num_of_corr = PF_estimateMultiplePosesEpnp(corr_, outliers_obj_2d_, outliers_obj_3d_, outliers_img_2d_, inliers_obj_2d_, inliers_obj_3d_, inliers_img_2d_, states, numOfParticle);
-  }
-
-  // If the number of correspondence is smaller than 4, finish
-  //if(num_of_corr <= 4)
-  if (num_of_corr < 9)
-  {
-    printf("Insufficient matches...(%d)\n", num_of_corr);
-    return;
-  }
-
-  if (display_)
-  {
-    // copy image and object images
-    cvSetImageROI(img_result_, cvRect(0, 0, img_object_->width, img_object_->height));
-    cvCvtColor(keyframe_images_[keyframe_idx_], img_result_, CV_GRAY2BGR);
-    cvSetImageROI(img_result_, cvRect(img_object_->width, 0, img_input_->width, img_input_->height));
-    cvCvtColor(img_input_, img_result_, CV_GRAY2BGR);
-    cvResetImageROI(img_result_);
-
-    inliers_obj_2d_.resize(noc);
-    inliers_img_2d_.resize(noc);
-    for (int i = 0; i < noc; i++)
-    {
-      inliers_obj_2d_[i] = keyframe_keypoints_2d_[corr_[i * 2]];
-      inliers_img_2d_[i] = input_keypoints_2d_[corr_[i * 2 + 1]];
-    }
-
-    // display correspondence
-    for (int i = 0; i < noc; i++)
-      cvLine(
-          img_result_,
-          cvPointFrom32f(inliers_obj_2d_[i]),
-          cvPoint(cvRound(inliers_img_2d_[i].x) + img_object_->width, cvRound(inliers_img_2d_[i].y)),
-          CV_RGB(0, 255, 255),
-          1,
-          draw_type_,
-          0);
-  }
-  return;
-}
 
 bool sortBySize(const LMDetWind &left, const LMDetWind &right)
 {
@@ -338,106 +217,6 @@ int CPoseEstimationSURF::PF_estimatePosesFDCM(float maxThreshold, int numOfDetec
   timer.printTimeMilliSec("PF_estimatePosesFDCM()");
 
   return detWind.size();
-}
-
-void CPoseEstimationSURF::findCorrespondenceNN_FLANN(const CvSeq *imageKeypoints, const CvSeq *imageDescriptors, vector<int> &ptpairs, int numOfKeyframes)
-{
-  if (imageDescriptors->total == 0)
-  {
-    ptpairs.clear();
-    return;
-  }
-
-  CvSeqReader kreader, reader;
-  int dims = imageDescriptors->elem_size / sizeof(float);
-  cv::Mat id(imageDescriptors->total, dims, CV_32F); // imageDescriptors
-  input_keypoints_2d_.resize(imageDescriptors->total);
-
-  // save image descriptor into CvMat
-  cvStartReadSeq(imageKeypoints, &kreader);
-  cvStartReadSeq(imageDescriptors, &reader);
-  for (int i = 0; i < imageDescriptors->total; i++)
-  {
-    const CvSURFPoint *kp = (const CvSURFPoint *)kreader.ptr;
-    const float *descriptor = (const float *)reader.ptr;
-    CV_NEXT_SEQ_ELEM(kreader.seq->elem_size, kreader);
-    CV_NEXT_SEQ_ELEM(reader.seq->elem_size, reader);
-    input_keypoints_2d_[i] = (*kp).pt;
-    for (int j = 0; j < dims; j++)
-      id.at<float>(i, j) = descriptor[j];
-  }
-
-  // find feature correspondences
-  double th_ratio = 0.6; // ratio test threshold
-  cv::Mat indices(kfd_.rows, 2, CV_32S);
-  cv::Mat dists(kfd_.rows, 2, CV_32F);
-
-  cv::flann::Index flann_index(id, cv::flann::KDTreeIndexParams(4));           // using 4 randomized kdtrees
-  flann_index.knnSearch(kfd_, indices, dists, 2, cv::flann::SearchParams(64)); // maximum number of leafs
-
-  ptpairs.clear();
-  vector<int> idxpairs;
-
-  // check results and save to 'ptpairs'
-  int *indices_ptr = indices.ptr<int>(0);
-  float *dists_ptr = dists.ptr<float>(0);
-  for (int i = 0; i < indices.rows; ++i)
-  {
-    if (dists_ptr[2 * i] < th_ratio * dists_ptr[2 * i + 1])
-    {
-      ptpairs.push_back(i);                  // image index
-      ptpairs.push_back(indices_ptr[2 * i]); // object index
-      idxpairs.push_back(keyframe_lut_[indices_ptr[2 * i]]);
-    }
-  }
-
-  vector<int> cnt_buf;
-  cnt_buf.resize(numOfKeyframes);
-
-  for (int i = 0; i < idxpairs.size(); i++)
-  {
-    if (idxpairs[i] < cnt_buf.size() && idxpairs[i] > -1)
-      cnt_buf[idxpairs[i]]++;
-  }
-
-  keyframe_idx_ = 0; // default
-  int max_cnt = 0;
-  for (int i = 0; i < numOfKeyframes; i++)
-  {
-    if (max_cnt < cnt_buf[i])
-    {
-      max_cnt = cnt_buf[i];
-      keyframe_idx_ = i;
-    }
-  }
-
-  assert(keyframe_idx_ >= 0);
-  printf("Matched keyframe: %d\n", keyframe_idx_);
-  vector<int> ptpairs_new;
-  for (int i = 0; i < idxpairs.size(); i++)
-  {
-    if (idxpairs[i] == keyframe_idx_)
-    {
-      // check adding correspondence is already saved
-      bool added = false;
-      for (int j = 0; j < int(ptpairs_new.size() / 2); j++)
-      {
-        if (ptpairs_new[2 * j] == ptpairs[2 * i])
-        {
-          added = true;
-          break;
-        }
-      }
-
-      if (!added)
-      {
-        ptpairs_new.push_back(ptpairs[2 * i]);
-        ptpairs_new.push_back(ptpairs[2 * i + 1]);
-      }
-    }
-  }
-
-  ptpairs = ptpairs_new;
 }
 
 // EPnP version

@@ -135,13 +135,6 @@ public:
 		else 
 			use_ach_ = false;
 
-    //ACH
-    if(use_ach_)
-      {
-	//sns_chan_open( &channel, "obj", NULL );
-	//rec.Init(ach_channel.c_str(), width, height);
-      }
-
     // crop the object name from path
     size_t i = obj_name.rfind('/', obj_name.length());
     obj_name_ = obj_name.substr(i+1, obj_name.length() - i);
@@ -149,24 +142,15 @@ public:
     width_ = width;
     height_ = height;
     initCamera(cam_name, intrinsic, distortion, width, height);
+std::cout << "check\n";
     initEdgeTracker(width, height, cam_->getIntrinsicParams(), maxd_, limityrot_);
-
+std::cout << "check\n";
     initObjectModel(obj_name, width, height, cam_->getIntrinsicParams(), sample_step_, maxd_, dulledge_, edge_tracker_);
-    std::cout << "after init object model\n";
+std::cout << "check\n";
     initImages(width, height);
 
-/*
-    if(save_rslt_txt_)
-    {
-      if(!ofs_pose_.is_open())
-        ofs_pose_.open((str_result_path_ + std::string("/pose.txt")).c_str());
-      if(!ofs_time_.is_open())
-        ofs_time_.open((str_result_path_ + std::string("/time.txt")).c_str());
-    }
-*/
     cvCopy(pose_init, pose_init_);
     cvCopy(pose_init_, pose_);
-
     // jiaming hu: initialize tensorflow
     // Set dirs variables
     /*
@@ -278,90 +262,6 @@ public:
     return imgThresholded;
   }
 
-  void run()
-  {
-    if(display_)
-    {
-      cvNamedWindow("Result");
-      cvNamedWindow("Edge");
-      cvNamedWindow("Initialization");
-    }
-
-    while(run_)
-    {
-      // Wait if network flag is on
-      if(net_)
-      {
-        handleKey(cvWaitKey(1));
-        continue;
-      }
-
-      // capture or load an image
-
-   //   std::cout<<"initialization and run "<<init_<<run_<<std::endl;
-      if(!getImage(use_ach_))
-        break;
-      
-      //timer_.start();
-
-
-      
-      if(init_) initialize();
-
-      //time_init_ = timer_.printTimeMilliSec("initializing");
-
-      // filter color from image
-      if(hsvFilt!=NULL)
-      {
-        IplImage* tmp = new IplImage(filterOutColor(img_input_, hsvFilt[0], hsvFilt[1], hsvFilt[2], hsvFilt[3], hsvFilt[4], hsvFilt[5]));
-        img_gray_tracking = cvCloneImage(tmp);
-        //cvCvtColor(img_gray_tracking, img_result_, CV_GRAY2RGB);
-      }
-      else
-      {
-        img_gray_tracking = cvCloneImage(img_gray_);
-      }
-
-      // do processing
-      //timer_.start();
-
-      if(!init_)
-	{
-	  if(!use_tracking_)
-	    {
-	      init_ = true; //NO TRACKING if true
-	    }
-	  tracking();	  
-	}
-
-      //time_tracking_ = timer_.printTimeMilliSec("tracking");
-
-      if(display_)
-        displayResults();
-
-      if(save_rslt_txt_)
-        saveResultText();
-
-      if(save_rslt_img_)
-        saveResultImage();
-
-      // release image if it's loaded from file
-      if(!cam_->IsCamera()) cvReleaseImage(&img_input_);
-
-      char key = (char)cvWaitKey(1); // get keyboard input
-      handleKey(key);
-
-      frame_num_++;
-      frame_num_after_init_++;
-    }
-
-    if(display_)
-    {
-      cvDestroyWindow("Result");
-      cvDestroyWindow("Edge");
-      cvDestroyWindow("Initialization");
-    }
-  }
 
   void saveResultText()
   {
@@ -537,12 +437,13 @@ protected:
 
   bool initCamera(std::string &cam_name, std::string &intrinsic, std::string &distortion, int width, int height)
   {
+    std::cout <<"camera name = " << cam_name << "\n";
     if(cam_) delete cam_;
     if(cam_name.compare("normal") == 0 || cam_name.compare("fire-i") == 0 || cam_name.compare("flea") == 0 || cam_name.compare("openni") == 0 || cam_name.compare("ach") == 0)
       cam_ = new CCamera(cam_name, intrinsic, distortion, width, height);
     else{ // assume 'cam_name' is a path to an image sequence
       std::string jpg = "jpg";
-      cam_ = new CCamera(cam_name, false, 0, intrinsic, distortion, jpg);
+      cam_ = new CCamera(cam_name, true, 0, intrinsic, distortion, jpg);
     }
     return (true);
   }
@@ -550,7 +451,9 @@ protected:
   bool initEdgeTracker(int width, int height, CvMat* intrinsic, int maxd, bool limityrot)
   {
     if(edge_tracker_) delete edge_tracker_;
+    std::cout << " before init edge tracker\n";
     edge_tracker_ = new CEdgeTracker(width, height, intrinsic, maxd, limityrot);
+    std::cout << " after init edge tracker\n";
     return (true);
   }
 
