@@ -39,10 +39,10 @@ cmake_force:
 SHELL = /bin/sh
 
 # The CMake executable.
-CMAKE_COMMAND = /usr/bin/cmake
+CMAKE_COMMAND = /usr/local/bin/cmake
 
 # The command to remove a file.
-RM = /usr/bin/cmake -E remove -f
+RM = /usr/local/bin/cmake -E remove -f
 
 # Escaping for special characters.
 EQUALS = =
@@ -59,7 +59,7 @@ CMAKE_BINARY_DIR = /home/jiaming/object_tracking_2D/build
 # Special rule for the target rebuild_cache
 rebuild_cache:
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running CMake to regenerate build system..."
-	/usr/bin/cmake -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
+	/usr/local/bin/cmake -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
 .PHONY : rebuild_cache
 
 # Special rule for the target rebuild_cache
@@ -69,8 +69,8 @@ rebuild_cache/fast: rebuild_cache
 
 # Special rule for the target edit_cache
 edit_cache:
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "No interactive CMake dialog available..."
-	/usr/bin/cmake -E echo No\ interactive\ CMake\ dialog\ available.
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running CMake cache editor..."
+	/usr/local/bin/ccmake -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
 .PHONY : edit_cache
 
 # Special rule for the target edit_cache
@@ -111,6 +111,32 @@ depend:
 .PHONY : depend
 
 #=============================================================================
+# Target rules for targets named ETGDemo
+
+# Build rule for target.
+ETGDemo: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 ETGDemo
+.PHONY : ETGDemo
+
+# fast build rule for target.
+ETGDemo/fast:
+	$(MAKE) -f CMakeFiles/ETGDemo.dir/build.make CMakeFiles/ETGDemo.dir/build
+.PHONY : ETGDemo/fast
+
+#=============================================================================
+# Target rules for targets named TGDemo
+
+# Build rule for target.
+TGDemo: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 TGDemo
+.PHONY : TGDemo
+
+# fast build rule for target.
+TGDemo/fast:
+	$(MAKE) -f CMakeFiles/TGDemo.dir/build.make CMakeFiles/TGDemo.dir/build
+.PHONY : TGDemo/fast
+
+#=============================================================================
 # Target rules for targets named EBTDemo
 
 # Build rule for target.
@@ -148,32 +174,6 @@ object_tracking_2d: cmake_check_build_system
 object_tracking_2d/fast:
 	$(MAKE) -f CMakeFiles/object_tracking_2d.dir/build.make CMakeFiles/object_tracking_2d.dir/build
 .PHONY : object_tracking_2d/fast
-
-#=============================================================================
-# Target rules for targets named TGDemo
-
-# Build rule for target.
-TGDemo: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 TGDemo
-.PHONY : TGDemo
-
-# fast build rule for target.
-TGDemo/fast:
-	$(MAKE) -f CMakeFiles/TGDemo.dir/build.make CMakeFiles/TGDemo.dir/build
-.PHONY : TGDemo/fast
-
-#=============================================================================
-# Target rules for targets named ETGDemo
-
-# Build rule for target.
-ETGDemo: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 ETGDemo
-.PHONY : ETGDemo
-
-# fast build rule for target.
-ETGDemo/fast:
-	$(MAKE) -f CMakeFiles/ETGDemo.dir/build.make CMakeFiles/ETGDemo.dir/build
-.PHONY : ETGDemo/fast
 
 #=============================================================================
 # Target rules for targets named ImageLib
@@ -220,11 +220,11 @@ src/Camera.o: src/Camera.cpp.o
 
 # target to build an object file
 src/Camera.cpp.o:
+	$(MAKE) -f CMakeFiles/ETGDemo.dir/build.make CMakeFiles/ETGDemo.dir/src/Camera.cpp.o
+	$(MAKE) -f CMakeFiles/TGDemo.dir/build.make CMakeFiles/TGDemo.dir/src/Camera.cpp.o
 	$(MAKE) -f CMakeFiles/EBTDemo.dir/build.make CMakeFiles/EBTDemo.dir/src/Camera.cpp.o
 	$(MAKE) -f CMakeFiles/TIGDemo.dir/build.make CMakeFiles/TIGDemo.dir/src/Camera.cpp.o
 	$(MAKE) -f CMakeFiles/object_tracking_2d.dir/build.make CMakeFiles/object_tracking_2d.dir/src/Camera.cpp.o
-	$(MAKE) -f CMakeFiles/TGDemo.dir/build.make CMakeFiles/TGDemo.dir/src/Camera.cpp.o
-	$(MAKE) -f CMakeFiles/ETGDemo.dir/build.make CMakeFiles/ETGDemo.dir/src/Camera.cpp.o
 .PHONY : src/Camera.cpp.o
 
 src/Camera.i: src/Camera.cpp.i
@@ -233,11 +233,11 @@ src/Camera.i: src/Camera.cpp.i
 
 # target to preprocess a source file
 src/Camera.cpp.i:
+	$(MAKE) -f CMakeFiles/ETGDemo.dir/build.make CMakeFiles/ETGDemo.dir/src/Camera.cpp.i
+	$(MAKE) -f CMakeFiles/TGDemo.dir/build.make CMakeFiles/TGDemo.dir/src/Camera.cpp.i
 	$(MAKE) -f CMakeFiles/EBTDemo.dir/build.make CMakeFiles/EBTDemo.dir/src/Camera.cpp.i
 	$(MAKE) -f CMakeFiles/TIGDemo.dir/build.make CMakeFiles/TIGDemo.dir/src/Camera.cpp.i
 	$(MAKE) -f CMakeFiles/object_tracking_2d.dir/build.make CMakeFiles/object_tracking_2d.dir/src/Camera.cpp.i
-	$(MAKE) -f CMakeFiles/TGDemo.dir/build.make CMakeFiles/TGDemo.dir/src/Camera.cpp.i
-	$(MAKE) -f CMakeFiles/ETGDemo.dir/build.make CMakeFiles/ETGDemo.dir/src/Camera.cpp.i
 .PHONY : src/Camera.cpp.i
 
 src/Camera.s: src/Camera.cpp.s
@@ -246,11 +246,11 @@ src/Camera.s: src/Camera.cpp.s
 
 # target to generate assembly for a file
 src/Camera.cpp.s:
+	$(MAKE) -f CMakeFiles/ETGDemo.dir/build.make CMakeFiles/ETGDemo.dir/src/Camera.cpp.s
+	$(MAKE) -f CMakeFiles/TGDemo.dir/build.make CMakeFiles/TGDemo.dir/src/Camera.cpp.s
 	$(MAKE) -f CMakeFiles/EBTDemo.dir/build.make CMakeFiles/EBTDemo.dir/src/Camera.cpp.s
 	$(MAKE) -f CMakeFiles/TIGDemo.dir/build.make CMakeFiles/TIGDemo.dir/src/Camera.cpp.s
 	$(MAKE) -f CMakeFiles/object_tracking_2d.dir/build.make CMakeFiles/object_tracking_2d.dir/src/Camera.cpp.s
-	$(MAKE) -f CMakeFiles/TGDemo.dir/build.make CMakeFiles/TGDemo.dir/src/Camera.cpp.s
-	$(MAKE) -f CMakeFiles/ETGDemo.dir/build.make CMakeFiles/ETGDemo.dir/src/Camera.cpp.s
 .PHONY : src/Camera.cpp.s
 
 src/EdgeTracker.o: src/EdgeTracker.cpp.o
@@ -259,11 +259,11 @@ src/EdgeTracker.o: src/EdgeTracker.cpp.o
 
 # target to build an object file
 src/EdgeTracker.cpp.o:
+	$(MAKE) -f CMakeFiles/ETGDemo.dir/build.make CMakeFiles/ETGDemo.dir/src/EdgeTracker.cpp.o
+	$(MAKE) -f CMakeFiles/TGDemo.dir/build.make CMakeFiles/TGDemo.dir/src/EdgeTracker.cpp.o
 	$(MAKE) -f CMakeFiles/EBTDemo.dir/build.make CMakeFiles/EBTDemo.dir/src/EdgeTracker.cpp.o
 	$(MAKE) -f CMakeFiles/TIGDemo.dir/build.make CMakeFiles/TIGDemo.dir/src/EdgeTracker.cpp.o
 	$(MAKE) -f CMakeFiles/object_tracking_2d.dir/build.make CMakeFiles/object_tracking_2d.dir/src/EdgeTracker.cpp.o
-	$(MAKE) -f CMakeFiles/TGDemo.dir/build.make CMakeFiles/TGDemo.dir/src/EdgeTracker.cpp.o
-	$(MAKE) -f CMakeFiles/ETGDemo.dir/build.make CMakeFiles/ETGDemo.dir/src/EdgeTracker.cpp.o
 .PHONY : src/EdgeTracker.cpp.o
 
 src/EdgeTracker.i: src/EdgeTracker.cpp.i
@@ -272,11 +272,11 @@ src/EdgeTracker.i: src/EdgeTracker.cpp.i
 
 # target to preprocess a source file
 src/EdgeTracker.cpp.i:
+	$(MAKE) -f CMakeFiles/ETGDemo.dir/build.make CMakeFiles/ETGDemo.dir/src/EdgeTracker.cpp.i
+	$(MAKE) -f CMakeFiles/TGDemo.dir/build.make CMakeFiles/TGDemo.dir/src/EdgeTracker.cpp.i
 	$(MAKE) -f CMakeFiles/EBTDemo.dir/build.make CMakeFiles/EBTDemo.dir/src/EdgeTracker.cpp.i
 	$(MAKE) -f CMakeFiles/TIGDemo.dir/build.make CMakeFiles/TIGDemo.dir/src/EdgeTracker.cpp.i
 	$(MAKE) -f CMakeFiles/object_tracking_2d.dir/build.make CMakeFiles/object_tracking_2d.dir/src/EdgeTracker.cpp.i
-	$(MAKE) -f CMakeFiles/TGDemo.dir/build.make CMakeFiles/TGDemo.dir/src/EdgeTracker.cpp.i
-	$(MAKE) -f CMakeFiles/ETGDemo.dir/build.make CMakeFiles/ETGDemo.dir/src/EdgeTracker.cpp.i
 .PHONY : src/EdgeTracker.cpp.i
 
 src/EdgeTracker.s: src/EdgeTracker.cpp.s
@@ -285,11 +285,11 @@ src/EdgeTracker.s: src/EdgeTracker.cpp.s
 
 # target to generate assembly for a file
 src/EdgeTracker.cpp.s:
+	$(MAKE) -f CMakeFiles/ETGDemo.dir/build.make CMakeFiles/ETGDemo.dir/src/EdgeTracker.cpp.s
+	$(MAKE) -f CMakeFiles/TGDemo.dir/build.make CMakeFiles/TGDemo.dir/src/EdgeTracker.cpp.s
 	$(MAKE) -f CMakeFiles/EBTDemo.dir/build.make CMakeFiles/EBTDemo.dir/src/EdgeTracker.cpp.s
 	$(MAKE) -f CMakeFiles/TIGDemo.dir/build.make CMakeFiles/TIGDemo.dir/src/EdgeTracker.cpp.s
 	$(MAKE) -f CMakeFiles/object_tracking_2d.dir/build.make CMakeFiles/object_tracking_2d.dir/src/EdgeTracker.cpp.s
-	$(MAKE) -f CMakeFiles/TGDemo.dir/build.make CMakeFiles/TGDemo.dir/src/EdgeTracker.cpp.s
-	$(MAKE) -f CMakeFiles/ETGDemo.dir/build.make CMakeFiles/ETGDemo.dir/src/EdgeTracker.cpp.s
 .PHONY : src/EdgeTracker.cpp.s
 
 src/HomoTransform.o: src/HomoTransform.cpp.o
@@ -298,11 +298,11 @@ src/HomoTransform.o: src/HomoTransform.cpp.o
 
 # target to build an object file
 src/HomoTransform.cpp.o:
+	$(MAKE) -f CMakeFiles/ETGDemo.dir/build.make CMakeFiles/ETGDemo.dir/src/HomoTransform.cpp.o
+	$(MAKE) -f CMakeFiles/TGDemo.dir/build.make CMakeFiles/TGDemo.dir/src/HomoTransform.cpp.o
 	$(MAKE) -f CMakeFiles/EBTDemo.dir/build.make CMakeFiles/EBTDemo.dir/src/HomoTransform.cpp.o
 	$(MAKE) -f CMakeFiles/TIGDemo.dir/build.make CMakeFiles/TIGDemo.dir/src/HomoTransform.cpp.o
 	$(MAKE) -f CMakeFiles/object_tracking_2d.dir/build.make CMakeFiles/object_tracking_2d.dir/src/HomoTransform.cpp.o
-	$(MAKE) -f CMakeFiles/TGDemo.dir/build.make CMakeFiles/TGDemo.dir/src/HomoTransform.cpp.o
-	$(MAKE) -f CMakeFiles/ETGDemo.dir/build.make CMakeFiles/ETGDemo.dir/src/HomoTransform.cpp.o
 .PHONY : src/HomoTransform.cpp.o
 
 src/HomoTransform.i: src/HomoTransform.cpp.i
@@ -311,11 +311,11 @@ src/HomoTransform.i: src/HomoTransform.cpp.i
 
 # target to preprocess a source file
 src/HomoTransform.cpp.i:
+	$(MAKE) -f CMakeFiles/ETGDemo.dir/build.make CMakeFiles/ETGDemo.dir/src/HomoTransform.cpp.i
+	$(MAKE) -f CMakeFiles/TGDemo.dir/build.make CMakeFiles/TGDemo.dir/src/HomoTransform.cpp.i
 	$(MAKE) -f CMakeFiles/EBTDemo.dir/build.make CMakeFiles/EBTDemo.dir/src/HomoTransform.cpp.i
 	$(MAKE) -f CMakeFiles/TIGDemo.dir/build.make CMakeFiles/TIGDemo.dir/src/HomoTransform.cpp.i
 	$(MAKE) -f CMakeFiles/object_tracking_2d.dir/build.make CMakeFiles/object_tracking_2d.dir/src/HomoTransform.cpp.i
-	$(MAKE) -f CMakeFiles/TGDemo.dir/build.make CMakeFiles/TGDemo.dir/src/HomoTransform.cpp.i
-	$(MAKE) -f CMakeFiles/ETGDemo.dir/build.make CMakeFiles/ETGDemo.dir/src/HomoTransform.cpp.i
 .PHONY : src/HomoTransform.cpp.i
 
 src/HomoTransform.s: src/HomoTransform.cpp.s
@@ -324,11 +324,11 @@ src/HomoTransform.s: src/HomoTransform.cpp.s
 
 # target to generate assembly for a file
 src/HomoTransform.cpp.s:
+	$(MAKE) -f CMakeFiles/ETGDemo.dir/build.make CMakeFiles/ETGDemo.dir/src/HomoTransform.cpp.s
+	$(MAKE) -f CMakeFiles/TGDemo.dir/build.make CMakeFiles/TGDemo.dir/src/HomoTransform.cpp.s
 	$(MAKE) -f CMakeFiles/EBTDemo.dir/build.make CMakeFiles/EBTDemo.dir/src/HomoTransform.cpp.s
 	$(MAKE) -f CMakeFiles/TIGDemo.dir/build.make CMakeFiles/TIGDemo.dir/src/HomoTransform.cpp.s
 	$(MAKE) -f CMakeFiles/object_tracking_2d.dir/build.make CMakeFiles/object_tracking_2d.dir/src/HomoTransform.cpp.s
-	$(MAKE) -f CMakeFiles/TGDemo.dir/build.make CMakeFiles/TGDemo.dir/src/HomoTransform.cpp.s
-	$(MAKE) -f CMakeFiles/ETGDemo.dir/build.make CMakeFiles/ETGDemo.dir/src/HomoTransform.cpp.s
 .PHONY : src/HomoTransform.cpp.s
 
 src/ModelImport.o: src/ModelImport.cpp.o
@@ -337,11 +337,11 @@ src/ModelImport.o: src/ModelImport.cpp.o
 
 # target to build an object file
 src/ModelImport.cpp.o:
+	$(MAKE) -f CMakeFiles/ETGDemo.dir/build.make CMakeFiles/ETGDemo.dir/src/ModelImport.cpp.o
+	$(MAKE) -f CMakeFiles/TGDemo.dir/build.make CMakeFiles/TGDemo.dir/src/ModelImport.cpp.o
 	$(MAKE) -f CMakeFiles/EBTDemo.dir/build.make CMakeFiles/EBTDemo.dir/src/ModelImport.cpp.o
 	$(MAKE) -f CMakeFiles/TIGDemo.dir/build.make CMakeFiles/TIGDemo.dir/src/ModelImport.cpp.o
 	$(MAKE) -f CMakeFiles/object_tracking_2d.dir/build.make CMakeFiles/object_tracking_2d.dir/src/ModelImport.cpp.o
-	$(MAKE) -f CMakeFiles/TGDemo.dir/build.make CMakeFiles/TGDemo.dir/src/ModelImport.cpp.o
-	$(MAKE) -f CMakeFiles/ETGDemo.dir/build.make CMakeFiles/ETGDemo.dir/src/ModelImport.cpp.o
 .PHONY : src/ModelImport.cpp.o
 
 src/ModelImport.i: src/ModelImport.cpp.i
@@ -350,11 +350,11 @@ src/ModelImport.i: src/ModelImport.cpp.i
 
 # target to preprocess a source file
 src/ModelImport.cpp.i:
+	$(MAKE) -f CMakeFiles/ETGDemo.dir/build.make CMakeFiles/ETGDemo.dir/src/ModelImport.cpp.i
+	$(MAKE) -f CMakeFiles/TGDemo.dir/build.make CMakeFiles/TGDemo.dir/src/ModelImport.cpp.i
 	$(MAKE) -f CMakeFiles/EBTDemo.dir/build.make CMakeFiles/EBTDemo.dir/src/ModelImport.cpp.i
 	$(MAKE) -f CMakeFiles/TIGDemo.dir/build.make CMakeFiles/TIGDemo.dir/src/ModelImport.cpp.i
 	$(MAKE) -f CMakeFiles/object_tracking_2d.dir/build.make CMakeFiles/object_tracking_2d.dir/src/ModelImport.cpp.i
-	$(MAKE) -f CMakeFiles/TGDemo.dir/build.make CMakeFiles/TGDemo.dir/src/ModelImport.cpp.i
-	$(MAKE) -f CMakeFiles/ETGDemo.dir/build.make CMakeFiles/ETGDemo.dir/src/ModelImport.cpp.i
 .PHONY : src/ModelImport.cpp.i
 
 src/ModelImport.s: src/ModelImport.cpp.s
@@ -363,11 +363,11 @@ src/ModelImport.s: src/ModelImport.cpp.s
 
 # target to generate assembly for a file
 src/ModelImport.cpp.s:
+	$(MAKE) -f CMakeFiles/ETGDemo.dir/build.make CMakeFiles/ETGDemo.dir/src/ModelImport.cpp.s
+	$(MAKE) -f CMakeFiles/TGDemo.dir/build.make CMakeFiles/TGDemo.dir/src/ModelImport.cpp.s
 	$(MAKE) -f CMakeFiles/EBTDemo.dir/build.make CMakeFiles/EBTDemo.dir/src/ModelImport.cpp.s
 	$(MAKE) -f CMakeFiles/TIGDemo.dir/build.make CMakeFiles/TIGDemo.dir/src/ModelImport.cpp.s
 	$(MAKE) -f CMakeFiles/object_tracking_2d.dir/build.make CMakeFiles/object_tracking_2d.dir/src/ModelImport.cpp.s
-	$(MAKE) -f CMakeFiles/TGDemo.dir/build.make CMakeFiles/TGDemo.dir/src/ModelImport.cpp.s
-	$(MAKE) -f CMakeFiles/ETGDemo.dir/build.make CMakeFiles/ETGDemo.dir/src/ModelImport.cpp.s
 .PHONY : src/ModelImport.cpp.s
 
 src/ParticleFilter.o: src/ParticleFilter.cpp.o
@@ -376,11 +376,11 @@ src/ParticleFilter.o: src/ParticleFilter.cpp.o
 
 # target to build an object file
 src/ParticleFilter.cpp.o:
+	$(MAKE) -f CMakeFiles/ETGDemo.dir/build.make CMakeFiles/ETGDemo.dir/src/ParticleFilter.cpp.o
+	$(MAKE) -f CMakeFiles/TGDemo.dir/build.make CMakeFiles/TGDemo.dir/src/ParticleFilter.cpp.o
 	$(MAKE) -f CMakeFiles/EBTDemo.dir/build.make CMakeFiles/EBTDemo.dir/src/ParticleFilter.cpp.o
 	$(MAKE) -f CMakeFiles/TIGDemo.dir/build.make CMakeFiles/TIGDemo.dir/src/ParticleFilter.cpp.o
 	$(MAKE) -f CMakeFiles/object_tracking_2d.dir/build.make CMakeFiles/object_tracking_2d.dir/src/ParticleFilter.cpp.o
-	$(MAKE) -f CMakeFiles/TGDemo.dir/build.make CMakeFiles/TGDemo.dir/src/ParticleFilter.cpp.o
-	$(MAKE) -f CMakeFiles/ETGDemo.dir/build.make CMakeFiles/ETGDemo.dir/src/ParticleFilter.cpp.o
 .PHONY : src/ParticleFilter.cpp.o
 
 src/ParticleFilter.i: src/ParticleFilter.cpp.i
@@ -389,11 +389,11 @@ src/ParticleFilter.i: src/ParticleFilter.cpp.i
 
 # target to preprocess a source file
 src/ParticleFilter.cpp.i:
+	$(MAKE) -f CMakeFiles/ETGDemo.dir/build.make CMakeFiles/ETGDemo.dir/src/ParticleFilter.cpp.i
+	$(MAKE) -f CMakeFiles/TGDemo.dir/build.make CMakeFiles/TGDemo.dir/src/ParticleFilter.cpp.i
 	$(MAKE) -f CMakeFiles/EBTDemo.dir/build.make CMakeFiles/EBTDemo.dir/src/ParticleFilter.cpp.i
 	$(MAKE) -f CMakeFiles/TIGDemo.dir/build.make CMakeFiles/TIGDemo.dir/src/ParticleFilter.cpp.i
 	$(MAKE) -f CMakeFiles/object_tracking_2d.dir/build.make CMakeFiles/object_tracking_2d.dir/src/ParticleFilter.cpp.i
-	$(MAKE) -f CMakeFiles/TGDemo.dir/build.make CMakeFiles/TGDemo.dir/src/ParticleFilter.cpp.i
-	$(MAKE) -f CMakeFiles/ETGDemo.dir/build.make CMakeFiles/ETGDemo.dir/src/ParticleFilter.cpp.i
 .PHONY : src/ParticleFilter.cpp.i
 
 src/ParticleFilter.s: src/ParticleFilter.cpp.s
@@ -402,11 +402,11 @@ src/ParticleFilter.s: src/ParticleFilter.cpp.s
 
 # target to generate assembly for a file
 src/ParticleFilter.cpp.s:
+	$(MAKE) -f CMakeFiles/ETGDemo.dir/build.make CMakeFiles/ETGDemo.dir/src/ParticleFilter.cpp.s
+	$(MAKE) -f CMakeFiles/TGDemo.dir/build.make CMakeFiles/TGDemo.dir/src/ParticleFilter.cpp.s
 	$(MAKE) -f CMakeFiles/EBTDemo.dir/build.make CMakeFiles/EBTDemo.dir/src/ParticleFilter.cpp.s
 	$(MAKE) -f CMakeFiles/TIGDemo.dir/build.make CMakeFiles/TIGDemo.dir/src/ParticleFilter.cpp.s
 	$(MAKE) -f CMakeFiles/object_tracking_2d.dir/build.make CMakeFiles/object_tracking_2d.dir/src/ParticleFilter.cpp.s
-	$(MAKE) -f CMakeFiles/TGDemo.dir/build.make CMakeFiles/TGDemo.dir/src/ParticleFilter.cpp.s
-	$(MAKE) -f CMakeFiles/ETGDemo.dir/build.make CMakeFiles/ETGDemo.dir/src/ParticleFilter.cpp.s
 .PHONY : src/ParticleFilter.cpp.s
 
 src/PoseEstimationSURF.o: src/PoseEstimationSURF.cpp.o
@@ -415,11 +415,11 @@ src/PoseEstimationSURF.o: src/PoseEstimationSURF.cpp.o
 
 # target to build an object file
 src/PoseEstimationSURF.cpp.o:
+	$(MAKE) -f CMakeFiles/ETGDemo.dir/build.make CMakeFiles/ETGDemo.dir/src/PoseEstimationSURF.cpp.o
+	$(MAKE) -f CMakeFiles/TGDemo.dir/build.make CMakeFiles/TGDemo.dir/src/PoseEstimationSURF.cpp.o
 	$(MAKE) -f CMakeFiles/EBTDemo.dir/build.make CMakeFiles/EBTDemo.dir/src/PoseEstimationSURF.cpp.o
 	$(MAKE) -f CMakeFiles/TIGDemo.dir/build.make CMakeFiles/TIGDemo.dir/src/PoseEstimationSURF.cpp.o
 	$(MAKE) -f CMakeFiles/object_tracking_2d.dir/build.make CMakeFiles/object_tracking_2d.dir/src/PoseEstimationSURF.cpp.o
-	$(MAKE) -f CMakeFiles/TGDemo.dir/build.make CMakeFiles/TGDemo.dir/src/PoseEstimationSURF.cpp.o
-	$(MAKE) -f CMakeFiles/ETGDemo.dir/build.make CMakeFiles/ETGDemo.dir/src/PoseEstimationSURF.cpp.o
 .PHONY : src/PoseEstimationSURF.cpp.o
 
 src/PoseEstimationSURF.i: src/PoseEstimationSURF.cpp.i
@@ -428,11 +428,11 @@ src/PoseEstimationSURF.i: src/PoseEstimationSURF.cpp.i
 
 # target to preprocess a source file
 src/PoseEstimationSURF.cpp.i:
+	$(MAKE) -f CMakeFiles/ETGDemo.dir/build.make CMakeFiles/ETGDemo.dir/src/PoseEstimationSURF.cpp.i
+	$(MAKE) -f CMakeFiles/TGDemo.dir/build.make CMakeFiles/TGDemo.dir/src/PoseEstimationSURF.cpp.i
 	$(MAKE) -f CMakeFiles/EBTDemo.dir/build.make CMakeFiles/EBTDemo.dir/src/PoseEstimationSURF.cpp.i
 	$(MAKE) -f CMakeFiles/TIGDemo.dir/build.make CMakeFiles/TIGDemo.dir/src/PoseEstimationSURF.cpp.i
 	$(MAKE) -f CMakeFiles/object_tracking_2d.dir/build.make CMakeFiles/object_tracking_2d.dir/src/PoseEstimationSURF.cpp.i
-	$(MAKE) -f CMakeFiles/TGDemo.dir/build.make CMakeFiles/TGDemo.dir/src/PoseEstimationSURF.cpp.i
-	$(MAKE) -f CMakeFiles/ETGDemo.dir/build.make CMakeFiles/ETGDemo.dir/src/PoseEstimationSURF.cpp.i
 .PHONY : src/PoseEstimationSURF.cpp.i
 
 src/PoseEstimationSURF.s: src/PoseEstimationSURF.cpp.s
@@ -441,11 +441,11 @@ src/PoseEstimationSURF.s: src/PoseEstimationSURF.cpp.s
 
 # target to generate assembly for a file
 src/PoseEstimationSURF.cpp.s:
+	$(MAKE) -f CMakeFiles/ETGDemo.dir/build.make CMakeFiles/ETGDemo.dir/src/PoseEstimationSURF.cpp.s
+	$(MAKE) -f CMakeFiles/TGDemo.dir/build.make CMakeFiles/TGDemo.dir/src/PoseEstimationSURF.cpp.s
 	$(MAKE) -f CMakeFiles/EBTDemo.dir/build.make CMakeFiles/EBTDemo.dir/src/PoseEstimationSURF.cpp.s
 	$(MAKE) -f CMakeFiles/TIGDemo.dir/build.make CMakeFiles/TIGDemo.dir/src/PoseEstimationSURF.cpp.s
 	$(MAKE) -f CMakeFiles/object_tracking_2d.dir/build.make CMakeFiles/object_tracking_2d.dir/src/PoseEstimationSURF.cpp.s
-	$(MAKE) -f CMakeFiles/TGDemo.dir/build.make CMakeFiles/TGDemo.dir/src/PoseEstimationSURF.cpp.s
-	$(MAKE) -f CMakeFiles/ETGDemo.dir/build.make CMakeFiles/ETGDemo.dir/src/PoseEstimationSURF.cpp.s
 .PHONY : src/PoseEstimationSURF.cpp.s
 
 src/edge_templates_generator.o: src/edge_templates_generator.cpp.o
@@ -481,11 +481,11 @@ src/epnp.o: src/epnp.cpp.o
 
 # target to build an object file
 src/epnp.cpp.o:
+	$(MAKE) -f CMakeFiles/ETGDemo.dir/build.make CMakeFiles/ETGDemo.dir/src/epnp.cpp.o
+	$(MAKE) -f CMakeFiles/TGDemo.dir/build.make CMakeFiles/TGDemo.dir/src/epnp.cpp.o
 	$(MAKE) -f CMakeFiles/EBTDemo.dir/build.make CMakeFiles/EBTDemo.dir/src/epnp.cpp.o
 	$(MAKE) -f CMakeFiles/TIGDemo.dir/build.make CMakeFiles/TIGDemo.dir/src/epnp.cpp.o
 	$(MAKE) -f CMakeFiles/object_tracking_2d.dir/build.make CMakeFiles/object_tracking_2d.dir/src/epnp.cpp.o
-	$(MAKE) -f CMakeFiles/TGDemo.dir/build.make CMakeFiles/TGDemo.dir/src/epnp.cpp.o
-	$(MAKE) -f CMakeFiles/ETGDemo.dir/build.make CMakeFiles/ETGDemo.dir/src/epnp.cpp.o
 .PHONY : src/epnp.cpp.o
 
 src/epnp.i: src/epnp.cpp.i
@@ -494,11 +494,11 @@ src/epnp.i: src/epnp.cpp.i
 
 # target to preprocess a source file
 src/epnp.cpp.i:
+	$(MAKE) -f CMakeFiles/ETGDemo.dir/build.make CMakeFiles/ETGDemo.dir/src/epnp.cpp.i
+	$(MAKE) -f CMakeFiles/TGDemo.dir/build.make CMakeFiles/TGDemo.dir/src/epnp.cpp.i
 	$(MAKE) -f CMakeFiles/EBTDemo.dir/build.make CMakeFiles/EBTDemo.dir/src/epnp.cpp.i
 	$(MAKE) -f CMakeFiles/TIGDemo.dir/build.make CMakeFiles/TIGDemo.dir/src/epnp.cpp.i
 	$(MAKE) -f CMakeFiles/object_tracking_2d.dir/build.make CMakeFiles/object_tracking_2d.dir/src/epnp.cpp.i
-	$(MAKE) -f CMakeFiles/TGDemo.dir/build.make CMakeFiles/TGDemo.dir/src/epnp.cpp.i
-	$(MAKE) -f CMakeFiles/ETGDemo.dir/build.make CMakeFiles/ETGDemo.dir/src/epnp.cpp.i
 .PHONY : src/epnp.cpp.i
 
 src/epnp.s: src/epnp.cpp.s
@@ -507,11 +507,11 @@ src/epnp.s: src/epnp.cpp.s
 
 # target to generate assembly for a file
 src/epnp.cpp.s:
+	$(MAKE) -f CMakeFiles/ETGDemo.dir/build.make CMakeFiles/ETGDemo.dir/src/epnp.cpp.s
+	$(MAKE) -f CMakeFiles/TGDemo.dir/build.make CMakeFiles/TGDemo.dir/src/epnp.cpp.s
 	$(MAKE) -f CMakeFiles/EBTDemo.dir/build.make CMakeFiles/EBTDemo.dir/src/epnp.cpp.s
 	$(MAKE) -f CMakeFiles/TIGDemo.dir/build.make CMakeFiles/TIGDemo.dir/src/epnp.cpp.s
 	$(MAKE) -f CMakeFiles/object_tracking_2d.dir/build.make CMakeFiles/object_tracking_2d.dir/src/epnp.cpp.s
-	$(MAKE) -f CMakeFiles/TGDemo.dir/build.make CMakeFiles/TGDemo.dir/src/epnp.cpp.s
-	$(MAKE) -f CMakeFiles/ETGDemo.dir/build.make CMakeFiles/ETGDemo.dir/src/epnp.cpp.s
 .PHONY : src/epnp.cpp.s
 
 src/glm.o: src/glm.cpp.o
@@ -520,11 +520,11 @@ src/glm.o: src/glm.cpp.o
 
 # target to build an object file
 src/glm.cpp.o:
+	$(MAKE) -f CMakeFiles/ETGDemo.dir/build.make CMakeFiles/ETGDemo.dir/src/glm.cpp.o
+	$(MAKE) -f CMakeFiles/TGDemo.dir/build.make CMakeFiles/TGDemo.dir/src/glm.cpp.o
 	$(MAKE) -f CMakeFiles/EBTDemo.dir/build.make CMakeFiles/EBTDemo.dir/src/glm.cpp.o
 	$(MAKE) -f CMakeFiles/TIGDemo.dir/build.make CMakeFiles/TIGDemo.dir/src/glm.cpp.o
 	$(MAKE) -f CMakeFiles/object_tracking_2d.dir/build.make CMakeFiles/object_tracking_2d.dir/src/glm.cpp.o
-	$(MAKE) -f CMakeFiles/TGDemo.dir/build.make CMakeFiles/TGDemo.dir/src/glm.cpp.o
-	$(MAKE) -f CMakeFiles/ETGDemo.dir/build.make CMakeFiles/ETGDemo.dir/src/glm.cpp.o
 .PHONY : src/glm.cpp.o
 
 src/glm.i: src/glm.cpp.i
@@ -533,11 +533,11 @@ src/glm.i: src/glm.cpp.i
 
 # target to preprocess a source file
 src/glm.cpp.i:
+	$(MAKE) -f CMakeFiles/ETGDemo.dir/build.make CMakeFiles/ETGDemo.dir/src/glm.cpp.i
+	$(MAKE) -f CMakeFiles/TGDemo.dir/build.make CMakeFiles/TGDemo.dir/src/glm.cpp.i
 	$(MAKE) -f CMakeFiles/EBTDemo.dir/build.make CMakeFiles/EBTDemo.dir/src/glm.cpp.i
 	$(MAKE) -f CMakeFiles/TIGDemo.dir/build.make CMakeFiles/TIGDemo.dir/src/glm.cpp.i
 	$(MAKE) -f CMakeFiles/object_tracking_2d.dir/build.make CMakeFiles/object_tracking_2d.dir/src/glm.cpp.i
-	$(MAKE) -f CMakeFiles/TGDemo.dir/build.make CMakeFiles/TGDemo.dir/src/glm.cpp.i
-	$(MAKE) -f CMakeFiles/ETGDemo.dir/build.make CMakeFiles/ETGDemo.dir/src/glm.cpp.i
 .PHONY : src/glm.cpp.i
 
 src/glm.s: src/glm.cpp.s
@@ -546,11 +546,11 @@ src/glm.s: src/glm.cpp.s
 
 # target to generate assembly for a file
 src/glm.cpp.s:
+	$(MAKE) -f CMakeFiles/ETGDemo.dir/build.make CMakeFiles/ETGDemo.dir/src/glm.cpp.s
+	$(MAKE) -f CMakeFiles/TGDemo.dir/build.make CMakeFiles/TGDemo.dir/src/glm.cpp.s
 	$(MAKE) -f CMakeFiles/EBTDemo.dir/build.make CMakeFiles/EBTDemo.dir/src/glm.cpp.s
 	$(MAKE) -f CMakeFiles/TIGDemo.dir/build.make CMakeFiles/TIGDemo.dir/src/glm.cpp.s
 	$(MAKE) -f CMakeFiles/object_tracking_2d.dir/build.make CMakeFiles/object_tracking_2d.dir/src/glm.cpp.s
-	$(MAKE) -f CMakeFiles/TGDemo.dir/build.make CMakeFiles/TGDemo.dir/src/glm.cpp.s
-	$(MAKE) -f CMakeFiles/ETGDemo.dir/build.make CMakeFiles/ETGDemo.dir/src/glm.cpp.s
 .PHONY : src/glm.cpp.s
 
 src/main.o: src/main.cpp.o
@@ -586,11 +586,11 @@ src/objectmodel.o: src/objectmodel.cpp.o
 
 # target to build an object file
 src/objectmodel.cpp.o:
+	$(MAKE) -f CMakeFiles/ETGDemo.dir/build.make CMakeFiles/ETGDemo.dir/src/objectmodel.cpp.o
+	$(MAKE) -f CMakeFiles/TGDemo.dir/build.make CMakeFiles/TGDemo.dir/src/objectmodel.cpp.o
 	$(MAKE) -f CMakeFiles/EBTDemo.dir/build.make CMakeFiles/EBTDemo.dir/src/objectmodel.cpp.o
 	$(MAKE) -f CMakeFiles/TIGDemo.dir/build.make CMakeFiles/TIGDemo.dir/src/objectmodel.cpp.o
 	$(MAKE) -f CMakeFiles/object_tracking_2d.dir/build.make CMakeFiles/object_tracking_2d.dir/src/objectmodel.cpp.o
-	$(MAKE) -f CMakeFiles/TGDemo.dir/build.make CMakeFiles/TGDemo.dir/src/objectmodel.cpp.o
-	$(MAKE) -f CMakeFiles/ETGDemo.dir/build.make CMakeFiles/ETGDemo.dir/src/objectmodel.cpp.o
 .PHONY : src/objectmodel.cpp.o
 
 src/objectmodel.i: src/objectmodel.cpp.i
@@ -599,11 +599,11 @@ src/objectmodel.i: src/objectmodel.cpp.i
 
 # target to preprocess a source file
 src/objectmodel.cpp.i:
+	$(MAKE) -f CMakeFiles/ETGDemo.dir/build.make CMakeFiles/ETGDemo.dir/src/objectmodel.cpp.i
+	$(MAKE) -f CMakeFiles/TGDemo.dir/build.make CMakeFiles/TGDemo.dir/src/objectmodel.cpp.i
 	$(MAKE) -f CMakeFiles/EBTDemo.dir/build.make CMakeFiles/EBTDemo.dir/src/objectmodel.cpp.i
 	$(MAKE) -f CMakeFiles/TIGDemo.dir/build.make CMakeFiles/TIGDemo.dir/src/objectmodel.cpp.i
 	$(MAKE) -f CMakeFiles/object_tracking_2d.dir/build.make CMakeFiles/object_tracking_2d.dir/src/objectmodel.cpp.i
-	$(MAKE) -f CMakeFiles/TGDemo.dir/build.make CMakeFiles/TGDemo.dir/src/objectmodel.cpp.i
-	$(MAKE) -f CMakeFiles/ETGDemo.dir/build.make CMakeFiles/ETGDemo.dir/src/objectmodel.cpp.i
 .PHONY : src/objectmodel.cpp.i
 
 src/objectmodel.s: src/objectmodel.cpp.s
@@ -612,11 +612,11 @@ src/objectmodel.s: src/objectmodel.cpp.s
 
 # target to generate assembly for a file
 src/objectmodel.cpp.s:
+	$(MAKE) -f CMakeFiles/ETGDemo.dir/build.make CMakeFiles/ETGDemo.dir/src/objectmodel.cpp.s
+	$(MAKE) -f CMakeFiles/TGDemo.dir/build.make CMakeFiles/TGDemo.dir/src/objectmodel.cpp.s
 	$(MAKE) -f CMakeFiles/EBTDemo.dir/build.make CMakeFiles/EBTDemo.dir/src/objectmodel.cpp.s
 	$(MAKE) -f CMakeFiles/TIGDemo.dir/build.make CMakeFiles/TIGDemo.dir/src/objectmodel.cpp.s
 	$(MAKE) -f CMakeFiles/object_tracking_2d.dir/build.make CMakeFiles/object_tracking_2d.dir/src/objectmodel.cpp.s
-	$(MAKE) -f CMakeFiles/TGDemo.dir/build.make CMakeFiles/TGDemo.dir/src/objectmodel.cpp.s
-	$(MAKE) -f CMakeFiles/ETGDemo.dir/build.make CMakeFiles/ETGDemo.dir/src/objectmodel.cpp.s
 .PHONY : src/objectmodel.cpp.s
 
 src/templates_generator.o: src/templates_generator.cpp.o
@@ -680,12 +680,12 @@ help:
 	@echo "... clean"
 	@echo "... depend"
 	@echo "... rebuild_cache"
+	@echo "... ETGDemo"
+	@echo "... edit_cache"
+	@echo "... TGDemo"
 	@echo "... EBTDemo"
 	@echo "... TIGDemo"
 	@echo "... object_tracking_2d"
-	@echo "... TGDemo"
-	@echo "... ETGDemo"
-	@echo "... edit_cache"
 	@echo "... ImageLib"
 	@echo "... LineFitLib"
 	@echo "... FdcmLib"

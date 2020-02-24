@@ -65,7 +65,6 @@ public:
     // the file name should be the object name
     std::string object_name = template_directory.substr(i + 1, template_directory.length() - i);
 
-
     TrackerBase::initTracker(template_directory, cam_name, intrinsic, distortion, width, height, pose_init, ach_channel);
 
     initPoseEstimationSURF(width, height, template_directory, object_name);
@@ -143,17 +142,20 @@ public:
         IplImage *imageTemp = cvCreateImage(cvSize(img_gray_->width, img_gray_->height), 8, 3);
         cvCvtColor(img_gray_, imageTemp, CV_GRAY2BGR);
         obj_model_->displayPoseLine(imageTemp, resultPose[d], CV_RGB(255, 0, 0), 1, false);
+        cv::imshow("result image" + std::to_string(d), cv::Mat(imageTemp));
         cvReleaseImage(&imageTemp);
       }
 
       
       img_edge_ = obj_model_->extractEdge(img_gray_, smooth_size_, th_canny_l_, th_canny_h_, cam_->getEdge(), img_mask_);
+      cv::imshow("edge image", cv::Mat(img_edge_));
+
       obj_model_->extractEdgeOri(img_gray_, smooth_size_);
 
       cv::Mat dt;
       cv::Mat invertImage(img_edge_->height, img_edge_->width, CV_8UC1);
 
-      cv::bitwise_not(cv::cvarrToMat(img_edge_), invertImage);
+      cv::bitwise_not(cv::Mat(img_edge_), invertImage);
       cv::distanceTransform(invertImage, dt, CV_DIST_L2, 3);
 
       //timer.printTimeMilliSec("preprocess");
@@ -277,6 +279,7 @@ public:
         //IplImage *cropImage = cvCreateImage(cvSize(img_result_->width, img_result_->height), 8, 1);
         //obj_model_->getVisibleArea(img_result_->height, img_result_->width, false, cropImage);
         obj_model_->displayPoseLine(imageTemp, resultPose[d], cvScalar(0, 255, 0), 1, false);
+        //std::cout << "check\n";
 
         obj_model_->setModelviewMatrix(resultPose[d]);
         obj_model_->findVisibleSamplePoints();
@@ -286,8 +289,9 @@ public:
         
         std::cout << "result " << d << " final cost = " << currcost << std::endl;
         //if(currcost < 1.0)
+        imshow("result" + std::to_string(d), cv::Mat(imageTemp));
         //imshow("crop" + std::to_string(d), cv::Mat(cropImage));
-        imshow("crop" + std::to_string(d), cv::cvarrToMat(imageTemp));
+
         cvReleaseImage(&imageTemp);
         //cvReleaseImage(&cropImage);
       }
@@ -324,12 +328,13 @@ protected:
   {
     TrackerBase::initObjectModel(name, width, height, intrinsic, sample_step, maxd, dulledge, edge_tracker);
 
+    obj_model_->loadKeyframes(name);
+
     return (true);
   }
 
   bool initPoseEstimationSURF(int width, int height, std::string data_name, std::string &obj_name)
   {
-    std::cout << "in initPoseEstimationSURF\n";
     if (pe_surf_)
       delete pe_surf_;
 
@@ -341,7 +346,13 @@ protected:
         cam_->getIntrinsicParams(),
         cam_->getDistortionParams(),
         obj_name);
-
+    /*
+    pe_surf_->buildKdTree(
+        obj_model_->getKeyframeImages(),
+        obj_model_->getKeyframePoses(),
+        obj_model_->getKeyframeKeypoints2D(),
+        obj_model_->getKeyframeKeypoints3D(),
+        obj_model_->getKeyframeDescriptors());*/
     return (true);
   }
 

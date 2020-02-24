@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<opencv_storage>
+<edge_template_pose002 type_id="opencv-matrix">
+  <rows>4</rows>
+  <cols>4</cols>
+  <dt>f</dt>
+  <data>
+    -4.37113883e-08 1. 0. 0. 6.42787635e-01 2.80971406e-08
+    7.66044438e-01 0. 7.66044438e-01 3.34848664e-08 -6.42787635e-01
+    1.40000015e-01 0. 0. 0. 1.</data></edge_template_pose002>
+</opencv_storage>

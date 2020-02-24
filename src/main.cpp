@@ -1,6 +1,8 @@
 #include <iostream>
 #include <string>
 
+#include "object_tracking_2D/tracker_irls.h"
+#include "object_tracking_2D/tracker_pf_texture.h"
 #include "object_tracking_2D/tracker_pf_textureless.h"
 
 #include <boost/program_options.hpp>
@@ -110,7 +112,17 @@ int main(int argc, char **argv)
     }
   }
 
-  std::cout << "read the image\n";
+  /*
+  VideoCapture cap(0);
+
+  // Check if camera opened successfully
+  if (!cap.isOpened())
+  {
+    cout << "Error opening video stream or file" << endl;
+    return -1;
+  }
+  */
+
   Mat inputImg = imread(input, CV_LOAD_IMAGE_COLOR);
 
   TrackerBase *origin_tracker_;
@@ -128,14 +140,13 @@ int main(int argc, char **argv)
   origin_tracker_->setValidSamplePointsRatio(0.85);
   origin_tracker_->setMinKeypointMatches(12);
 
-
   // set the parameters of edge detection
   origin_tracker_->setCannyHigh(20);
   origin_tracker_->setCannyLow(15);
 
-  std::cout << "initilize the tracker: \n";
+  input = "ach";
   origin_tracker_->initTracker(template_directory, input, intrinsic, distortion, width, height, pose_init, ach_channel);
-  std::cout << "done\n";
+
   int numofframe = 0;
 
   bool istrack = false;
@@ -147,9 +158,131 @@ int main(int argc, char **argv)
   origin_tracker_->setImage(inputImg);
   std::vector<LMDetWind> detWind;
   std::vector<CvMat *> detectedState;
-  std::cout << "before pose detection\n";
+  Timer timer;
+  timer.start();
   numOfDetections = ((TexturelessParticleFilterTracker *)origin_tracker_)->pose_detection(5, detWind, detectedState);
+  timer.printTimeMilliSec("object detection");
 
+  /*
+  
+  while (1)
+  {
+    Timer timer;
+    timer.start();
+    Mat frame;
+    // Capture frame-by-frame
+    cap >> frame;
+    if (istrack == false)
+      fastNlMeansDenoisingColored(frame, frame, 9, 9);
+    
+    numofframe++;
+
+    // If the frame is empty, break immediately
+    if (frame.empty())
+      break;
+
+    origin_tracker_->setImage(frame);
+
+    if (istrack == false)
+    {
+      for (int li = 0; li < 10; li++)
+        lifetime[li] = 0;
+
+      // clean the trackers
+      while (!trackers.empty())
+      {
+        trackers.pop_back();
+      }
+
+      origin_tracker_->init_ = true;
+      std::vector<LMDetWind> detWind;
+      std::vector<CvMat *> detectedState;
+
+      numOfDetections = ((TexturelessParticleFilterTracker *)origin_tracker_)->pose_detection(5, detWind, detectedState);
+      timer.printTimeMilliSec("pose detection");
+      if (numOfDetections > 0)
+      {
+        istrack = false; // todo
+        numOfTracking = numOfDetections;
+
+        for (int nt = 0; nt < numOfDetections; nt++)
+        {
+          trackers.push_back(new TexturelessParticleFilterTracker());
+          ((TexturelessParticleFilterTracker *)trackers[nt])->setNumParticle(n);
+          ((TexturelessParticleFilterTracker *)trackers[nt])->setThresholdCM(th_cm);
+          ((TexturelessParticleFilterTracker *)trackers[nt])->initParticleFilter();
+          trackers[nt]->setSampleStep(sample_step);
+          trackers[nt]->setMaxSearchDistance(8);
+          trackers[nt]->setDisplay(display);
+          trackers[nt]->setNetworkMode(false);
+          trackers[nt]->setConsideringDullEdges(dull_edge);
+          trackers[nt]->setTracking(true);
+          trackers[nt]->setCannyHigh(55);
+          trackers[nt]->setCannyLow(30);
+          try
+          {
+            ((TexturelessParticleFilterTracker *)trackers[nt])->generate_tracker(origin_tracker_, detectedState[nt]);
+            lifetime[nt] = 1;
+            trackers[nt]->renderResults();
+          }
+          catch (exception &e)
+          {
+            std::cout << e.what() << std::endl;
+          }
+        }
+      }
+    }
+    else
+    {
+      for (int nt = 0; nt < min(numOfDetections, 10); nt++)
+      {
+        if (lifetime[nt] <= 0)
+        {
+          continue;
+        }
+        int trackresult = trackers[nt]->tracking();
+        if (trackresult != 0)
+        {
+          lifetime[nt]--;
+          numOfTracking--;
+          continue;
+        }
+        trackers[nt]->renderResults();
+      }
+      if (numOfTracking <= 0)
+      {
+        istrack = false;
+      }
+      timer.printTimeMilliSec("object tracking");
+    }
+    Mat img_edge = origin_tracker_->getEdgeImage();
+    Mat img_result = origin_tracker_->getResultImage();
+    Mat img_mask = origin_tracker_->getMaskImage();
+
+    // Display the resulting frame
+    imshow("Frame", frame);
+    //imshow("Edge", img_edge);
+    imshow("Result", img_result);
+    imshow("Mask", img_mask);
+
+    // Press  ESC on keyboard to exit
+    char c = (char)waitKey(25);
+    if (c == 27)
+      break;
+  }
+
+  // When everything done, release the video capture object
+  cap.release();
+  */
+  //Mat img_edge = origin_tracker_->getEdgeImage();
+  // Mat img_result = origin_tracker_->getResultImage();
+  //Mat img_mask = origin_tracker_->getMaskImage();
+
+  // Display the resulting frame
+  //imshow("Frame", inputImg);
+  //imshow("Edge", img_edge);
+  // imshow("Result", img_result);
+  //imshow("Mask", img_mask);
   waitKey(0);
   // Closes all the frames
   destroyAllWindows();

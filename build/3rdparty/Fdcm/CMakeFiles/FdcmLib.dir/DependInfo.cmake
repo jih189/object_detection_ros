@@ -16,9 +16,30 @@ set(CMAKE_CXX_COMPILER_ID "GNU")
 
 # The include file search paths:
 set(CMAKE_CXX_TARGET_INCLUDE_PATH
+  "/home/jiaming/opencv-2.4.9/build"
+  "/home/jiaming/opencv-2.4.9/include"
+  "/home/jiaming/opencv-2.4.9/include/opencv"
+  "/home/jiaming/opencv-2.4.9/modules/core/include"
+  "/home/jiaming/opencv-2.4.9/modules/flann/include"
+  "/home/jiaming/opencv-2.4.9/modules/imgproc/include"
+  "/home/jiaming/opencv-2.4.9/modules/highgui/include"
+  "/home/jiaming/opencv-2.4.9/modules/features2d/include"
+  "/home/jiaming/opencv-2.4.9/modules/calib3d/include"
+  "/home/jiaming/opencv-2.4.9/modules/ml/include"
+  "/home/jiaming/opencv-2.4.9/modules/video/include"
+  "/home/jiaming/opencv-2.4.9/modules/legacy/include"
+  "/home/jiaming/opencv-2.4.9/modules/objdetect/include"
+  "/home/jiaming/opencv-2.4.9/modules/photo/include"
+  "/home/jiaming/opencv-2.4.9/modules/gpu/include"
+  "/home/jiaming/opencv-2.4.9/modules/ocl/include"
+  "/home/jiaming/opencv-2.4.9/modules/nonfree/include"
+  "/home/jiaming/opencv-2.4.9/modules/contrib/include"
+  "/home/jiaming/opencv-2.4.9/modules/stitching/include"
+  "/home/jiaming/opencv-2.4.9/modules/superres/include"
+  "/home/jiaming/opencv-2.4.9/modules/ts/include"
+  "/home/jiaming/opencv-2.4.9/modules/videostab/include"
   "/"
   "../3rdparty/Fdcm/.."
-  "/usr/include/opencv"
   )
 
 # Targets to which this target links.

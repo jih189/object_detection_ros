@@ -60,9 +60,16 @@ public:
   CvPoint2D32f project3Dto2D(CvPoint3D32f &pt3);
   CvPoint2D32f project3Dto2D(CvPoint3D32f &pt3, CvMat *pose);
 
+  void saveKeyframe(string obj_name, IplImage *imgG, CvMat *pose);
+  void loadKeyframes(string obj_name);
   void loadEdgeTemplates(const std::string &obj_name);
 
-
+  inline std::vector<IplImage *> &getKeyframeImages() { return keyframe_images_; }
+  inline std::vector<CvMat *> &getKeyframePoses() { return keyframe_poses_; }
+  inline std::vector<CvMat *> &getKeyframeKeypoints2D() { return keyframe_keypoints_2d_; }
+  inline std::vector<CvMat *> &getKeyframeKeypoints3D() { return keyframe_keypoints_3d_; }
+  inline std::vector<CvMat *> &getKeyframeDescriptors() { return keyframe_descriptors_; }
+  int getNumOfKeyframes() { return num_keyframes_; }
   int getNumOfEdgeTemplates() { return num_edge_templates_; }
   inline CvMat *getEdgeTemplatePose(int i) { return edge_template_poses_[i]; }
   inline CvPoint2D32f getPosePosition(int i) { return pose_positions_[i]; }

@@ -54,7 +54,10 @@ find_package( OpenGL   1.10 REQUIRED )
 find_package( GLEW     1.10 REQUIRED )
 find_package( GLUT    2.8.1 REQUIRED )
 
-find_package( OpenCV REQUIRED)
+set(OpenCV_DIR /home/jiaming/opencv-2.4.9/build)
+set(OpenCV_FOUND TRUE)
+
+find_package( OpenCV 2.4.9 REQUIRED)
 message(STATUS "OPENCV_VERSION:  ${OPENCV_VERSION}")
 find_package( LAPACK    3.5 REQUIRED )
 find_package( OpenMP        REQUIRED )
@@ -173,7 +176,9 @@ set(incs
                 include/object_tracking_2D/HomoTransform.h
                 include/object_tracking_2D/ModelImport.h
                 include/object_tracking_2D/tracker_base.h
+                include/object_tracking_2D/tracker_irls.h
                 include/object_tracking_2D/tracker_pf.h
+                include/object_tracking_2D/tracker_pf_texture.h
                 include/object_tracking_2D/tracker_pf_textureless.h
                 include/object_tracking_2D/ObjectModel.h
                 include/object_tracking_2D/PoseEstimationSURF.h

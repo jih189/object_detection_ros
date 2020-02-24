@@ -10,6 +10,7 @@
 #include <opencv/cv.h>
 #include <opencv/highgui.h>
 #include <opencv2/features2d/features2d.hpp>
+#include <opencv2/nonfree/nonfree.hpp>
 
 #include "Image/Image.h"
 #include "Image/ImageIO.h"
@@ -24,12 +25,16 @@ class CPoseEstimationSURF
 public:
   CPoseEstimationSURF(int width, int height, std::string& img_path, CObjectModel* obj_model, CvMat* intrinsic_params, CvMat* distortion_params, std::string& objName, bool dispaly=true);
   ~CPoseEstimationSURF(void);
+  CvMat* estimatePose(int &num_of_corr);
+  void PF_estimatePoses(int &num_of_corr, int numOfParticle, vector<CvMat*>& states);
   int PF_estimatePosesFDCM(float maxThreshold, int numOfParticle, vector<CvMat*>& states, vector<LMDetWind> &detWind, int smoothSize=1, int cannyLow=20, int cannyHigh=40, IplImage* displayImage=NULL);
   void setImage(IplImage* img);
   void buildKdTree(vector<IplImage*>& keyframe, vector<CvMat*>& pose, vector<CvMat*>& keypoint2D, vector<CvMat*>& keypoint3D, vector<CvMat*>& descriptor);  
   IplImage* getImage() { return img_result_; }
 
 protected:
+  void findCorrespondenceNN_FLANN(const CvSeq* imageKeypoints, const CvSeq* imageDescriptors, vector<int>& ptpairs, int numOfKeyframes); // FLANN (approximate nearest neighbor) search
+  
   int refineCorrespondenceEpnpRANSAC(
     const vector<int>& ptpairs, 
     vector<CvPoint2D32f>& objOutliers, 
@@ -78,6 +83,7 @@ protected:
   vector<CvPoint2D32f> inliers_img_2d_;
   vector<CvPoint2D32f> inliers_obj_2d_;  
   vector<CvPoint3D32f> inliers_obj_3d_;
+  CvSURFParams surf_params_;
   CObjectModel* obj_model_;
   CvMat* intrinsic_;
   CvMat* distortion_;
