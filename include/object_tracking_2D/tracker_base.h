@@ -8,7 +8,7 @@
 
 #include <opencv/cv.h>
 #include <opencv/highgui.h>
-#include <omp.h>        // openmp
+#include <omp.h> // openmp
 #include <iostream>
 //#include <direct.h> // mkdir()
 
@@ -58,42 +58,11 @@ class TrackerBase
 {
 public:
   TrackerBase()
-    : cam_(NULL)
-    , edge_tracker_(NULL)
-    , obj_model_(NULL)
-    , th_canny_l_(100) //100
-    , th_canny_h_(200) //120t
-    , sample_step_(0.005f)
-    , maxd_(32)
-    , dulledge_(false)
-    , ransac_th_(0.0f)
-    , limityrot_(false)
-    , run_(true)
-    , init_(true)
-    , th_valid_sample_points_ratio_(0.1)
-    , img_input_(NULL)
-    , img_gray_(NULL)
-    , img_gray_tracking(NULL)
-    , img_result_(NULL)
-    , img_edge_(NULL)
-    , img_mask_(NULL)
-    , display_(true)    , display_result_(true)
-    , display_init_result_(false)
-    , display_edge_result_(true)
-    , display_grayscale_image_(false)
-    , smooth_size_(7)
-    , obj_name_("")
-    , frame_num_(0)
-    , frame_num_after_init_(0)
-    , hsvFilt(NULL)
-    , net_(false)
-    , save_rslt_txt_(false)
-    , save_rslt_img_(false)
-    , str_result_path_("result")
-    , time_tracking_(0.f)
-    , time_init_(0.f)
-    , time_run_(0.f)
-    , saveKeyframe_(false)
+      : cam_(NULL), edge_tracker_(NULL), obj_model_(NULL), th_canny_l_(100) //100
+        ,
+        th_canny_h_(200) //120t
+        ,
+        sample_step_(0.005f), maxd_(32), dulledge_(false), ransac_th_(0.0f), limityrot_(false), run_(true), init_(true), th_valid_sample_points_ratio_(0.1), img_input_(NULL), img_gray_(NULL), img_gray_tracking(NULL), img_result_(NULL), img_edge_(NULL), img_mask_(NULL), display_(true), display_result_(true), display_init_result_(false), display_edge_result_(true), display_grayscale_image_(false), smooth_size_(7), obj_name_(""), frame_num_(0), frame_num_after_init_(0), hsvFilt(NULL), net_(false), save_rslt_txt_(false), save_rslt_img_(false), str_result_path_("result"), time_tracking_(0.f), time_init_(0.f), time_run_(0.f), saveKeyframe_(false)
   {
     pose_ = cvCreateMat(4, 4, CV_32F);
     pose_init_ = cvCreateMat(4, 4, CV_32F);
@@ -102,7 +71,7 @@ public:
     cvSetIdentity(covariance_);
     displayOpenCVInfo();
   }
-  
+
   virtual ~TrackerBase()
   {
     cvReleaseMat(&pose_);
@@ -110,16 +79,22 @@ public:
     cvReleaseMat(&covariance_);
   }
 
-  virtual void clean(){
+  virtual void clean()
+  {
     //if(cam_)            delete cam_;
-    if(edge_tracker_)   delete edge_tracker_;
-    if(obj_model_)      delete obj_model_;
+    if (edge_tracker_)
+      delete edge_tracker_;
+    if (obj_model_)
+      delete obj_model_;
     // 'img_input_' is aleady released
-    if(img_gray_)       cvReleaseImage(&img_gray_);
+    if (img_gray_)
+      cvReleaseImage(&img_gray_);
     //if(img_gray_tracking)       cvReleaseImage(&img_gray_tracking);
-    if(img_result_)     cvReleaseImage(&img_result_);
+    if (img_result_)
+      cvReleaseImage(&img_result_);
     //if(img_edge_)       cvReleaseImage(&img_edge_);// memeory error
-    if(img_mask_)       cvReleaseImage(&img_mask_);
+    if (img_mask_)
+      cvReleaseImage(&img_mask_);
 
     //cvReleaseMat(&pose_);
     //cvReleaseMat(&pose_init_);
@@ -128,25 +103,22 @@ public:
     //if(ofs_time_.is_open())      ofs_time_.close();
   }
 
-  virtual bool initTracker(std::string &obj_name, std::string &cam_name, std::string &intrinsic, std::string &distortion, int width, int height, CvMat* pose_init, std::string ach_channel)
+  virtual bool initTracker(std::string &obj_name, std::string &cam_name, std::string &intrinsic, std::string &distortion, int width, int height, CvMat *pose_init, std::string ach_channel)
   {
-    if(ach_channel != "none")
-			use_ach_ = true;
-		else 
-			use_ach_ = false;
+    if (ach_channel != "none")
+      use_ach_ = true;
+    else
+      use_ach_ = false;
 
     // crop the object name from path
     size_t i = obj_name.rfind('/', obj_name.length());
-    obj_name_ = obj_name.substr(i+1, obj_name.length() - i);
+    obj_name_ = obj_name.substr(i + 1, obj_name.length() - i);
 
     width_ = width;
     height_ = height;
     initCamera(cam_name, intrinsic, distortion, width, height);
-std::cout << "check\n";
     initEdgeTracker(width, height, cam_->getIntrinsicParams(), maxd_, limityrot_);
-std::cout << "check\n";
     initObjectModel(obj_name, width, height, cam_->getIntrinsicParams(), sample_step_, maxd_, dulledge_, edge_tracker_);
-std::cout << "check\n";
     initImages(width, height);
 
     cvCopy(pose_init, pose_init_);
@@ -195,7 +167,8 @@ std::cout << "check\n";
   }
 
   // jiaming hu: generate_tracker the tracker template
-  virtual void generate_tracker(TrackerBase* cloned_tracker, CvMat* pose_init){
+  virtual void generate_tracker(TrackerBase *cloned_tracker, CvMat *pose_init)
+  {
     use_ach_ = false;
     obj_name_ = cloned_tracker->obj_name_;
     width_ = cloned_tracker->width_;
@@ -213,9 +186,9 @@ std::cout << "check\n";
     cvCopy(pose_init_, pose_);
   }
 
-  void sendPoseACH(CvMat* p)
+  void sendPoseACH(CvMat *p)
   {
-/*		if(use_ach_)
+    /*		if(use_ach_)
 		{
 			printf("Sending Pose Over ACH\n");
     
@@ -243,11 +216,11 @@ std::cout << "check\n";
     return;
   }
 
-  void printPose(CvMat* p)
+  void printPose(CvMat *p)
   {
-    for(int cur_row = 0; cur_row<4; cur_row++)
-		{
-			printf("[%1.3f %1.3f %1.3f %1.3f]\n", CV_MAT_ELEM(*p, float, cur_row, 0), CV_MAT_ELEM(*p, float, cur_row, 1) ,CV_MAT_ELEM(*p, float, cur_row, 2), CV_MAT_ELEM(*p, float, cur_row, 3));
+    for (int cur_row = 0; cur_row < 4; cur_row++)
+    {
+      printf("[%1.3f %1.3f %1.3f %1.3f]\n", CV_MAT_ELEM(*p, float, cur_row, 0), CV_MAT_ELEM(*p, float, cur_row, 1), CV_MAT_ELEM(*p, float, cur_row, 2), CV_MAT_ELEM(*p, float, cur_row, 3));
     }
     return;
   }
@@ -262,15 +235,14 @@ std::cout << "check\n";
     return imgThresholded;
   }
 
-
   void saveResultText()
   {
-    if(ofs_pose_.is_open())
+    if (ofs_pose_.is_open())
     {
-      for(int r = 0; r < 4; r++)
-        for(int c = 0; c < 4; c++)
+      for (int r = 0; r < 4; r++)
+        for (int c = 0; c < 4; c++)
           ofs_pose_ << std::fixed << CV_MAT_ELEM(*pose_, float, r, c) << '\t';
-      ofs_pose_ << std::endl; 
+      ofs_pose_ << std::endl;
     }
     else
       std::cerr << "ofs_pose_ is not opened." << std::endl;
@@ -281,56 +253,57 @@ std::cout << "check\n";
   void saveResultImage()
   {
     std::stringstream ss;
-    ss << str_result_path_ << "/" << "track" << std::setw(4) << std::setfill('0') << frame_num_ << ".jpg";
+    ss << str_result_path_ << "/"
+       << "track" << std::setw(4) << std::setfill('0') << frame_num_ << ".jpg";
     cvSaveImage(ss.str().c_str(), img_result_);
   }
 
   typedef struct _NET_THREAD_PARAM
   {
-    CvMat* pose;
-    bool* net;
-    bool* run;
-    bool* init;
-    boost::signals2::mutex* mutex;
-  }NET_THREAD_PARAM;
+    CvMat *pose;
+    bool *net;
+    bool *run;
+    bool *init;
+    boost::signals2::mutex *mutex;
+  } NET_THREAD_PARAM;
 
-  inline int    getWidth()                          { return width_;          }
-  inline int    getHeight()                         { return height_;         }
-  inline int    getCannyLow()                       { return th_canny_l_;     }
-  inline void   setCannyLow(int th)                 { th_canny_l_ = th;       }
-  inline int    getCannyHigh()                      { return th_canny_h_;     }
-  inline void   setCannyHigh(int th)                { th_canny_h_ = th;       }
-  inline void   setValidSamplePointsRatio(double th){th_valid_sample_points_ratio_ = th;}
-  inline double getValidSamplePointsRatio()         {return th_valid_sample_points_ratio_;}
-  inline float  getSampleStep()                     { return sample_step_;    }
-  inline void   setSampleStep(float ss)             { sample_step_ = ss;      }
-  inline int    getMaxSearchDistance()              { return maxd_;           }
-  inline void   setMaxSearchDistance(int d)         { maxd_ = d;              }
-  inline bool   getConsideringDullEdges()           { return dulledge_;       }
-  inline void   setConsideringDullEdges(bool tf)    { dulledge_ = tf;         }
-  inline bool   getDisplay()                        { return display_;        }
-  inline void   setDisplay(bool tf)                 { display_ = tf;          }
-  inline bool   getNetworkMode()                    { return net_;            }
-  inline void   setNetworkMode(bool tf)             { net_ = tf;              } 
-  inline bool   getSaveResultText()                 { return save_rslt_txt_;  }
-  inline void   setSaveResultText(bool tf)          { save_rslt_txt_ = tf;    }
-  inline bool   getSaveResultImage()                { return save_rslt_img_;  }
-  inline void   setSaveResultImage(bool tf)         { save_rslt_img_ = tf;    }
-  inline CvMat*   getPose()                         { return pose_;           }
-  inline CvMat*   getCovariance()                   { return covariance_;                        }
-  inline void   setPose(CvMat* pose)                { pose_ = pose;           }
-  inline IplImage*   getResultImage()               { return img_result_;     }
-  inline IplImage*   getEdgeImage()                 { return img_edge_;       }
-  inline IplImage*   getMaskImage()                 { return img_mask_;       }
-  inline void   setMinKeypointMatches(int d)        { min_keypoint_matches = d; }
-  inline void   setTracking(bool use_tracking)      { use_tracking_ = use_tracking; }
-  inline std::string& getSaveResultPath()           { return str_result_path_; }
-  inline void   saveKeyframe()                      { saveKeyframe_ = true;}
+  inline int getWidth() { return width_; }
+  inline int getHeight() { return height_; }
+  inline int getCannyLow() { return th_canny_l_; }
+  inline void setCannyLow(int th) { th_canny_l_ = th; }
+  inline int getCannyHigh() { return th_canny_h_; }
+  inline void setCannyHigh(int th) { th_canny_h_ = th; }
+  inline void setValidSamplePointsRatio(double th) { th_valid_sample_points_ratio_ = th; }
+  inline double getValidSamplePointsRatio() { return th_valid_sample_points_ratio_; }
+  inline float getSampleStep() { return sample_step_; }
+  inline void setSampleStep(float ss) { sample_step_ = ss; }
+  inline int getMaxSearchDistance() { return maxd_; }
+  inline void setMaxSearchDistance(int d) { maxd_ = d; }
+  inline bool getConsideringDullEdges() { return dulledge_; }
+  inline void setConsideringDullEdges(bool tf) { dulledge_ = tf; }
+  inline bool getDisplay() { return display_; }
+  inline void setDisplay(bool tf) { display_ = tf; }
+  inline bool getNetworkMode() { return net_; }
+  inline void setNetworkMode(bool tf) { net_ = tf; }
+  inline bool getSaveResultText() { return save_rslt_txt_; }
+  inline void setSaveResultText(bool tf) { save_rslt_txt_ = tf; }
+  inline bool getSaveResultImage() { return save_rslt_img_; }
+  inline void setSaveResultImage(bool tf) { save_rslt_img_ = tf; }
+  inline CvMat *getPose() { return pose_; }
+  inline CvMat *getCovariance() { return covariance_; }
+  inline void setPose(CvMat *pose) { pose_ = pose; }
+  inline IplImage *getResultImage() { return img_result_; }
+  inline IplImage *getEdgeImage() { return img_edge_; }
+  inline IplImage *getMaskImage() { return img_mask_; }
+  inline void setMinKeypointMatches(int d) { min_keypoint_matches = d; }
+  inline void setTracking(bool use_tracking) { use_tracking_ = use_tracking; }
+  inline std::string &getSaveResultPath() { return str_result_path_; }
+  inline void saveKeyframe() { saveKeyframe_ = true; }
   bool init_;
   bool label_;
-  bool setSaveResultPath(std::string& path)
-  { 
-    if(mkdir(path.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) == -1 && errno != EEXIST)
+  bool setSaveResultPath(std::string &path)
+  {
+    if (mkdir(path.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) == -1 && errno != EEXIST)
     {
       std::cerr << "Cannot create " << path << " directory for saving results." << std::endl;
       return false;
@@ -340,11 +313,11 @@ std::cout << "check\n";
   }
   virtual int tracking() = 0;
 
-  void setColorFilter(int* thresholds)
+  void setColorFilter(int *thresholds)
   {
     hsvFilt = thresholds;
   }
-/*
+  /*
   bool imageFilter(cv::Mat image){
       // jiaming: tensorflow processing
       // clean edge image
@@ -388,14 +361,14 @@ std::cout << "check\n";
 */
   bool setImage(cv::Mat image)
   {
-      //imageFilter(image);
-      cvSetZero(img_mask_);
-      IplImage copy = image;
-      img_input_ = static_cast<IplImage *>(&copy);
+    //imageFilter(image);
+    cvSetZero(img_mask_);
+    IplImage copy = image;
+    img_input_ = static_cast<IplImage *>(&copy);
 
-      cvCvtColor(img_input_, img_gray_, CV_RGB2GRAY);
-      cvCvtColor(img_gray_, img_result_, CV_GRAY2RGB);
-      return true;
+    cvCvtColor(img_input_, img_gray_, CV_RGB2GRAY);
+    cvCvtColor(img_gray_, img_result_, CV_GRAY2RGB);
+    return true;
   }
 
   virtual void renderResults()
@@ -413,7 +386,7 @@ std::cout << "check\n";
 
   virtual bool initialize()
   {
-    if(!init_)
+    if (!init_)
     {
       std::cerr << "Initialization flag is not set." << std::endl;
     }
@@ -421,8 +394,6 @@ std::cout << "check\n";
     frame_num_after_init_ = 0;
     return false;
   }
-
-
 
 protected:
   void displayOpenCVInfo()
@@ -437,57 +408,68 @@ protected:
 
   bool initCamera(std::string &cam_name, std::string &intrinsic, std::string &distortion, int width, int height)
   {
-    std::cout <<"camera name = " << cam_name << "\n";
-    if(cam_) delete cam_;
-    if(cam_name.compare("normal") == 0 || cam_name.compare("fire-i") == 0 || cam_name.compare("flea") == 0 || cam_name.compare("openni") == 0 || cam_name.compare("ach") == 0)
+    if (cam_)
+      delete cam_;
+    if (cam_name.compare("normal") == 0 || cam_name.compare("fire-i") == 0 || cam_name.compare("flea") == 0 || cam_name.compare("openni") == 0 || cam_name.compare("ach") == 0)
       cam_ = new CCamera(cam_name, intrinsic, distortion, width, height);
-    else{ // assume 'cam_name' is a path to an image sequence
+    else
+    { // assume 'cam_name' is a path to an image sequence
       std::string jpg = "jpg";
       cam_ = new CCamera(cam_name, true, 0, intrinsic, distortion, jpg);
     }
     return (true);
   }
 
-  bool initEdgeTracker(int width, int height, CvMat* intrinsic, int maxd, bool limityrot)
+  bool initEdgeTracker(int width, int height, CvMat *intrinsic, int maxd, bool limityrot)
   {
-    if(edge_tracker_) delete edge_tracker_;
-    std::cout << " before init edge tracker\n";
+    if (edge_tracker_)
+      delete edge_tracker_;
     edge_tracker_ = new CEdgeTracker(width, height, intrinsic, maxd, limityrot);
-    std::cout << " after init edge tracker\n";
     return (true);
   }
 
-  virtual bool initObjectModel(std::string name, int width, int height, CvMat* intrinsic, float sample_step, int maxd, bool dulledge, CEdgeTracker* edge_tracker)
+  virtual bool initObjectModel(std::string name, int width, int height, CvMat *intrinsic, float sample_step, int maxd, bool dulledge, CEdgeTracker *edge_tracker)
   {
-    if(obj_model_) delete obj_model_;
+    if (obj_model_)
+    {
+      // reset initilize the object model
+      delete obj_model_;
+    }
     obj_model_ = new CObjectModel(name, width, height, intrinsic, sample_step, maxd, dulledge, edge_tracker);
 
     //obj_model_->loadObjectCADModel(name);
     return (true);
   }
-  
+
   bool initImages(int width, int height)
   {
-    if(img_gray_) cvReleaseImage(&img_gray_);
+    if (img_gray_)
+      cvReleaseImage(&img_gray_);
     img_gray_ = cvCreateImage(cvSize(width, height), 8, 1);
-    if(img_result_) cvReleaseImage(&img_result_);
+
+    if (img_result_)
+      cvReleaseImage(&img_result_);
     img_result_ = cvCreateImage(cvSize(width, height), 8, 3);
-    if(img_edge_) cvReleaseImage(&img_edge_);
-    img_edge_ = cvCreateImage(cvSize(width, height), 8, 3);
-    if(img_mask_) cvReleaseImage(&img_mask_);
+
+    if (img_edge_)
+      cvReleaseImage(&img_edge_);
+    img_edge_ = cvCreateImage(cvSize(width, height), 8, 1);
+
+    if (img_mask_)
+      cvReleaseImage(&img_mask_);
     img_mask_ = cvCreateImage(cvSize(width, height), 8, 1);
 
     return (true);
   }
 
-
   bool getImage(bool ach)
   {
-    if(!ach)
+    if (!ach)
     {
       img_input_ = cam_->getImage();
-      if(img_input_ == NULL) return false;
-      if(img_input_->nChannels == 1)
+      if (img_input_ == NULL)
+        return false;
+      if (img_input_->nChannels == 1)
       {
         cvCopy(img_input_, img_gray_);
         cvCvtColor(img_gray_, img_result_, CV_GRAY2RGB);
@@ -501,8 +483,8 @@ protected:
     }
     else
     {
-			// receive image over ach
-			/*image = rec.receiveImage();
+      // receive image over ach
+      /*image = rec.receiveImage();
 
 			// HACK: check this part!
 			Mat image_scaled;
@@ -520,34 +502,32 @@ protected:
 
   virtual void handleKey(char key) = 0;
 
-
-
-    std::string handleRequest(std::string& req)
+  std::string handleRequest(std::string &req)
   {
-    if(req.substr(0, 4).compare("1004") == 0) // request current pose (SE(3) in meter)
+    if (req.substr(0, 4).compare("1004") == 0) // request current pose (SE(3) in meter)
     {
       net_ = false;
       mutex_.lock();
       std::stringstream ss;
       ss << "1 "; // means success
-      for(int i=0; i<16; i++)
-        ss << std::fixed << std::setprecision(6) << CV_MAT_ELEM(*pose_, float, i/4, i%4) << " ";
+      for (int i = 0; i < 16; i++)
+        ss << std::fixed << std::setprecision(6) << CV_MAT_ELEM(*pose_, float, i / 4, i % 4) << " ";
       ss << std::endl;
       mutex_.unlock();
       return ss.str();
     }
-    else if(req.substr(0, 4).compare("1005") == 0) // start without initialization
+    else if (req.substr(0, 4).compare("1005") == 0) // start without initialization
     {
       net_ = false;
       init_ = false;
       return std::string("1\n");
     }
-    else if(req.substr(0, 4).compare("2000") == 0) // request re-initialization
+    else if (req.substr(0, 4).compare("2000") == 0) // request re-initialization
     {
       init_ = true;
       return std::string("1\n");
     }
-    else if(req.substr(0, 4).compare("3000") == 0) // request to end tracker
+    else if (req.substr(0, 4).compare("3000") == 0) // request to end tracker
     {
       run_ = false;
       return std::string("1\n");
@@ -581,14 +561,14 @@ protected:
 
         std::stringstream ss;
         ss.write(buf.data(), len);
-				std::string tmp = ss.str(); 
+        std::string tmp = ss.str();
         std::string msg = handleRequest(tmp);
 
         boost::system::error_code ignored_error;
         boost::asio::write(socket, boost::asio::buffer(msg), boost::asio::transfer_all(), ignored_error);
       }
     }
-    catch (std::exception& e)
+    catch (std::exception &e)
     {
       std::cerr << e.what() << std::endl;
     }
@@ -596,9 +576,9 @@ protected:
     return;
   }
 
-  CCamera* cam_;
-  CEdgeTracker* edge_tracker_;
-  CObjectModel* obj_model_;
+  CCamera *cam_;
+  CEdgeTracker *edge_tracker_;
+  CObjectModel *obj_model_;
 
   int width_;
   int height_;
@@ -609,12 +589,12 @@ protected:
   int frame_num_;
   int frame_num_after_init_;
   bool net_;
-  bool save_rslt_txt_;  // save estimated pose and time result in txt file
-  bool save_rslt_img_;  // save result image as jpg file
+  bool save_rslt_txt_; // save estimated pose and time result in txt file
+  bool save_rslt_img_; // save result image as jpg file
   std::ofstream ofs_pose_;
   std::ofstream ofs_time_;
   std::string str_result_path_;
-  
+
   int th_canny_l_;
   int th_canny_h_;
   float sample_step_;
@@ -629,17 +609,16 @@ protected:
 
   int smooth_size_;
 
-  IplImage* img_input_;
-  IplImage* img_gray_;
-  IplImage* img_gray_tracking;
-  IplImage* img_mask_;
-  IplImage* img_result_;
-  IplImage* img_edge_;
+  IplImage *img_input_;
+  IplImage *img_gray_;
+  IplImage *img_gray_tracking;
+  IplImage *img_mask_;
+  IplImage *img_result_;
+  IplImage *img_edge_;
 
-  CvMat* pose_;
-  CvMat* pose_init_;
-  CvMat* covariance_;
-
+  CvMat *pose_;
+  CvMat *pose_init_;
+  CvMat *covariance_;
 
   boost::signals2::mutex mutex_; // For syncronization between main function and network thread
   Timer timer_;
@@ -655,7 +634,7 @@ protected:
   //ImageReceiver rec;
   cv::Mat image;
 
-  int* hsvFilt;
+  int *hsvFilt;
 
   // tensorflow variables
   /*

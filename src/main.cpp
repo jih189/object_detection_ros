@@ -110,7 +110,6 @@ int main(int argc, char **argv)
     }
   }
 
-  std::cout << "read the image\n";
   Mat inputImg = imread(input, CV_LOAD_IMAGE_COLOR);
 
   TrackerBase *origin_tracker_;
@@ -130,13 +129,11 @@ int main(int argc, char **argv)
 
 
   // set the parameters of edge detection
-  origin_tracker_->setCannyHigh(20);
-  origin_tracker_->setCannyLow(15);
+  origin_tracker_->setCannyHigh(50);
+  origin_tracker_->setCannyLow(40);
 
-  std::cout << "initilize the tracker: \n";
+  input = "ach";
   origin_tracker_->initTracker(template_directory, input, intrinsic, distortion, width, height, pose_init, ach_channel);
-  std::cout << "done\n";
-  int numofframe = 0;
 
   bool istrack = false;
   int numOfTracking = 0;
@@ -147,7 +144,6 @@ int main(int argc, char **argv)
   origin_tracker_->setImage(inputImg);
   std::vector<LMDetWind> detWind;
   std::vector<CvMat *> detectedState;
-  std::cout << "before pose detection\n";
   numOfDetections = ((TexturelessParticleFilterTracker *)origin_tracker_)->pose_detection(5, detWind, detectedState);
 
   waitKey(0);

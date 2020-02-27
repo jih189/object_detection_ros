@@ -13,8 +13,6 @@ CCamera::CCamera(std::string &img_path, bool color, int imgIdx, std::string &int
   distortion_   = (CvMat*)cvLoad(distortion.c_str());
   img_ext_      = imgext;
 
-  std::cout << "size of intrinsic " << intrinsic_->rows << ": " << intrinsic_->cols << std::endl;
-
   // Check the image resolution and save it
   std::stringstream ss;
   ss << m_strImgPath;// << /*"/" << /*"img" << */std::setw(5) << std::setfill('0') << m_nImgIdx << "." << img_ext_;
@@ -50,6 +48,7 @@ CCamera::CCamera(std::string &cam_name, std::string &intrinsic, std::string &dis
     
   intrinsic_    = (CvMat*)cvLoad(intrinsic.c_str());
   distortion_   = (CvMat*)cvLoad(distortion.c_str());
+  
 
   if(cam_type_ == CAM_OPENNI)
   {

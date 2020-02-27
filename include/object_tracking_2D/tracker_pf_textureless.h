@@ -65,13 +65,10 @@ public:
     // the file name should be the object name
     std::string object_name = template_directory.substr(i + 1, template_directory.length() - i);
 
-
     TrackerBase::initTracker(template_directory, cam_name, intrinsic, distortion, width, height, pose_init, ach_channel);
-
     initPoseEstimationSURF(width, height, template_directory, object_name);
-
-    pf_->Init(pose_init);
-
+    //pf_->Init(pose_init);
+    
     return (true);
   }
 
@@ -80,7 +77,7 @@ public:
 
     TrackerBase::generate_tracker(cloned_tracker, pose_init);
     pe_surf_ = ((TexturelessParticleFilterTracker *)cloned_tracker)->pe_surf_;
-    pf_->Init(pose_init);
+    //pf_->Init(pose_init);
   }
 
   inline void setThresholdCM(float th) { th_cm_ = th; };
@@ -118,7 +115,6 @@ public:
   {
     if (obj_model_->getNumOfEdgeTemplates() > 0)
     {
-
       Timer timer;
       timer.start();
 
@@ -134,20 +130,23 @@ public:
 
       // estimate a set of poses based on random corresondences
       int numof_det = pe_surf_->PF_estimatePosesFDCM(th_cm_, numOfDetections, resultPose, detWind, smooth_size_, th_canny_l_, th_canny_h_, img_mask_);
+
       if (numof_det <= 0)
       {
         return numof_det;
       }
+      
       for (int d = 0; d < numof_det; d++)
       {
         IplImage *imageTemp = cvCreateImage(cvSize(img_gray_->width, img_gray_->height), 8, 3);
         cvCvtColor(img_gray_, imageTemp, CV_GRAY2BGR);
         obj_model_->displayPoseLine(imageTemp, resultPose[d], CV_RGB(255, 0, 0), 1, false);
+        cv::imshow("after FDCM" + std::to_string(d), cv::cvarrToMat(imageTemp));
         cvReleaseImage(&imageTemp);
       }
-
       
-      img_edge_ = obj_model_->extractEdge(img_gray_, smooth_size_, th_canny_l_, th_canny_h_, cam_->getEdge(), img_mask_);
+      img_edge_ = obj_model_->extractEdge(img_gray_, smooth_size_, th_canny_l_, th_canny_h_, NULL, img_mask_);
+      cv::imshow("edge", cv::cvarrToMat(img_edge_));
       obj_model_->extractEdgeOri(img_gray_, smooth_size_);
 
       cv::Mat dt;
@@ -157,8 +156,8 @@ public:
       cv::distanceTransform(invertImage, dt, CV_DIST_L2, 3);
 
       //timer.printTimeMilliSec("preprocess");
-
-
+      
+      
       for (int d = 0; d < numof_det; d++)
       {
         //obj_model_->displayPoseLine(img_mask_, resultPose[d], cvScalar(0), 1, false);
@@ -174,17 +173,17 @@ public:
           obj_model_->setModelviewMatrix(pf_->GetPropState(p));
 
           obj_model_->findVisibleSamplePoints();
-          obj_model_->keepOnlyContourPoints();
+          //obj_model_->keepOnlyContourPoints();
 
           //Timer ptimer;
           //ptimer.start();
           
-          obj_model_->refindMatching(dt, ePnP);
+          // obj_model_->refindMatching(dt, ePnP);
 
-          pf_->setPropagate(p, obj_model_->getPose());
+          // pf_->setPropagate(p, obj_model_->getPose());
 
-          obj_model_->findVisibleSamplePoints();
-          obj_model_->keepOnlyContourPoints();
+          // obj_model_->findVisibleSamplePoints();
+          // obj_model_->keepOnlyContourPoints();
           
 
           obj_model_->findNormalUsingEdgeCoordCoarseOri();
@@ -270,7 +269,7 @@ public:
         detectedStates.push_back(resultPose[d]);
         //dtimer.printTimeMilliSec("each detection");
       }
-      timer.printTimeMilliSec("object detection!");
+      timer.printTimeMilliSec("object detection");
       for (int d = 0; d < numof_det; d++)
       {
         IplImage *imageTemp = cvCloneImage(img_result_);
@@ -283,15 +282,17 @@ public:
         obj_model_->keepOnlyContourPoints();
 
         double currcost = obj_model_->getCMCost(dt);
-        
-        std::cout << "result " << d << " final cost = " << currcost << std::endl;
-        //if(currcost < 1.0)
+        cv::putText(cv::cvarrToMat(imageTemp), "cost: " + std::to_string(currcost), cvPoint(30,30), FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(200,0,0), 1, CV_AA);
+
         //imshow("crop" + std::to_string(d), cv::Mat(cropImage));
-        imshow("crop" + std::to_string(d), cv::cvarrToMat(imageTemp));
+        imshow("result" + std::to_string(d), cv::cvarrToMat(imageTemp));
+        std::cout << "result " << std::to_string(d) << " with result = " << currcost << std::endl;
         cvReleaseImage(&imageTemp);
         //cvReleaseImage(&cropImage);
       }
-      
+      cv::waitKey(0);
+      cv::destroyAllWindows();
+
 
       if (detectedStates.size() > 0)
       {
@@ -313,6 +314,7 @@ public:
 
   void resetImage()
   {
+    
     cvCvtColor(img_gray_, img_result_, CV_GRAY2BGR);
   }
 
@@ -329,7 +331,6 @@ protected:
 
   bool initPoseEstimationSURF(int width, int height, std::string data_name, std::string &obj_name)
   {
-    std::cout << "in initPoseEstimationSURF\n";
     if (pe_surf_)
       delete pe_surf_;
 

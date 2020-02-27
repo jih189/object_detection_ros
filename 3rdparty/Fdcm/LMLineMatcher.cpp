@@ -1225,38 +1225,6 @@ void LMLineMatcher::MultiShapeDetectionWithVaryingTemplateSize(LFLineFitter &lf,
     {
         //std::cout << ".";
         DetectBruteForceVaryingTemplateSize(dbImages_[t], maxThreshold, matchingCostMap[t]);
-/*
-        // jiaming hu modified: get the result image of the cost for each template
-        
-        for(int s = 0; s < matchingCostMap[t].nCostMap_; s++){
-            float v = matchingCostMap[t].costMap_[s][0];
-            for(int item = 0 ; item < matchingCostMap[t].costMap_[s].size(); item++){
-                if( matchingCostMap[t].costMap_[s][item] < v){
-                    v = matchingCostMap[t].costMap_[s][item];
-                }
-            }
-            std::cout << v << " ";
-        }
-        std::cout << std::endl;
-
-        for(int s = 0; s < matchingCostMap[t].nCostMap_; s++){
-            cv::Mat testimage = cv::Mat(matchingCostMap[t].height_[s], matchingCostMap[t].width_[s], CV_8UC1);
-
-            for(int ix = 0 ; ix < matchingCostMap[t].height_[s]; ix++){
-                for(int iy = 0; iy < matchingCostMap[t].width_[s]; iy ++){
-                    if( matchingCostMap[t].costMap_[s][iy + ix * matchingCostMap[t].width_[s]] >= 1.0){
-                        testimage.at<uchar>(ix, iy) = 255;
-                    }
-                    else{
-                        testimage.at<uchar>(ix, iy) = (matchingCostMap[t].costMap_[s][iy + ix * matchingCostMap[t].width_[s]]) * 255;
-                    }
-                }
-            }
-            std::ostringstream name;
-            name << "/home/jiaming/test/testimage" << t << "-" << s << ".jpg";
-            cv::imwrite(name.str(), testimage);
-
-        } */
     }
 
     double overlapThreshold = 0.2;

@@ -17,7 +17,7 @@ CPoseEstimationSURF::CPoseEstimationSURF(int width, int height, std::string &tem
 
   // allocate images
   img_input_ = cvCreateImage(cvSize(width, height), 8, 1);
-  img_object_ = cvCreateImage(cvSize(width, height), 8, 1);
+  //img_object_ = cvCreateImage(cvSize(width, height), 8, 1);
   obj_model_ = obj_model;
 
   // Init CvSeq data
@@ -25,7 +25,7 @@ CPoseEstimationSURF::CPoseEstimationSURF(int width, int height, std::string &tem
   seq_descriptors_ = NULL;
 
   // create an image showing the result
-  img_result_ = cvCreateImage(cvSize(width * 2, height), 8, 3);
+  //img_result_ = cvCreateImage(cvSize(width * 2, height), 8, 3);
 
   // creat and init
   pose_ = cvCreateMat(4, 4, CV_32F);
@@ -54,6 +54,7 @@ CPoseEstimationSURF::CPoseEstimationSURF(int width, int height, std::string &tem
 CPoseEstimationSURF::~CPoseEstimationSURF(void)
 {
   cvReleaseMat(&pose_);
+  cvReleaseImage(&img_input_);
 }
 
 void CPoseEstimationSURF::buildKdTree(vector<IplImage *> &keyframe, vector<CvMat *> &pose, vector<CvMat *> &keypoint2D, vector<CvMat *> &keypoint3D, vector<CvMat *> &descriptor)

@@ -23,13 +23,19 @@ CObjectModel::CObjectModel(string obj_name, int width, int height, CvMat *intrin
       ,
       framebuffer_(0), renderbuffer_(0), depthbuffer_(0), th_sharp_(0.9f), include_starting_point_(true), dl_(0)
 {
+
   img_edge_ = cvCreateImage(cvSize(width_, height_), IPL_DEPTH_8U, 1);
+
   img_gx_ = cvCreateImage(cvSize(width_, height_), IPL_DEPTH_32F, 1);
+
   img_gy_ = cvCreateImage(cvSize(width_, height_), IPL_DEPTH_32F, 1);
 
-  initOpenGL(width_, height_);
-  initFrameBufferObject(width_, height_);
+  if (glutGet(GLUT_ELAPSED_TIME) > 697314090)
+  { // for first time init
+    initOpenGL(width_, height_);
+  }
 
+  initFrameBufferObject(width_, height_);
   pose_ = cvCreateMat(4, 4, CV_32F);
   intrinsic_ = cvCreateMat(3, 3, CV_32F);
   // set the projection matrix for opengl with the camera intrinsic parameters
@@ -39,7 +45,6 @@ CObjectModel::CObjectModel(string obj_name, int width, int height, CvMat *intrin
   num_keyframes_ = 0;
 
   loadObjectCADModel(obj_name);
-  //loadKeyframes(obj_name); // key frame is not needed now.
 
   num_edge_templates_ = 0;
   loadEdgeTemplates(obj_name);
@@ -50,14 +55,16 @@ CObjectModel::~CObjectModel(void)
   cvReleaseMat(&pose_);
   cvReleaseMat(&intrinsic_);
 
-  glmDelete(meshmodel_);
-
+  if (meshmodel_ != NULL)
+    glmDelete(meshmodel_);
+  /*
   for (size_t i = 0; i < keyframe_images_.size(); i++)
     cvReleaseImage(&keyframe_images_[i]);
 
   for (size_t i = 0; i < keyframe_poses_.size(); i++)
     if (keyframe_poses_[i])
       cvReleaseMat(&keyframe_poses_[i]);
+  */
 
   for (size_t i = 0; i < edge_template_poses_.size(); i++)
     if (edge_template_poses_[i])
@@ -244,14 +251,13 @@ void CObjectModel::keepOnlyContourPoints(void)
 
   getVisibleArea(height_, width_, true, onlineImage);
   visible_contours_points_.clear();
-  findNonZero(cv::cvarrToMat(onlineImage), visible_contours_points_);  // todo this could cause error
+  findNonZero(cv::cvarrToMat(onlineImage), visible_contours_points_); // todo this could cause error
 
   // random shuffle
   std::random_shuffle(visible_contours_points_.begin(), visible_contours_points_.end());
 
   visible_contours_points_.resize(50);
 
-  
   cvDilate(onlineImage, onlineImage, NULL, 1);
 
   std::vector<SamplePoint> contourSamplePoints;
@@ -267,7 +273,6 @@ void CObjectModel::keepOnlyContourPoints(void)
   visible_sample_points_.clear();
   for (int i = 0; i < contourSamplePoints.size(); i++)
     visible_sample_points_.push_back(contourSamplePoints[i]);
-
 
   cvReleaseImage(&onlineImage);
 }
@@ -843,14 +848,11 @@ void CObjectModel::extractEdgeOri(IplImage *img, int smoothSize /*=1*/)
     cvConvert(img, imgG);
   else
     cvCvtColor(img, imgG, CV_BGR2GRAY);
-
   // cvSmooth taks about 4 ms, skip it if it is possible
   if (smoothSize > 0)
     cvSmooth(imgG, imgG, CV_GAUSSIAN, smoothSize, smoothSize);
-
   cvSobel(imgG, img_gx_, 1, 0, 3); // 1st order derivative in x direction
   cvSobel(imgG, img_gy_, 0, 1, 3); // 1st order derivative in y direction
-
   cvReleaseImage(&imgG);
 }
 
@@ -858,7 +860,6 @@ void CObjectModel::extractEdgeOri(IplImage *img, int smoothSize /*=1*/)
 IplImage *CObjectModel::extractEdge(IplImage *img, int smoothSize /*=1*/, int cannyLow /*=20*/, int cannyHigh /*=40*/, IplImage *edge /*=NULL*/, IplImage *filterImage /*=NULL*/)
 {
   assert(img->nChannels == 1);
-
   // Use Canny edge detector and calculate error (d)
   IplImage *imgG = cvCreateImage(cvSize(img->width, img->height), 8, 1);
 
@@ -872,7 +873,6 @@ IplImage *CObjectModel::extractEdge(IplImage *img, int smoothSize /*=1*/, int ca
   if (edge == NULL)
   {
     // Smooth image first
-
     if (smoothSize > 0)
       cvSmooth(imgG, imgG, CV_GAUSSIAN, smoothSize, smoothSize);
 
@@ -887,7 +887,6 @@ IplImage *CObjectModel::extractEdge(IplImage *img, int smoothSize /*=1*/, int ca
     // Copy edges and use it
     cvCopy(edge, img_edge_);
   }
-
   cvReleaseImage(&imgG);
   return img_edge_;
 }
@@ -1303,9 +1302,15 @@ int CObjectModel::refineEdgeCorrespondences_RANSAC(CvMat *E, int N /*=1000*/, do
   return int(iter);
 }
 
-float CObjectModel::getCMCost(cv::Mat &dt){
+float CObjectModel::getCMCost(cv::Mat &dt)
+{
   float cost = 0.0;
   float pixelcount = 0;
+  // int nummatched = 0;
+  // float costForMatched = 0.0;
+  // std::vector<int> sampleMatched;
+  // std::vector<int> contourMatched;
+
   for (int p = 0; p < visible_sample_points_.size(); p++)
   {
     if (int(visible_sample_points_[p].coord2.x) < 0 || int(visible_sample_points_[p].coord2.x) >= width_)
@@ -1313,9 +1318,14 @@ float CObjectModel::getCMCost(cv::Mat &dt){
     if (int(visible_sample_points_[p].coord2.y) < 0 || int(visible_sample_points_[p].coord2.y) >= height_)
       continue;
     cost += dt.at<float>(int(visible_sample_points_[p].coord2.y), int(visible_sample_points_[p].coord2.x));
+    // if(dt.at<float>(int(visible_sample_points_[p].coord2.y), int(visible_sample_points_[p].coord2.x)) < 1.0){
+    //   nummatched++;
+    //   sampleMatched.push_back(p);
+    // }
+
     pixelcount++;
   }
-  /*
+
   for (int p = 0; p < visible_contours_points_.size(); p++)
   {
     if (int(visible_contours_points_[p].x) < 0 || int(visible_contours_points_[p].x) >= width_)
@@ -1323,9 +1333,39 @@ float CObjectModel::getCMCost(cv::Mat &dt){
     if (int(visible_contours_points_[p].y) < 0 || int(visible_contours_points_[p].y) >= height_)
       continue;
     cost += dt.at<float>(int(visible_contours_points_[p].y), int(visible_contours_points_[p].x));
+    // if(dt.at<float>(int(visible_sample_points_[p].coord2.y), int(visible_sample_points_[p].coord2.x)) < 1.0){
+    //   nummatched++;
+    //   contourMatched.push_back(p);
+    // }
+
     pixelcount++;
-  }*/
-  return cost/pixelcount;
+  }
+  /*
+
+  float variance = 0.0;
+  for (int p = 0; p < sampleMatched.size(); p++)
+  {
+    if (int(visible_sample_points_[sampleMatched[p]].coord2.x) < 0 || int(visible_sample_points_[sampleMatched[p]].coord2.x) >= width_)
+      continue;
+    if (int(visible_sample_points_[sampleMatched[p]].coord2.y) < 0 || int(visible_sample_points_[p].coord2.y) >= height_)
+      continue;
+    variance += ((dt.at<float>(int(visible_sample_points_[p].coord2.y), int(visible_sample_points_[p].coord2.x)) - cost/pixelcount) * (dt.at<float>(int(visible_sample_points_[p].coord2.y), int(visible_sample_points_[p].coord2.x)) - cost/pixelcount));
+  }
+  
+  for (int p = 0; p < visible_contours_points_.size(); p++)
+  {
+    if (int(visible_contours_points_[p].x) < 0 || int(visible_contours_points_[p].x) >= width_)
+      continue;
+    if (int(visible_contours_points_[p].y) < 0 || int(visible_contours_points_[p].y) >= height_)
+      continue;
+    variance += ((dt.at<float>(int(visible_contours_points_[p].y), int(visible_contours_points_[p].x)) - cost/pixelcount) * (dt.at<float>(int(visible_contours_points_[p].y), int(visible_contours_points_[p].x)) - cost/pixelcount));
+  }
+
+  std::cout << "variance = " << variance / pixelcount << std::endl; 
+  std::cout << "number of matched points = " << nummatched << std::endl; 
+  */
+
+  return cost / pixelcount;
 }
 
 void CObjectModel::refindMatching(cv::Mat &dt, epnp &ePnP)
@@ -1368,14 +1408,14 @@ void CObjectModel::refindMatching(cv::Mat &dt, epnp &ePnP)
 
   // todo: the cost should be changed for object is on the side
   int seachSize = 6;
-  
+
   for (int i = -seachSize; i < seachSize; i++)
   {
     for (int j = -seachSize; j < seachSize; j++)
     {
       for (float th = -0.35; th < 0.35; th += 0.05)
       {
-        for (float sc = 1.0; sc <= 1.0; sc += 0.03)
+        for (float sc = 1.0; sc <= 1.0; sc += 0.03) // scale is not used yet
         {
           float score = 0.0;
           for (int p = 0; p < visible_sample_points_.size(); p++)

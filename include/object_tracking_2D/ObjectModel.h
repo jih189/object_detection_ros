@@ -71,7 +71,11 @@ public:
   inline vector<SamplePoint> &getVisibleSamplePoints() { return visible_sample_points_; }
   inline vector<cv::Point> &getVisibleContoursPoints() { return visible_contours_points_; }
 
-  inline int getNumberOfVisibleSamplePoints() { return visible_sample_points_.size(); }
+  inline int getNumberOfVisibleSamplePoints() 
+  { 
+    return visible_sample_points_.size();
+  }
+  
   bool isEnoughValidSamplePoints(double th_ratio, int &count);
   double GetValidVisibleSamplePointsRatio();
 
