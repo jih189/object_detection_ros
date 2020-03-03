@@ -30,10 +30,14 @@ CObjectModel::CObjectModel(string obj_name, int width, int height, CvMat *intrin
 
   img_gy_ = cvCreateImage(cvSize(width_, height_), IPL_DEPTH_32F, 1);
 
-  if (glutGet(GLUT_ELAPSED_TIME) > 697314090)
-  { // for first time init
-    initOpenGL(width_, height_);
+  //if (glutGet(GLUT_ELAPSED_TIME) > 697314090)
+  //{ // for first time init
+  try{
+      initOpenGL(width_, height_);
+  }catch(const std::exception& e){
+     std::cout << "get opengl error for init\n";
   }
+  //}
 
   initFrameBufferObject(width_, height_);
   pose_ = cvCreateMat(4, 4, CV_32F);
@@ -657,8 +661,10 @@ void CObjectModel::setModelviewMatrix(CvMat *pose)
   GLenum e = glCheckFramebufferStatus(GL_DRAW_FRAMEBUFFER);
   if (e != GL_FRAMEBUFFER_COMPLETE)
     printf("There is a problem with the FBO\n");
+
   glMatrixMode(GL_MODELVIEW);
   GLfloat Mm[16];
+
 
   assert(pose);
   cvCopy(pose, pose_);
@@ -1305,12 +1311,12 @@ int CObjectModel::refineEdgeCorrespondences_RANSAC(CvMat *E, int N /*=1000*/, do
 float CObjectModel::getCMCost(cv::Mat &dt)
 {
   float cost = 0.0;
-  float pixelcount = 0;
-  // int nummatched = 0;
+  int pixelcount = 0;
+  double nummatched = 0;
   // float costForMatched = 0.0;
   // std::vector<int> sampleMatched;
   // std::vector<int> contourMatched;
-
+  /*
   for (int p = 0; p < visible_sample_points_.size(); p++)
   {
     if (int(visible_sample_points_[p].coord2.x) < 0 || int(visible_sample_points_[p].coord2.x) >= width_)
@@ -1318,14 +1324,13 @@ float CObjectModel::getCMCost(cv::Mat &dt)
     if (int(visible_sample_points_[p].coord2.y) < 0 || int(visible_sample_points_[p].coord2.y) >= height_)
       continue;
     cost += dt.at<float>(int(visible_sample_points_[p].coord2.y), int(visible_sample_points_[p].coord2.x));
-    // if(dt.at<float>(int(visible_sample_points_[p].coord2.y), int(visible_sample_points_[p].coord2.x)) < 1.0){
-    //   nummatched++;
+    if(dt.at<float>(int(visible_sample_points_[p].coord2.y), int(visible_sample_points_[p].coord2.x)) < 1.0){
+       nummatched++;
     //   sampleMatched.push_back(p);
-    // }
-
+    }
     pixelcount++;
   }
-
+*/
   for (int p = 0; p < visible_contours_points_.size(); p++)
   {
     if (int(visible_contours_points_[p].x) < 0 || int(visible_contours_points_[p].x) >= width_)
@@ -1333,11 +1338,11 @@ float CObjectModel::getCMCost(cv::Mat &dt)
     if (int(visible_contours_points_[p].y) < 0 || int(visible_contours_points_[p].y) >= height_)
       continue;
     cost += dt.at<float>(int(visible_contours_points_[p].y), int(visible_contours_points_[p].x));
-    // if(dt.at<float>(int(visible_sample_points_[p].coord2.y), int(visible_sample_points_[p].coord2.x)) < 1.0){
-    //   nummatched++;
-    //   contourMatched.push_back(p);
-    // }
-
+    if (dt.at<float>(int(visible_sample_points_[p].coord2.y), int(visible_sample_points_[p].coord2.x)) < 0.3)
+    {
+      nummatched++;
+      //   contourMatched.push_back(p);
+    }
     pixelcount++;
   }
   /*
@@ -1373,6 +1378,7 @@ void CObjectModel::refindMatching(cv::Mat &dt, epnp &ePnP)
 
   //Apply simple chamfer template matching
   float minscore = 0.0;
+  float maxmatch = 0.0;
   int fitx = 0;
   int fity = 0;
   float fitth = 0.0;
@@ -1417,6 +1423,9 @@ void CObjectModel::refindMatching(cv::Mat &dt, epnp &ePnP)
       {
         for (float sc = 1.0; sc <= 1.0; sc += 0.03) // scale is not used yet
         {
+          double matchingPoint = 0.0;
+          int totalPoint = visible_sample_points_.size() + visible_contours_points_.size();
+
           float score = 0.0;
           for (int p = 0; p < visible_sample_points_.size(); p++)
           {
@@ -1426,8 +1435,12 @@ void CObjectModel::refindMatching(cv::Mat &dt, epnp &ePnP)
             int yt = x * sin(th) + y * cos(th) + centery;
 
             score += dt.at<float>(yt, xt);
-            if (score > minscore)
-              break;
+            if (dt.at<float>(yt, xt) < 0.5)
+            {
+              matchingPoint++;
+            }
+            // if (score > minscore)
+            //   break;
           }
           for (int p = 0; p < visible_contours_points_.size(); p++)
           {
@@ -1437,12 +1450,18 @@ void CObjectModel::refindMatching(cv::Mat &dt, epnp &ePnP)
             int xt = x * cos(th) - y * sin(th) + centerx;
             int yt = x * sin(th) + y * cos(th) + centery;
             score += dt.at<float>(yt, xt);
-            if (score > minscore)
-              break;
+            if (dt.at<float>(yt, xt) < 0.5)
+            {
+              matchingPoint++;
+            }
+            // if (score > minscore)
+            //   break;
           }
-          if (score < minscore)
+          //if (score < minscore)
+          if(matchingPoint / totalPoint > maxmatch)
           {
             minscore = score;
+            maxmatch = matchingPoint / totalPoint;
             fitx = i;
             fity = j;
             fitth = th;
@@ -1452,6 +1471,7 @@ void CObjectModel::refindMatching(cv::Mat &dt, epnp &ePnP)
       }
     }
   }
+  //std::cout << "matching rate = " << maxmatch << " with x " << fitx << " y " << fity << " th " << fitth << " sc " << fitsc << std::endl; 
   ePnP.set_maximum_number_of_correspondences(visible_sample_points_.size());
   ePnP.reset_correspondences();
 

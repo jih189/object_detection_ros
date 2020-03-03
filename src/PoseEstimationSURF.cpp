@@ -24,9 +24,6 @@ CPoseEstimationSURF::CPoseEstimationSURF(int width, int height, std::string &tem
   seq_keypoints_ = NULL;
   seq_descriptors_ = NULL;
 
-  // create an image showing the result
-  //img_result_ = cvCreateImage(cvSize(width * 2, height), 8, 3);
-
   // creat and init
   pose_ = cvCreateMat(4, 4, CV_32F);
   cvSetIdentity(pose_);
@@ -48,7 +45,6 @@ CPoseEstimationSURF::CPoseEstimationSURF(int width, int height, std::string &tem
     lf_.Init();
     lm_.Init(templateFileName.c_str());
   }
-
 }
 
 CPoseEstimationSURF::~CPoseEstimationSURF(void)
@@ -100,7 +96,6 @@ void CPoseEstimationSURF::buildKdTree(vector<IplImage *> &keyframe, vector<CvMat
   kfd_ = kfd;
 }
 
-
 bool sortBySize(const LMDetWind &left, const LMDetWind &right)
 {
   return (left.width_ * left.height_ > right.width_ * right.height_);
@@ -113,16 +108,19 @@ int CPoseEstimationSURF::PF_estimatePosesFDCM(float maxThreshold, int numOfDetec
   // Using edge templates + random draw
   IplImage *inputImage = cvCloneImage(img_input_);
   IplImage *edgeImage = cvCloneImage(inputImage);
+  IplImage *objecttemplate = cvCreateImage(cvGetSize(img_input_), IPL_DEPTH_8U, 1);
+  IplImage *colorimage = cvCreateImage(cvGetSize(img_input_), IPL_DEPTH_8U, 3);
 
   // jiaming
   //displayImage = cvCreateImage(cvGetSize(inputImage), IPL_DEPTH_8U, 3);
 
-  cvCopy(inputImage, displayImage);
+  //cvCopy(inputImage, displayImage);
 
   if (smoothSize > 0)
     cvSmooth(inputImage, inputImage, CV_GAUSSIAN, smoothSize, smoothSize);
 
   cvCanny(inputImage, edgeImage, cannyLow, cannyHigh);
+  IplImage *edgeImagetemp = cvCloneImage(edgeImage);
   // cv::imshow("edge", cv::Mat(edgeImage));
   // cv::waitKey(0);
 
@@ -144,10 +142,12 @@ int CPoseEstimationSURF::PF_estimatePosesFDCM(float maxThreshold, int numOfDetec
 
   //if(displayImage) cvCvtColor(inputImage, displayImage, CV_GRAY2RGB);
   cvReleaseImage(&inputImage);
-
   // Line Fitting
   lf_.FitLine(edgeImage);
   //lf_.FitLine_omp(edgeImage);
+
+  if (edgeImage)
+    cvReleaseImage(&edgeImage);
 
   // FDCM Matching
   lm_.MultiShapeDetectionWithVaryingTemplateSize(lf_, (double)maxThreshold, detWind);
@@ -158,11 +158,8 @@ int CPoseEstimationSURF::PF_estimatePosesFDCM(float maxThreshold, int numOfDetec
   for (size_t i = 0; i < detWind.size(); i++)
   {
     std::cout << detWind[i].x_ << "	" << detWind[i].y_ << "	" << detWind[i].width_ << "	" << detWind[i].height_ << "	" << detWind[i].cost_ << "	" << detWind[i].count_ << "	" << detWind[i].scale_ << "	" << detWind[i].aspect_ << "	" << detWind[i].tidx_ << std::endl;
-    DrawDetWind(displayImage, detWind[i].x_, detWind[i].y_, detWind[i].width_, detWind[i].height_, cvScalar(255), 3);
+    //DrawDetWind(displayImage, detWind[i].x_, detWind[i].y_, detWind[i].width_, detWind[i].height_, cvScalar(255), 3);
   }
-
-  if (edgeImage)
-    cvReleaseImage(&edgeImage);
 
   if (detWind.size() > 0)
   {
@@ -182,38 +179,139 @@ int CPoseEstimationSURF::PF_estimatePosesFDCM(float maxThreshold, int numOfDetec
     float tx = 0.0;
     float ty = 0.0;
     // get the pose of template which matches the object
-    for (int i = 0; i < numOfDet; i++)
+    for (int d = 0; d < numOfDet; d++)
     {
-      poses[i] = cvCreateMat(4, 4, CV_32F);
-      cvCopy(obj_model_->getEdgeTemplatePose(static_cast<int>(detWind[i].tidx_)), poses[i]);
-      int x = detWind[i].x_ + (int)((obj_model_->getPosePosition(static_cast<int>(detWind[i].tidx_))).x * detWind[i].scale_); //detWind[i].width_/2;
-      int y = detWind[i].y_ + (int)((obj_model_->getPosePosition(static_cast<int>(detWind[i].tidx_))).y * detWind[i].scale_); //detWind[i].height_/2;
+      poses[d] = cvCreateMat(4, 4, CV_32F);
+      cvCopy(obj_model_->getEdgeTemplatePose(static_cast<int>(detWind[d].tidx_)), poses[d]);
 
-      float Z = (CV_MAT_ELEM(*poses[i], float, 2, 3) / detWind[i].scale_);
+      // get the center position of the object template
+      int x = detWind[d].x_ + (int)((obj_model_->getPosePosition(static_cast<int>(detWind[d].tidx_))).x * detWind[d].scale_);
+      int y = detWind[d].y_ + (int)((obj_model_->getPosePosition(static_cast<int>(detWind[d].tidx_))).y * detWind[d].scale_);
+
+      float Z = (CV_MAT_ELEM(*poses[d], float, 2, 3) / detWind[d].scale_);
       float X = ((float(x) - u0) * Z - tx) / fx;
       float Y = ((float(y) - v0) * Z - ty) / fy;
 
-      CV_MAT_ELEM(*poses[i], float, 0, 3) = X;
-      CV_MAT_ELEM(*poses[i], float, 1, 3) = Y;
-      CV_MAT_ELEM(*poses[i], float, 2, 3) = Z;
+      CV_MAT_ELEM(*poses[d], float, 0, 3) = X;
+      CV_MAT_ELEM(*poses[d], float, 1, 3) = Y;
+      CV_MAT_ELEM(*poses[d], float, 2, 3) = Z;
+
+      // refine the pose
+      /*
+      obj_model_->setModelviewMatrix(poses[d]);
+      obj_model_->findVisibleSamplePoints();
+      obj_model_->getVisibleArea(objecttemplate->height, objecttemplate->width, true, objecttemplate);
+      //cv::imshow("test" + std::to_string(d), cv::cvarrToMat(objecttemplate));
 
       //obj_model_->displayPoseLine(displayImage, poses[i], CV_RGB(0, 255, 0), 1, false);
+      lf_.FitLine(objecttemplate);
+
+      EIEdgeImage templateImage;
+      templateImage.SetNumDirections(60);
+      templateImage.Read(lf_);
+      templateImage.SetDirectionIndices();
+
+      double minx, miny, maxx, maxy;
+      templateImage.Boundary(minx, miny, maxx, maxy);
+      double centerx = minx + (maxx - minx) / 2;
+      double centery = miny + (maxy - miny) / 2;
+
+      double totalcost = 0.0;
+      double mincost = 1000000;
+      int seachSize = 10;
+
+      int fitx = 0;
+      int fity = 0;
+      int fitth = 0;
+      double fitsc = 1.0;
+      for (int i = -seachSize; i < seachSize; i+=2)
+      {
+        for (int j = -seachSize; j < seachSize; j+=2)
+        {
+          for (double th = -0.3; th < 0.3; th += 0.05)
+          {
+            for (double sc = 0.8; sc < 1.2; sc += 0.1)
+            {
+              double totalcost = 0.0;
+              templateImage.Read(lf_, th, i, j, sc, centerx, centery);
+              templateImage.SetDirectionIndices();
+
+              //std::cout << "edgeImage with " << edgeImage->height << " " << edgeImage->width << " " << edgeImage->nChannels << std::endl;
+              //std::cout << "objecttemplate with " << objecttemplate->height << " " << objecttemplate->width << " " << objecttemplate->nChannels << std::endl;
+              cvCvtColor(edgeImagetemp, colorimage, CV_GRAY2BGR);
+              for (int l = 0; l < templateImage.nLines_; l++)
+              {
+                cvLine(colorimage,
+                       cvPoint((int)((templateImage.lines_)[l].sx_),
+                               (int)((templateImage.lines_)[l].sy_)),
+                       cvPoint((int)((templateImage.lines_)[l].ex_),
+                               (int)((templateImage.lines_)[l].ey_)),
+                       cvScalar(255,255,0));
+                totalcost += (lm_.GetCost(templateImage.directionIndices_[l], (int)((templateImage.lines_)[l].sx_), (int)((templateImage.lines_)[l].sy_), (int)((templateImage.lines_)[l].ex_), (int)((templateImage.lines_)[l].ey_)) / templateImage.Length());
+                //if (totalcost >= mincost)
+                //break;
+              }
+
+              //cv::imshow("check" + std::to_string(d), cv::cvarrToMat(colorimage));
+              //std::cout << "cost: " << totalcost << std::endl;
+              //cv::waitKey(0);
+              cvSet(objecttemplate, cvScalar(0));
+
+              if (totalcost < mincost)
+              {
+                mincost = totalcost;
+                fitx = i;
+                fity = j;
+                fitth = th;
+                fitsc = sc;
+              }
+            }
+          }
+        }
+      }
+      // std::cout << "best matching with fit x = " << fitx
+      //           << " fit y = " << fity
+      //           << " fit th = " << fitth
+      //           << " fit sc = " << fitsc
+      //           << " with cost = " << mincost << std::endl;
+      // demonstrate the result
+      templateImage.Read(lf_, fitth, fitx, fity, fitsc, centerx, centery);
+      templateImage.SetDirectionIndices();
+      cvCvtColor(edgeImagetemp, colorimage, CV_GRAY2BGR);
+      for (int l = 0; l < templateImage.nLines_; l++)
+      {
+        cvLine(colorimage,
+               cvPoint((int)((templateImage.lines_)[l].sx_),
+                       (int)((templateImage.lines_)[l].sy_)),
+               cvPoint((int)((templateImage.lines_)[l].ex_),
+                       (int)((templateImage.lines_)[l].ey_)),
+               cvScalar(255,255,0));
+      }
+      //cv::imshow("check" + std::to_string(d), cv::cvarrToMat(colorimage));
+      //cv::waitKey(0);
+      */
     }
 
-    for (int i = 0; i < numOfDet; i++)
+    for (int d = 0; d < numOfDet; d++)
     {
       states.push_back(cvCreateMat(4, 4, CV_32F));
-      cvCopy(poses[i], states[i]);
+      cvCopy(poses[d], states[d]);
     }
 
     /*approach the object*/
     //cvReleaseImage(&displayImage);
 
-    for (int i = 0; i < numOfDet; i++)
+    for (int d = 0; d < numOfDet; d++)
     {
-      cvReleaseMat(&poses[i]);
+      cvReleaseMat(&poses[d]);
     }
   }
+
+  if (edgeImagetemp)
+    cvReleaseImage(&edgeImagetemp);
+  if (colorimage)
+    cvReleaseImage(&colorimage);
+  cvReleaseImage(&objecttemplate);
 
   timer.printTimeMilliSec("PF_estimatePosesFDCM()");
 

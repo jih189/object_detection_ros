@@ -135,7 +135,7 @@ public:
       {
         return numof_det;
       }
-      
+      /*
       for (int d = 0; d < numof_det; d++)
       {
         IplImage *imageTemp = cvCreateImage(cvSize(img_gray_->width, img_gray_->height), 8, 3);
@@ -144,7 +144,8 @@ public:
         cv::imshow("after FDCM" + std::to_string(d), cv::cvarrToMat(imageTemp));
         cvReleaseImage(&imageTemp);
       }
-      
+*/
+
       img_edge_ = obj_model_->extractEdge(img_gray_, smooth_size_, th_canny_l_, th_canny_h_, NULL, img_mask_);
       cv::imshow("edge", cv::cvarrToMat(img_edge_));
       obj_model_->extractEdgeOri(img_gray_, smooth_size_);
@@ -156,6 +157,7 @@ public:
       cv::distanceTransform(invertImage, dt, CV_DIST_L2, 3);
 
       //timer.printTimeMilliSec("preprocess");
+     
       
       
       for (int d = 0; d < numof_det; d++)
@@ -169,29 +171,23 @@ public:
         //dtimer.start();
         for (int p = 0; p < pf_->GetNumOfParticle(); p++)
         {
-
+          //printPose(pf_->GetPropState(p));
           obj_model_->setModelviewMatrix(pf_->GetPropState(p));
-
           obj_model_->findVisibleSamplePoints();
-          //obj_model_->keepOnlyContourPoints();
-
+          obj_model_->keepOnlyContourPoints();
           //Timer ptimer;
           //ptimer.start();
           
-          // obj_model_->refindMatching(dt, ePnP);
+          obj_model_->refindMatching(dt, ePnP);
 
-          // pf_->setPropagate(p, obj_model_->getPose());
+          pf_->setPropagate(p, obj_model_->getPose());
 
-          // obj_model_->findVisibleSamplePoints();
-          // obj_model_->keepOnlyContourPoints();
+          obj_model_->findVisibleSamplePoints();
+          obj_model_->keepOnlyContourPoints();
           
 
           obj_model_->findNormalUsingEdgeCoordCoarseOri();
           obj_model_->findEdgeCorrespondencesCoarseOri();
-
-          // IplImage *imageTemp = cvCreateImage(cvSize(img_gray_->width, img_gray_->height), 8, 3);
-          // IplImage *imagerror = cvCreateImage(cvSize(img_gray_->width, img_gray_->height), 8, 3);
-          // cvCvtColor(img_gray_, imageTemp, CV_GRAY2BGR);
 
           // if (th_ransac_ > 0.0f)
           // {
@@ -201,18 +197,6 @@ public:
           CvMat *J = NULL, *e = NULL;
 
           edge_tracker_->PF_getJacobianAndError(obj_model_->getPose(), obj_model_->getVisibleSamplePoints(), &J, &e);
-
-          // obj_model_->displayPoseLine(imageTemp, pf_->GetPropState(p), CV_RGB(255, 0, 0), 1, false);
-          // for (int j = 0; j < obj_model_->getNumberOfVisibleSamplePoints(); j++)
-          // {
-          //   cvCircle(imageTemp, cvPointFrom32f((obj_model_->getVisibleSamplePoints())[j].coord2), 1, CV_RGB(0, 255, 0), -1, 1, 0);
-          // }
-          // obj_model_->drawPointsAndErrorCoarseOri(imagerror);
-
-          // cv::imshow("result image", cv::Mat(imageTemp));
-          // cv::imshow("error image", cv::Mat(imagerror));
-          // cvReleaseImage(&imageTemp);
-          // cvReleaseImage(&imagerror);
 
           pf_->Update_IRLS(p, J, e, obj_model_->getNumberOfVisibleSamplePoints());
 
@@ -248,6 +232,7 @@ public:
           }
         }
 
+
         if (pf_->GetNumOfParticle() > 1)
           pf_->CorrectWeights();
 
@@ -269,12 +254,14 @@ public:
         detectedStates.push_back(resultPose[d]);
         //dtimer.printTimeMilliSec("each detection");
       }
+
+      double mincost = 1000.0;
+      int mind = 0;
+
       timer.printTimeMilliSec("object detection");
       for (int d = 0; d < numof_det; d++)
       {
         IplImage *imageTemp = cvCloneImage(img_result_);
-        //IplImage *cropImage = cvCreateImage(cvSize(img_result_->width, img_result_->height), 8, 1);
-        //obj_model_->getVisibleArea(img_result_->height, img_result_->width, false, cropImage);
         obj_model_->displayPoseLine(imageTemp, resultPose[d], cvScalar(0, 255, 0), 1, false);
 
         obj_model_->setModelviewMatrix(resultPose[d]);
@@ -282,13 +269,21 @@ public:
         obj_model_->keepOnlyContourPoints();
 
         double currcost = obj_model_->getCMCost(dt);
+        if(currcost < mincost){
+          mincost = currcost;
+          mind = d;
+        }
         cv::putText(cv::cvarrToMat(imageTemp), "cost: " + std::to_string(currcost), cvPoint(30,30), FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(200,0,0), 1, CV_AA);
 
-        //imshow("crop" + std::to_string(d), cv::Mat(cropImage));
         imshow("result" + std::to_string(d), cv::cvarrToMat(imageTemp));
         std::cout << "result " << std::to_string(d) << " with result = " << currcost << std::endl;
         cvReleaseImage(&imageTemp);
-        //cvReleaseImage(&cropImage);
+      }
+
+      if(mind != 0){
+        CvMat* temp = resultPose[mind];
+        resultPose[mind] = resultPose[0];
+        resultPose[0] = temp;
       }
       cv::waitKey(0);
       cv::destroyAllWindows();

@@ -40,6 +40,7 @@ public:
 	void SafeRelease();	
 	void Read(const char* fileName);
 	void Read(LFLineFitter &lf);
+	void Read(LFLineFitter &lf, double rot, double shiftx, double shifty, double scale, double centerx, double centery);
 
 	// This is for reading line representation from MATLAB so the indexing is column by column.
 	void Read(double *lineRep,int nLine);

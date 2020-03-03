@@ -13,6 +13,8 @@ using namespace std;
 
 namespace po = boost::program_options;
 
+
+
 int main(int argc, char **argv)
 {
   std::string tracker_name;
@@ -39,13 +41,16 @@ int main(int argc, char **argv)
   int min_keypoint_matches;
   std::string ach_channel;
   bool use_tracking;
+  int lowerCanny;
+  int higherCanny;
 
   po::options_description desc("Tracker options");
   desc.add_options()("help,h", "produce help message")("tracker,t", po::value<std::string>(&tracker_name)->default_value("irls"), "name tracker (irls, pf, pf_textureless)")("obj-name,o", po::value<std::string>(&template_directory), "name of traget object")("input,i", po::value<std::string>(&input), "name of camera (e.g. flea) or image sequence path (e.g. dir/seq1/)")("sample-step,s", po::value<float>(&sample_step)->default_value(0.005f), "sample step")("num-particle,n", po::value<int>(&n)->default_value(1), "number of particles")("save-txt", po::value<bool>(&save_rslt_txt)->default_value(false), "save results in text file")("save-img", po::value<bool>(&save_rslt_img)->default_value(false), "save results in image files")("save-path", po::value<std::string>(&str_result_path), "save results in image files")
 
       ("display", po::value<bool>(&display)->default_value(true), "display results or not")("network", po::value<bool>(&net)->default_value(false), "use network mode or not")("width", po::value<int>(&width)->default_value(640), "width")("height", po::value<int>(&height)->default_value(480), "height")("intrinsic", po::value<std::string>(&intrinsic)->default_value("Intrinsics_normal.xml"), "intrinsic parameters")("distortion", po::value<std::string>(&distortion)->default_value("Distortion_normal.xml"), "distortion parameters")("dull_edge", po::value<bool>(&dull_edge)->default_value(false), "consider dull edges")("th_cm", po::value<float>(&th_cm)->default_value(0.2f), "threshold of chamfer matching")("init_pose", po::value<std::string>(&pose_init_str), "init pose")
       // AKAN
-      ("min_keypoint_matches,m", po::value<int>(&min_keypoint_matches)->default_value(20), "min number of keypoint matches to start tracking")("use_ach_channel", po::value<std::string>(&ach_channel)->default_value("none"), "Use specific ach channel with given name")("use_tracking", po::value<bool>(&use_tracking)->default_value(true), "Enable tracking after detection of object");
+      ("min_keypoint_matches,m", po::value<int>(&min_keypoint_matches)->default_value(20), "min number of keypoint matches to start tracking")("use_ach_channel", po::value<std::string>(&ach_channel)->default_value("none"), "Use specific ach channel with given name")("use_tracking", po::value<bool>(&use_tracking)->default_value(true), "Enable tracking after detection of object")
+      ("lower_canny,l", po::value<int>(&lowerCanny)->default_value(30), "lower value for canny filter")("canny_higher,c", po::value<int>(&higherCanny)->default_value(50), "higher value for canny filter");
   po::variables_map vm;
   po::store(po::parse_command_line(argc, argv, desc), vm);
   po::notify(vm);
@@ -129,8 +134,8 @@ int main(int argc, char **argv)
 
 
   // set the parameters of edge detection
-  origin_tracker_->setCannyHigh(50);
-  origin_tracker_->setCannyLow(40);
+  origin_tracker_->setCannyHigh(higherCanny);
+  origin_tracker_->setCannyLow(lowerCanny);
 
   input = "ach";
   origin_tracker_->initTracker(template_directory, input, intrinsic, distortion, width, height, pose_init, ach_channel);
@@ -140,6 +145,9 @@ int main(int argc, char **argv)
   int lifetime[10];
   int numOfDetections = 0;
   std::vector<TrackerBase *> trackers;
+
+  // Reconstructing specular surfaces using color
+
 
   origin_tracker_->setImage(inputImg);
   std::vector<LMDetWind> detWind;

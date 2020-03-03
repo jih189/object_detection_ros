@@ -29,6 +29,7 @@ class epnp;
 class CObjectModel
 {
 public:
+
   struct SamplePoint
   {
     CvPoint3D32f coord3;   // Coordinate of a visible 3D sampling point

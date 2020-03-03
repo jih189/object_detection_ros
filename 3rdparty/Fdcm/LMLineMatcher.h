@@ -82,6 +82,12 @@ public:
 
     int GetNumOfTemplates() { return ndbImages_; };
 
+	inline double GetCost(int directionIndex, int sx, int sy, int ex, int ey){
+		int count;
+		double result = queryDistanceImage_.idtImages_[directionIndex].Sum(sx,sy,ex,ey,count);
+        return result;
+	}
+
 private:
 	void SafeRelease();
 
