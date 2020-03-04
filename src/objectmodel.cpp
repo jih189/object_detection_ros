@@ -17,6 +17,7 @@
 #include <stdexcept>
 
 namespace fs = boost::filesystem;
+bool CObjectModel::IsOpenGlInit = false;
 
 CObjectModel::CObjectModel(string obj_name, int width, int height, CvMat *intrinsic, float sample_step, int maxd, bool dulledge, CEdgeTracker *edge_tracker)
     : width_(width), height_(height), sample_step_(sample_step), maxd_(maxd), dulledge_(dulledge), edge_tracker_(edge_tracker), use_fine_orientation_(true), draw_type_(CV_AA) // anti-aliasing drawing (CV_AA is 16), about 2ms more required
@@ -30,16 +31,15 @@ CObjectModel::CObjectModel(string obj_name, int width, int height, CvMat *intrin
 
   img_gy_ = cvCreateImage(cvSize(width_, height_), IPL_DEPTH_32F, 1);
 
-  //if (glutGet(GLUT_ELAPSED_TIME) > 697314090)
-  //{ // for first time init
-  try{
-      initOpenGL(width_, height_);
-  }catch(const std::exception& e){
-     std::cout << "get opengl error for init\n";
-  }
-  //}
+  if (!IsOpenGlInit)
+  { // for first time init
 
-  initFrameBufferObject(width_, height_);
+      initOpenGL(width_, height_);
+      initFrameBufferObject(width_, height_);
+      IsOpenGlInit = true;
+  }
+
+  
   pose_ = cvCreateMat(4, 4, CV_32F);
   intrinsic_ = cvCreateMat(3, 3, CV_32F);
   // set the projection matrix for opengl with the camera intrinsic parameters

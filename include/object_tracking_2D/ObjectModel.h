@@ -30,6 +30,8 @@ class CObjectModel
 {
 public:
 
+  static bool IsOpenGlInit;
+
   struct SamplePoint
   {
     CvPoint3D32f coord3;   // Coordinate of a visible 3D sampling point
