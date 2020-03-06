@@ -159,8 +159,7 @@ public:
       IplImage *imageTemp = cvCreateImage(cvSize(img_gray_->width, img_gray_->height), 8, 3);
       //cvCvtColor(img_gray_, imageTemp, CV_GRAY2BGR);
 
-      //for (int d = 0; d < numof_det; d++)
-      for (int d = 0; d < 1; d++)
+      for (int d = 0; d < numof_det; d++)
       {
         //obj_model_->displayPoseLine(img_mask_, resultPose[d], cvScalar(0), 1, false);
 
@@ -169,7 +168,8 @@ public:
 
         //Timer dtimer;
         //dtimer.start();
-        for (int p = 0; p < pf_->GetNumOfParticle(); p++)
+        //for (int p = 0; p < pf_->GetNumOfParticle(); p++)
+        for (int p = 0; p < 1; p++)
         {
 
           //printPose(pf_->GetPropState(p));
@@ -182,11 +182,11 @@ public:
           //Timer ptimer;
           //ptimer.start();
 
-          obj_model_->refindMatching(dt, ePnP);
+          // obj_model_->refindMatching(dt, ePnP);
 
-          pf_->setPropagate(p, obj_model_->getPose());
-          obj_model_->findVisibleSamplePoints();
-          obj_model_->keepOnlyContourPoints();
+          // pf_->setPropagate(p, obj_model_->getPose());
+          // obj_model_->findVisibleSamplePoints();
+          // obj_model_->keepOnlyContourPoints();
 
           obj_model_->findNormalUsingEdgeCoordFineOri();
           obj_model_->findEdgeCorrespondencesFineOri();
@@ -206,13 +206,13 @@ public:
 
           // calculate weights
           pf_->calculateWeights(p, e, obj_model_->getVisibleSamplePoints(), maxd_, lamda_e_, lamda_v_);
-          // if (e != NULL)
-          // {
-          //   obj_model_->displayPoseLine(imageTemp, pf_->GetOptState(p), CV_RGB(0, 255, 0), 1, false);
-          //   cv::imshow("particle" + std::to_string(p), cv::cvarrToMat(imageTemp));
-          //   obj_model_->drawPointsAndErrorFineOri(imageTemp);
-          //   cv::imshow("error" + std::to_string(p), cv::cvarrToMat(imageTemp));
-          // }
+          if (e != NULL)
+          {
+            obj_model_->displayPoseLine(imageTemp, pf_->GetOptState(p), CV_RGB(0, 255, 0), 1, false);
+            cv::imshow("particle" + std::to_string(p), cv::cvarrToMat(imageTemp));
+            obj_model_->drawPointsAndErrorFineOri(imageTemp);
+            cv::imshow("error" + std::to_string(p) + " with " + std::to_string(d), cv::cvarrToMat(imageTemp));
+          }
 
           // release after use them
           if (J)
