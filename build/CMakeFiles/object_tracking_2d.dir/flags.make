@@ -6,5 +6,5 @@ CXX_FLAGS =  -fopenmp -fPIC   -std=gnu++11
 
 CXX_DEFINES = -Dobject_tracking_2d_EXPORTS
 
-CXX_INCLUDES = -I/home/cogrob-wrc/object_detection_ros/3rdparty -isystem /usr/include/opencv -I/home/cogrob-wrc/object_detection_ros/include -I/usr/local/include/eigen3 
+CXX_INCLUDES = -I/home/jiaming/object_detection_ros/3rdparty -isystem /usr/include/opencv -I/home/jiaming/object_detection_ros/include -I/usr/local/include/eigen3 
 

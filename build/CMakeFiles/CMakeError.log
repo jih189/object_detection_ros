@@ -1,24 +1,24 @@
 Determining if the pthread_create exist failed with the following output:
-Change Dir: /home/cogrob-wrc/object_detection_ros/build/CMakeFiles/CMakeTmp
+Change Dir: /home/jiaming/object_detection_ros/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_f42d7/fast"
-/usr/bin/make -f CMakeFiles/cmTC_f42d7.dir/build.make CMakeFiles/cmTC_f42d7.dir/build
-make[1]: Entering directory '/home/cogrob-wrc/object_detection_ros/build/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_f42d7.dir/CheckSymbolExists.c.o
-/usr/bin/cc    -o CMakeFiles/cmTC_f42d7.dir/CheckSymbolExists.c.o   -c /home/cogrob-wrc/object_detection_ros/build/CMakeFiles/CMakeTmp/CheckSymbolExists.c
-Linking C executable cmTC_f42d7
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_f42d7.dir/link.txt --verbose=1
-/usr/bin/cc      -rdynamic CMakeFiles/cmTC_f42d7.dir/CheckSymbolExists.c.o  -o cmTC_f42d7 
-CMakeFiles/cmTC_f42d7.dir/CheckSymbolExists.c.o: In function `main':
+Run Build Command:"/usr/bin/make" "cmTC_d24af/fast"
+/usr/bin/make -f CMakeFiles/cmTC_d24af.dir/build.make CMakeFiles/cmTC_d24af.dir/build
+make[1]: Entering directory '/home/jiaming/object_detection_ros/build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_d24af.dir/CheckSymbolExists.c.o
+/usr/bin/cc    -o CMakeFiles/cmTC_d24af.dir/CheckSymbolExists.c.o   -c /home/jiaming/object_detection_ros/build/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+Linking C executable cmTC_d24af
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_d24af.dir/link.txt --verbose=1
+/usr/bin/cc      -rdynamic CMakeFiles/cmTC_d24af.dir/CheckSymbolExists.c.o  -o cmTC_d24af 
+CMakeFiles/cmTC_d24af.dir/CheckSymbolExists.c.o: In function `main':
 CheckSymbolExists.c:(.text+0x1b): undefined reference to `pthread_create'
 collect2: error: ld returned 1 exit status
-CMakeFiles/cmTC_f42d7.dir/build.make:97: recipe for target 'cmTC_f42d7' failed
-make[1]: *** [cmTC_f42d7] Error 1
-make[1]: Leaving directory '/home/cogrob-wrc/object_detection_ros/build/CMakeFiles/CMakeTmp'
-Makefile:126: recipe for target 'cmTC_f42d7/fast' failed
-make: *** [cmTC_f42d7/fast] Error 2
+CMakeFiles/cmTC_d24af.dir/build.make:97: recipe for target 'cmTC_d24af' failed
+make[1]: *** [cmTC_d24af] Error 1
+make[1]: Leaving directory '/home/jiaming/object_detection_ros/build/CMakeFiles/CMakeTmp'
+Makefile:126: recipe for target 'cmTC_d24af/fast' failed
+make: *** [cmTC_d24af/fast] Error 2
 
-File /home/cogrob-wrc/object_detection_ros/build/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+File /home/jiaming/object_detection_ros/build/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
 /* */
 #include <pthread.h>
 
@@ -34,22 +34,22 @@ int main(int argc, char** argv)
 }
 
 Determining if the function pthread_create exists in the pthreads failed with the following output:
-Change Dir: /home/cogrob-wrc/object_detection_ros/build/CMakeFiles/CMakeTmp
+Change Dir: /home/jiaming/object_detection_ros/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_8becd/fast"
-/usr/bin/make -f CMakeFiles/cmTC_8becd.dir/build.make CMakeFiles/cmTC_8becd.dir/build
-make[1]: Entering directory '/home/cogrob-wrc/object_detection_ros/build/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_8becd.dir/CheckFunctionExists.c.o
-/usr/bin/cc   -DCHECK_FUNCTION_EXISTS=pthread_create   -o CMakeFiles/cmTC_8becd.dir/CheckFunctionExists.c.o   -c /usr/share/cmake-3.10/Modules/CheckFunctionExists.c
-Linking C executable cmTC_8becd
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_8becd.dir/link.txt --verbose=1
-/usr/bin/cc  -DCHECK_FUNCTION_EXISTS=pthread_create    -rdynamic CMakeFiles/cmTC_8becd.dir/CheckFunctionExists.c.o  -o cmTC_8becd -lpthreads 
+Run Build Command:"/usr/bin/make" "cmTC_b342d/fast"
+/usr/bin/make -f CMakeFiles/cmTC_b342d.dir/build.make CMakeFiles/cmTC_b342d.dir/build
+make[1]: Entering directory '/home/jiaming/object_detection_ros/build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_b342d.dir/CheckFunctionExists.c.o
+/usr/bin/cc   -DCHECK_FUNCTION_EXISTS=pthread_create   -o CMakeFiles/cmTC_b342d.dir/CheckFunctionExists.c.o   -c /usr/share/cmake-3.10/Modules/CheckFunctionExists.c
+Linking C executable cmTC_b342d
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_b342d.dir/link.txt --verbose=1
+/usr/bin/cc  -DCHECK_FUNCTION_EXISTS=pthread_create    -rdynamic CMakeFiles/cmTC_b342d.dir/CheckFunctionExists.c.o  -o cmTC_b342d -lpthreads 
 /usr/bin/ld: cannot find -lpthreads
 collect2: error: ld returned 1 exit status
-CMakeFiles/cmTC_8becd.dir/build.make:97: recipe for target 'cmTC_8becd' failed
-make[1]: *** [cmTC_8becd] Error 1
-make[1]: Leaving directory '/home/cogrob-wrc/object_detection_ros/build/CMakeFiles/CMakeTmp'
-Makefile:126: recipe for target 'cmTC_8becd/fast' failed
-make: *** [cmTC_8becd/fast] Error 2
+CMakeFiles/cmTC_b342d.dir/build.make:97: recipe for target 'cmTC_b342d' failed
+make[1]: *** [cmTC_b342d] Error 1
+make[1]: Leaving directory '/home/jiaming/object_detection_ros/build/CMakeFiles/CMakeTmp'
+Makefile:126: recipe for target 'cmTC_b342d/fast' failed
+make: *** [cmTC_b342d/fast] Error 2
 
 

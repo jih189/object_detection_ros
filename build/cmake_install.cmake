@@ -1,4 +1,4 @@
-# Install script for directory: /home/cogrob-wrc/object_detection_ros
+# Install script for directory: /home/jiaming/object_detection_ros
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -39,9 +39,9 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for each subdirectory.
-  include("/home/cogrob-wrc/object_detection_ros/build/3rdparty/Image/cmake_install.cmake")
-  include("/home/cogrob-wrc/object_detection_ros/build/3rdparty/Fitline/cmake_install.cmake")
-  include("/home/cogrob-wrc/object_detection_ros/build/3rdparty/Fdcm/cmake_install.cmake")
+  include("/home/jiaming/object_detection_ros/build/3rdparty/Image/cmake_install.cmake")
+  include("/home/jiaming/object_detection_ros/build/3rdparty/Fitline/cmake_install.cmake")
+  include("/home/jiaming/object_detection_ros/build/3rdparty/Fdcm/cmake_install.cmake")
 
 endif()
 
@@ -53,5 +53,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "/home/cogrob-wrc/object_detection_ros/build/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "/home/jiaming/object_detection_ros/build/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")

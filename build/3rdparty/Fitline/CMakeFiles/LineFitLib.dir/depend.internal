@@ -6,20 +6,20 @@
  ../3rdparty/Fitline/../Image/Image.h
  ../3rdparty/Fitline/../Image/ImageDraw.h
  ../3rdparty/Fitline/../Image/ImageIO.h
- /home/cogrob-wrc/object_detection_ros/3rdparty/Fitline/LFLineFitter.cpp
- /home/cogrob-wrc/object_detection_ros/3rdparty/Fitline/LFLineFitter.h
- /home/cogrob-wrc/object_detection_ros/3rdparty/Fitline/LFLineSegment.h
- /home/cogrob-wrc/object_detection_ros/3rdparty/Fitline/Point.h
+ /home/jiaming/object_detection_ros/3rdparty/Fitline/LFLineFitter.cpp
+ /home/jiaming/object_detection_ros/3rdparty/Fitline/LFLineFitter.h
+ /home/jiaming/object_detection_ros/3rdparty/Fitline/LFLineSegment.h
+ /home/jiaming/object_detection_ros/3rdparty/Fitline/Point.h
 3rdparty/Fitline/CMakeFiles/LineFitLib.dir/LFLineSegment.cpp.o
- /home/cogrob-wrc/object_detection_ros/3rdparty/Fitline/LFLineSegment.cpp
- /home/cogrob-wrc/object_detection_ros/3rdparty/Fitline/LFLineSegment.h
- /home/cogrob-wrc/object_detection_ros/3rdparty/Fitline/Point.h
+ /home/jiaming/object_detection_ros/3rdparty/Fitline/LFLineSegment.cpp
+ /home/jiaming/object_detection_ros/3rdparty/Fitline/LFLineSegment.h
+ /home/jiaming/object_detection_ros/3rdparty/Fitline/Point.h
 3rdparty/Fitline/CMakeFiles/LineFitLib.dir/fitline.cpp.o
  ../3rdparty/Fitline/../Fdcm/MMFunctions.h
  ../3rdparty/Fitline/../Image/Image.h
  ../3rdparty/Fitline/../Image/ImageDraw.h
  ../3rdparty/Fitline/../Image/ImageIO.h
- /home/cogrob-wrc/object_detection_ros/3rdparty/Fitline/LFLineFitter.h
- /home/cogrob-wrc/object_detection_ros/3rdparty/Fitline/LFLineSegment.h
- /home/cogrob-wrc/object_detection_ros/3rdparty/Fitline/Point.h
- /home/cogrob-wrc/object_detection_ros/3rdparty/Fitline/fitline.cpp
+ /home/jiaming/object_detection_ros/3rdparty/Fitline/LFLineFitter.h
+ /home/jiaming/object_detection_ros/3rdparty/Fitline/LFLineSegment.h
+ /home/jiaming/object_detection_ros/3rdparty/Fitline/Point.h
+ /home/jiaming/object_detection_ros/3rdparty/Fitline/fitline.cpp
