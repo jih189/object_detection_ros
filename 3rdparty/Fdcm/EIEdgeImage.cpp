@@ -84,9 +84,9 @@ void EIEdgeImage::Read(const char *fileName)
 	fin = fopen(fileName, "r");
 
 	//AKANSEL: FIX NEEDED FOR FILES CREATED IN WINDOWS
-	// jiaming hu modified remember modify this if need
+	// todo: jiaming hu modified remember modify this if need
 	//string prelude = "./";
-	string prelude = "/home/jiaming/catkin_ws/src/object_tracking_2d_ros/";
+	string prelude = "/home/cogrob-wrc/wrc/src/wrc_primitive_actions/";
 
 	string fileName_str(fileName);
 

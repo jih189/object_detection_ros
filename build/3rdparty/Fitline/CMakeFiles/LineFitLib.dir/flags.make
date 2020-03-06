@@ -6,5 +6,5 @@ CXX_FLAGS =  -fopenmp -fPIC   -std=gnu++11
 
 CXX_DEFINES = -DLineFitLib_EXPORTS
 
-CXX_INCLUDES = -I/ -I/home/jiaming/object_tracking_2D/3rdparty/Fitline/.. 
+CXX_INCLUDES = -I/ -I/home/cogrob-wrc/object_detection_ros/3rdparty/Fitline/.. 
 

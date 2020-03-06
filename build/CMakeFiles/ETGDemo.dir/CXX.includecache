@@ -470,25 +470,25 @@ GL/glut.h
 
 ../include/object_tracking_2D/randn.h
 
-/home/jiaming/object_tracking_2D/src/Camera.cpp
+/home/cogrob-wrc/object_detection_ros/src/Camera.cpp
 object_tracking_2D/Camera.h
-/home/jiaming/object_tracking_2D/src/object_tracking_2D/Camera.h
+/home/cogrob-wrc/object_detection_ros/src/object_tracking_2D/Camera.h
 iomanip
 -
 
-/home/jiaming/object_tracking_2D/src/EdgeTracker.cpp
+/home/cogrob-wrc/object_detection_ros/src/EdgeTracker.cpp
 object_tracking_2D/EdgeTracker.h
-/home/jiaming/object_tracking_2D/src/object_tracking_2D/EdgeTracker.h
+/home/cogrob-wrc/object_detection_ros/src/object_tracking_2D/EdgeTracker.h
 
-/home/jiaming/object_tracking_2D/src/HomoTransform.cpp
+/home/cogrob-wrc/object_detection_ros/src/HomoTransform.cpp
 object_tracking_2D/HomoTransform.h
-/home/jiaming/object_tracking_2D/src/object_tracking_2D/HomoTransform.h
+/home/cogrob-wrc/object_detection_ros/src/object_tracking_2D/HomoTransform.h
 math.h
 -
 
-/home/jiaming/object_tracking_2D/src/ModelImport.cpp
+/home/cogrob-wrc/object_detection_ros/src/ModelImport.cpp
 object_tracking_2D/ModelImport.h
-/home/jiaming/object_tracking_2D/src/object_tracking_2D/ModelImport.h
+/home/cogrob-wrc/object_detection_ros/src/object_tracking_2D/ModelImport.h
 boost/filesystem.hpp
 -
 boost/program_options.hpp
@@ -514,31 +514,31 @@ assert.h
 iostream
 -
 
-/home/jiaming/object_tracking_2D/src/ParticleFilter.cpp
+/home/cogrob-wrc/object_detection_ros/src/ParticleFilter.cpp
 object_tracking_2D/ParticleFilter.h
-/home/jiaming/object_tracking_2D/src/object_tracking_2D/ParticleFilter.h
+/home/cogrob-wrc/object_detection_ros/src/object_tracking_2D/ParticleFilter.h
 assert.h
 -
 object_tracking_2D/randn.h
-/home/jiaming/object_tracking_2D/src/object_tracking_2D/randn.h
+/home/cogrob-wrc/object_detection_ros/src/object_tracking_2D/randn.h
 time.h
 -
 
-/home/jiaming/object_tracking_2D/src/PoseEstimationSURF.cpp
+/home/cogrob-wrc/object_detection_ros/src/PoseEstimationSURF.cpp
 object_tracking_2D/PoseEstimationSURF.h
-/home/jiaming/object_tracking_2D/src/object_tracking_2D/PoseEstimationSURF.h
+/home/cogrob-wrc/object_detection_ros/src/object_tracking_2D/PoseEstimationSURF.h
 object_tracking_2D/ObjectModel.h
-/home/jiaming/object_tracking_2D/src/object_tracking_2D/ObjectModel.h
+/home/cogrob-wrc/object_detection_ros/src/object_tracking_2D/ObjectModel.h
 object_tracking_2D/epnp.h
-/home/jiaming/object_tracking_2D/src/object_tracking_2D/epnp.h
+/home/cogrob-wrc/object_detection_ros/src/object_tracking_2D/epnp.h
 object_tracking_2D/Timer.h
-/home/jiaming/object_tracking_2D/src/object_tracking_2D/Timer.h
+/home/cogrob-wrc/object_detection_ros/src/object_tracking_2D/Timer.h
 opencv2/imgproc/imgproc.hpp
 -
 opencv2/highgui/highgui.hpp
 -
 
-/home/jiaming/object_tracking_2D/src/edge_templates_generator.cpp
+/home/cogrob-wrc/object_detection_ros/src/edge_templates_generator.cpp
 string
 -
 boost/signals2/mutex.hpp
@@ -564,17 +564,17 @@ boost/algorithm/string.hpp
 limits.h
 -
 object_tracking_2D/ObjectModel.h
-/home/jiaming/object_tracking_2D/src/object_tracking_2D/ObjectModel.h
+/home/cogrob-wrc/object_detection_ros/src/object_tracking_2D/ObjectModel.h
 Fitline/LFLineFitter.h
-/home/jiaming/object_tracking_2D/src/Fitline/LFLineFitter.h
+/home/cogrob-wrc/object_detection_ros/src/Fitline/LFLineFitter.h
 
-/home/jiaming/object_tracking_2D/src/epnp.cpp
+/home/cogrob-wrc/object_detection_ros/src/epnp.cpp
 iostream
 -
 object_tracking_2D/epnp.h
-/home/jiaming/object_tracking_2D/src/object_tracking_2D/epnp.h
+/home/cogrob-wrc/object_detection_ros/src/object_tracking_2D/epnp.h
 
-/home/jiaming/object_tracking_2D/src/glm.cpp
+/home/cogrob-wrc/object_detection_ros/src/glm.cpp
 math.h
 -
 stdio.h
@@ -586,29 +586,29 @@ string.h
 assert.h
 -
 object_tracking_2D/glm.h
-/home/jiaming/object_tracking_2D/src/object_tracking_2D/glm.h
+/home/cogrob-wrc/object_detection_ros/src/object_tracking_2D/glm.h
 
-/home/jiaming/object_tracking_2D/src/objectmodel.cpp
+/home/cogrob-wrc/object_detection_ros/src/objectmodel.cpp
 object_tracking_2D/ObjectModel.h
-/home/jiaming/object_tracking_2D/src/object_tracking_2D/ObjectModel.h
+/home/cogrob-wrc/object_detection_ros/src/object_tracking_2D/ObjectModel.h
 GL/glu.h
 -
 object_tracking_2D/EdgeTracker.h
-/home/jiaming/object_tracking_2D/src/object_tracking_2D/EdgeTracker.h
+/home/cogrob-wrc/object_detection_ros/src/object_tracking_2D/EdgeTracker.h
 algorithm
 -
 object_tracking_2D/PoseEstimationSURF.h
-/home/jiaming/object_tracking_2D/src/object_tracking_2D/PoseEstimationSURF.h
+/home/cogrob-wrc/object_detection_ros/src/object_tracking_2D/PoseEstimationSURF.h
 limits
 -
 omp.h
 -
 object_tracking_2D/Timer.h
-/home/jiaming/object_tracking_2D/src/object_tracking_2D/Timer.h
+/home/cogrob-wrc/object_detection_ros/src/object_tracking_2D/Timer.h
 object_tracking_2D/ModelImport.h
-/home/jiaming/object_tracking_2D/src/object_tracking_2D/ModelImport.h
+/home/cogrob-wrc/object_detection_ros/src/object_tracking_2D/ModelImport.h
 object_tracking_2D/epnp.h
-/home/jiaming/object_tracking_2D/src/object_tracking_2D/epnp.h
+/home/cogrob-wrc/object_detection_ros/src/object_tracking_2D/epnp.h
 boost/filesystem.hpp
 -
 stdexcept

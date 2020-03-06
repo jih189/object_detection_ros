@@ -142,7 +142,8 @@ void CParticleFilter::Init(int i, CvMat *X /*=NULL*/)
   cvSetIdentity(state_cov_, cvRealScalar(dt_));
 }
 
-void CParticleFilter::setPropagate(int i, CvMat* X){
+void CParticleFilter::setPropagate(int i, CvMat *X)
+{
   cvCopy(X, states_prop_[i]);
 }
 
@@ -325,6 +326,7 @@ void CParticleFilter::Update_IRLS(int i, CvMat *J, CvMat *e, int NumOfVisibleSam
 
   if (J == NULL && e == NULL)
   {
+    std::cout << "no update\n";
     prob_[i] = 0.0f;
     return;
   }
@@ -372,6 +374,26 @@ void CParticleFilter::Update_IRLS(int i, CvMat *J, CvMat *e, int NumOfVisibleSam
 
   if (limityrot_)
     inc_data[4] = 0.0; // y-axis angle
+
+  // std::cout << "update: = " << inc_data[0] << " " << inc_data[1] << " " << inc_data[2] << " "
+  //           << inc_data[3] << " " << inc_data[5] << " " << inc_data[6] << " " << std::endl;
+  // if the fitting distance is large which should mean it is wrong
+  double limitvalueD = 0.1;
+  double limitvalue = 0.01;
+  if (inc_data[0] > limitvalueD || inc_data[0] < -limitvalueD || // for depth
+      inc_data[1] > limitvalue || inc_data[1] < -limitvalue ||
+      inc_data[2] > limitvalue || inc_data[2] < -limitvalue)
+  {
+    prob_[i] = 0.0f;
+    return;
+  }
+
+  // inc_data[0] = 0.0;
+  // inc_data[1] = 0.0;
+  // inc_data[2] = 0.0;
+  // inc_data[3] = 0.0;
+  // inc_data[4] = 0.0;
+  // inc_data[5] = 0.0;
 
   Vector<6> inc_vec(inc_data);
   SE3 M_inc = SE3::exp(inc_vec);

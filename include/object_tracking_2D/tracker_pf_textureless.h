@@ -68,7 +68,7 @@ public:
     TrackerBase::initTracker(template_directory, cam_name, intrinsic, distortion, width, height, pose_init, ach_channel);
     initPoseEstimationSURF(width, height, template_directory, object_name);
     //pf_->Init(pose_init);
-    
+
     return (true);
   }
 
@@ -135,16 +135,15 @@ public:
       {
         return numof_det;
       }
-      /*
-      for (int d = 0; d < numof_det; d++)
-      {
-        IplImage *imageTemp = cvCreateImage(cvSize(img_gray_->width, img_gray_->height), 8, 3);
-        cvCvtColor(img_gray_, imageTemp, CV_GRAY2BGR);
-        obj_model_->displayPoseLine(imageTemp, resultPose[d], CV_RGB(255, 0, 0), 1, false);
-        cv::imshow("after FDCM" + std::to_string(d), cv::cvarrToMat(imageTemp));
-        cvReleaseImage(&imageTemp);
-      }
-*/
+
+      // for (int d = 0; d < numof_det; d++)
+      // {
+      //   IplImage *imageTemp = cvCreateImage(cvSize(img_gray_->width, img_gray_->height), 8, 3);
+      //   cvCvtColor(img_gray_, imageTemp, CV_GRAY2BGR);
+      //   obj_model_->displayPoseLine(imageTemp, resultPose[d], CV_RGB(255, 0, 0), 1, false);
+      //   cv::imshow("after FDCM" + std::to_string(d), cv::cvarrToMat(imageTemp));
+      //   cvReleaseImage(&imageTemp);
+      // }
 
       img_edge_ = obj_model_->extractEdge(img_gray_, smooth_size_, th_canny_l_, th_canny_h_, NULL, img_mask_);
       cv::imshow("edge", cv::cvarrToMat(img_edge_));
@@ -157,10 +156,11 @@ public:
       cv::distanceTransform(invertImage, dt, CV_DIST_L2, 3);
 
       //timer.printTimeMilliSec("preprocess");
-     
-      
-      
-      for (int d = 0; d < numof_det; d++)
+      IplImage *imageTemp = cvCreateImage(cvSize(img_gray_->width, img_gray_->height), 8, 3);
+      //cvCvtColor(img_gray_, imageTemp, CV_GRAY2BGR);
+
+      //for (int d = 0; d < numof_det; d++)
+      for (int d = 0; d < 1; d++)
       {
         //obj_model_->displayPoseLine(img_mask_, resultPose[d], cvScalar(0), 1, false);
 
@@ -171,27 +171,31 @@ public:
         //dtimer.start();
         for (int p = 0; p < pf_->GetNumOfParticle(); p++)
         {
+
           //printPose(pf_->GetPropState(p));
           obj_model_->setModelviewMatrix(pf_->GetPropState(p));
           obj_model_->findVisibleSamplePoints();
           obj_model_->keepOnlyContourPoints();
+          // cvCvtColor(img_gray_, imageTemp, CV_GRAY2BGR);
+          // obj_model_->displayPoseLine(imageTemp, pf_->GetPropState(p), CV_RGB(255, 0, 0), 1, false);
+
           //Timer ptimer;
           //ptimer.start();
-          
+
           obj_model_->refindMatching(dt, ePnP);
 
           pf_->setPropagate(p, obj_model_->getPose());
-
           obj_model_->findVisibleSamplePoints();
           obj_model_->keepOnlyContourPoints();
-          
 
-          obj_model_->findNormalUsingEdgeCoordCoarseOri();
-          obj_model_->findEdgeCorrespondencesCoarseOri();
+          obj_model_->findNormalUsingEdgeCoordFineOri();
+          obj_model_->findEdgeCorrespondencesFineOri();
+          // obj_model_->drawPointsAndErrorFineOri(imageTemp);
+          // cv::imshow("error" + std::to_string(p), cv::cvarrToMat(imageTemp));
 
           // if (th_ransac_ > 0.0f)
           // {
-          // obj_model_->refineEdgeCorrespondences_RANSAC(pf_->GetPropState(p), th_ransac_iter_, th_ransac_);
+          //  obj_model_->refineEdgeCorrespondences_RANSAC(pf_->GetPropState(p), th_ransac_iter_, th_ransac_);
           // }
 
           CvMat *J = NULL, *e = NULL;
@@ -202,6 +206,13 @@ public:
 
           // calculate weights
           pf_->calculateWeights(p, e, obj_model_->getVisibleSamplePoints(), maxd_, lamda_e_, lamda_v_);
+          // if (e != NULL)
+          // {
+          //   obj_model_->displayPoseLine(imageTemp, pf_->GetOptState(p), CV_RGB(0, 255, 0), 1, false);
+          //   cv::imshow("particle" + std::to_string(p), cv::cvarrToMat(imageTemp));
+          //   obj_model_->drawPointsAndErrorFineOri(imageTemp);
+          //   cv::imshow("error" + std::to_string(p), cv::cvarrToMat(imageTemp));
+          // }
 
           // release after use them
           if (J)
@@ -232,7 +243,6 @@ public:
           }
         }
 
-
         if (pf_->GetNumOfParticle() > 1)
           pf_->CorrectWeights();
 
@@ -249,11 +259,12 @@ public:
           cvCopy(pf_->GetMeanState(), resultPose[d]);
           mutex_.unlock();
         }
-        
 
         detectedStates.push_back(resultPose[d]);
         //dtimer.printTimeMilliSec("each detection");
       }
+
+      cvReleaseImage(&imageTemp);
 
       double mincost = 1000.0;
       int mind = 0;
@@ -269,25 +280,26 @@ public:
         obj_model_->keepOnlyContourPoints();
 
         double currcost = obj_model_->getCMCost(dt);
-        if(currcost < mincost){
+        if (currcost < mincost)
+        {
           mincost = currcost;
           mind = d;
         }
-        cv::putText(cv::cvarrToMat(imageTemp), "cost: " + std::to_string(currcost), cvPoint(30,30), FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(200,0,0), 1, CV_AA);
+        cv::putText(cv::cvarrToMat(imageTemp), "cost: " + std::to_string(currcost), cvPoint(30, 30), FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(200, 0, 0), 1, CV_AA);
 
         imshow("result" + std::to_string(d), cv::cvarrToMat(imageTemp));
         std::cout << "result " << std::to_string(d) << " with result = " << currcost << std::endl;
         cvReleaseImage(&imageTemp);
       }
 
-      if(mind != 0){
-        CvMat* temp = resultPose[mind];
+      if (mind != 0)
+      {
+        CvMat *temp = resultPose[mind];
         resultPose[mind] = resultPose[0];
         resultPose[0] = temp;
       }
       cv::waitKey(0);
       cv::destroyAllWindows();
-
 
       if (detectedStates.size() > 0)
       {
@@ -299,7 +311,6 @@ public:
         init_ = true;
         return 0;
       }
-      
     }
     else
     {
@@ -309,7 +320,7 @@ public:
 
   void resetImage()
   {
-    
+
     cvCvtColor(img_gray_, img_result_, CV_GRAY2BGR);
   }
 

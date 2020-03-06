@@ -124,7 +124,7 @@ int main(int argc, char **argv)
   ((TexturelessParticleFilterTracker *)origin_tracker_)->initParticleFilter();
 
   origin_tracker_->setSampleStep(sample_step);
-  origin_tracker_->setMaxSearchDistance(5);
+  origin_tracker_->setMaxSearchDistance(10);
   origin_tracker_->setDisplay(display);
   origin_tracker_->setNetworkMode(false);
   origin_tracker_->setConsideringDullEdges(dull_edge);

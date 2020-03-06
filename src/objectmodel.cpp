@@ -34,12 +34,11 @@ CObjectModel::CObjectModel(string obj_name, int width, int height, CvMat *intrin
   if (!IsOpenGlInit)
   { // for first time init
 
-      initOpenGL(width_, height_);
-      initFrameBufferObject(width_, height_);
-      IsOpenGlInit = true;
+    initOpenGL(width_, height_);
+    initFrameBufferObject(width_, height_);
+    IsOpenGlInit = true;
   }
 
-  
   pose_ = cvCreateMat(4, 4, CV_32F);
   intrinsic_ = cvCreateMat(3, 3, CV_32F);
   // set the projection matrix for opengl with the camera intrinsic parameters
@@ -665,7 +664,6 @@ void CObjectModel::setModelviewMatrix(CvMat *pose)
   glMatrixMode(GL_MODELVIEW);
   GLfloat Mm[16];
 
-
   assert(pose);
   cvCopy(pose, pose_);
   CvMat *poset = cvCreateMat(4, 4, CV_32F);
@@ -946,10 +944,6 @@ void CObjectModel::drawPointsAndErrorFineOri(IplImage *img_dest)
              CV_RGB(255, 0, 0), 1, draw_type_, 0);
       cvCircle(img_dest, cvPointFrom32f(visible_sample_points_[i].coord2), 1, CV_RGB(0, 255, 0), -1, draw_type_, 0);
     }
-    else
-    {
-      cvCircle(img_dest, cvPointFrom32f(visible_sample_points_[i].coord2), 1, CV_RGB(255, 0, 0), -1, draw_type_, 0);
-    }
   }
 }
 
@@ -1093,9 +1087,10 @@ void CObjectModel::findEdgeCorrespondencesFineOri()
   const float oth = 15.f; // +- 15 degree
   const int max_step = static_cast<int>(maxd_);
 
-#pragma omp parallel for
+  #pragma omp parallel for
   for (int i = 0; i < static_cast<int>(visible_sample_points_.size()); i++)
   {
+
     double dx = visible_sample_points_[i].dx;
     double dy = visible_sample_points_[i].dy;
 
@@ -1107,7 +1102,6 @@ void CObjectModel::findEdgeCorrespondencesFineOri()
       continue;
     if (y < 0 || y >= height_)
       continue;
-
     visible_sample_points_[i].dist = maxd_;
     visible_sample_points_[i].nuv = cvPoint2D32f(dx, dy);
 
@@ -1116,12 +1110,14 @@ void CObjectModel::findEdgeCorrespondencesFineOri()
       // positive direction
       x = round(visible_sample_points_[i].coord2.x + dx * (double)j);
       y = round(visible_sample_points_[i].coord2.y + dy * (double)j);
+
       // determine the new indices are valid or not
       if (x >= 0 && x < width_ && y >= 0 && y < height_ && *(img_edge_->imageData + (x) + (y)*img_edge_->widthStep) == char(255)) // find edge
       {
         const float *ptr_gx = (const float *)(img_gx_->imageData + y * img_gx_->widthStep);
         const float *ptr_gy = (const float *)(img_gy_->imageData + y * img_gy_->widthStep);
         float ori = atan2(ptr_gy[x], ptr_gx[x]) * 180.f / M_PI;
+
         if (_withinOri(ori, visible_sample_points_[i].normal_ang_deg, oth)) // check orientation
         {
           visible_sample_points_[i].dist = sqrt(double(j) * dx * double(j) * dx + double(j) * dy * double(j) * dy);
@@ -1136,6 +1132,7 @@ void CObjectModel::findEdgeCorrespondencesFineOri()
       // negative direction
       x = round(visible_sample_points_[i].coord2.x - dx * (double)j);
       y = round(visible_sample_points_[i].coord2.y - dy * (double)j);
+
       // determine the new indices are valid or not
       if (x >= 0 && x < width_ && y >= 0 && y < height_ && *(img_edge_->imageData + (x) + (y)*img_edge_->widthStep) == char(255)) // find edge
       {
@@ -1458,7 +1455,7 @@ void CObjectModel::refindMatching(cv::Mat &dt, epnp &ePnP)
             //   break;
           }
           //if (score < minscore)
-          if(matchingPoint / totalPoint > maxmatch)
+          if (matchingPoint / totalPoint > maxmatch)
           {
             minscore = score;
             maxmatch = matchingPoint / totalPoint;
@@ -1471,7 +1468,7 @@ void CObjectModel::refindMatching(cv::Mat &dt, epnp &ePnP)
       }
     }
   }
-  //std::cout << "matching rate = " << maxmatch << " with x " << fitx << " y " << fity << " th " << fitth << " sc " << fitsc << std::endl; 
+  //std::cout << "matching rate = " << maxmatch << " with x " << fitx << " y " << fity << " th " << fitth << " sc " << fitsc << std::endl;
   ePnP.set_maximum_number_of_correspondences(visible_sample_points_.size());
   ePnP.reset_correspondences();
 
