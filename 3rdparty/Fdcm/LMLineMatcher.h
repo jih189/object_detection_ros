@@ -60,6 +60,7 @@ public:
 	void PrintParameter();
 
 	void Init(const char* fileName);
+	void Init(const char* parentdir, const char* fileName);
 
 	// find the best matcher
 	void Match(LFLineFitter &lf,vector<LMDetWind> &detWind);

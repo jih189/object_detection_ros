@@ -86,7 +86,8 @@ void EIEdgeImage::Read(const char *fileName)
 	//AKANSEL: FIX NEEDED FOR FILES CREATED IN WINDOWS
 	// todo: jiaming hu modified remember modify this if need
 	//string prelude = "./";
-	string prelude = "/home/cogrob-wrc/wrc/src/wrc_primitive_actions/";
+	//string prelude = "/home/cogrob-wrc/wrc/src/wrc_primitive_actions/";
+	string prelude = "";
 
 	string fileName_str(fileName);
 

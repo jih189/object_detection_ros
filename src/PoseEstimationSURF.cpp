@@ -43,7 +43,7 @@ CPoseEstimationSURF::CPoseEstimationSURF(int width, int height, std::string &tem
     lf_.Configure((template_path + "/para_line_fitter.txt").c_str());
     lm_.Configure((template_path + "/para_line_matcher.txt").c_str());
     lf_.Init();
-    lm_.Init(templateFileName.c_str());
+    lm_.Init(template_path.c_str(), (objName + ".txt").c_str());
   }
 }
 

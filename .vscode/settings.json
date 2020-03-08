@@ -63,5 +63,9 @@
         "string": "cpp",
         "any": "cpp",
         "*.inc": "cpp"
-    }
+    },
+    "python.autoComplete.extraPaths": [
+        "/home/jiaming/catkin_ws/devel/lib/python2.7/dist-packages",
+        "/opt/ros/kinetic/lib/python2.7/dist-packages"
+    ]
 }
