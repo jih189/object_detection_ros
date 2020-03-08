@@ -1801,13 +1801,13 @@ void CObjectModel::loadObjectCADModel(const std::string &obj_name)
   std::string obj_file_name = obj_name.substr(i + 1, obj_name.length() - i) + ".obj";
   std::string obj_file_name_wo_obj = obj_name.substr(i + 1, obj_name.length() - i);
   std::cout << "object file " << obj_file_name << std::endl;
-  std::cout << "path " << obj_name + '/' + obj_file_name << std::endl;
+  std::cout << "file path = " << obj_name + '/' + obj_file_name << std::endl;
 
   // Check path existance
   fs::path path(obj_name + '/' + obj_file_name);
   if (!fs::exists(path) || !fs::is_regular_file(path))
   {
-    throw std::runtime_error("File path '" + obj_name + '/' + obj_file_name + "' is invalid.");
+    throw std::runtime_error("File path: " + obj_name + '/' + obj_file_name + " is invalid.");
   }
 
 #ifdef USE_ASSIMP
