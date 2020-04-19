@@ -40,15 +40,15 @@ fstream
 Image.h
 ../3rdparty/Fitline/../Image/Image.h
 
-/home/jiaming/object_detection_ros/3rdparty/Fitline/LFLineFitter.cpp
+/home/cogrob-wrc/object_detection_ros/3rdparty/Fitline/LFLineFitter.cpp
 LFLineFitter.h
-/home/jiaming/object_detection_ros/3rdparty/Fitline/LFLineFitter.h
+/home/cogrob-wrc/object_detection_ros/3rdparty/Fitline/LFLineFitter.h
 ../include/object_tracking_2D/Timer.h
-/home/jiaming/object_detection_ros/3rdparty/include/object_tracking_2D/Timer.h
+/home/cogrob-wrc/object_detection_ros/3rdparty/include/object_tracking_2D/Timer.h
 omp.h
 -
 
-/home/jiaming/object_detection_ros/3rdparty/Fitline/LFLineFitter.h
+/home/cogrob-wrc/object_detection_ros/3rdparty/Fitline/LFLineFitter.h
 stdio.h
 -
 math.h
@@ -68,21 +68,21 @@ opencv/cv.h
 opencv/highgui.h
 -
 LFLineSegment.h
-/home/jiaming/object_detection_ros/3rdparty/Fitline/LFLineSegment.h
+/home/cogrob-wrc/object_detection_ros/3rdparty/Fitline/LFLineSegment.h
 Fdcm/MMFunctions.h
-/home/jiaming/object_detection_ros/3rdparty/Fitline/Fdcm/MMFunctions.h
+/home/cogrob-wrc/object_detection_ros/3rdparty/Fitline/Fdcm/MMFunctions.h
 Image/Image.h
-/home/jiaming/object_detection_ros/3rdparty/Fitline/Image/Image.h
+/home/cogrob-wrc/object_detection_ros/3rdparty/Fitline/Image/Image.h
 Image/ImageIO.h
-/home/jiaming/object_detection_ros/3rdparty/Fitline/Image/ImageIO.h
+/home/cogrob-wrc/object_detection_ros/3rdparty/Fitline/Image/ImageIO.h
 Image/ImageDraw.h
-/home/jiaming/object_detection_ros/3rdparty/Fitline/Image/ImageDraw.h
+/home/cogrob-wrc/object_detection_ros/3rdparty/Fitline/Image/ImageDraw.h
 
-/home/jiaming/object_detection_ros/3rdparty/Fitline/LFLineSegment.cpp
+/home/cogrob-wrc/object_detection_ros/3rdparty/Fitline/LFLineSegment.cpp
 LFLineSegment.h
-/home/jiaming/object_detection_ros/3rdparty/Fitline/LFLineSegment.h
+/home/cogrob-wrc/object_detection_ros/3rdparty/Fitline/LFLineSegment.h
 
-/home/jiaming/object_detection_ros/3rdparty/Fitline/LFLineSegment.h
+/home/cogrob-wrc/object_detection_ros/3rdparty/Fitline/LFLineSegment.h
 stdio.h
 -
 math.h
@@ -94,9 +94,9 @@ iostream
 vector
 -
 Point.h
-/home/jiaming/object_detection_ros/3rdparty/Fitline/Point.h
+/home/cogrob-wrc/object_detection_ros/3rdparty/Fitline/Point.h
 
-/home/jiaming/object_detection_ros/3rdparty/Fitline/Point.h
+/home/cogrob-wrc/object_detection_ros/3rdparty/Fitline/Point.h
 stdio.h
 -
 math.h
@@ -106,15 +106,15 @@ iostream
 vector
 -
 
-/home/jiaming/object_detection_ros/3rdparty/Fitline/fitline.cpp
+/home/cogrob-wrc/object_detection_ros/3rdparty/Fitline/fitline.cpp
 iostream
 -
 string
 -
 Image/Image.h
-/home/jiaming/object_detection_ros/3rdparty/Fitline/Image/Image.h
+/home/cogrob-wrc/object_detection_ros/3rdparty/Fitline/Image/Image.h
 Image/ImageIO.h
-/home/jiaming/object_detection_ros/3rdparty/Fitline/Image/ImageIO.h
+/home/cogrob-wrc/object_detection_ros/3rdparty/Fitline/Image/ImageIO.h
 LFLineFitter.h
-/home/jiaming/object_detection_ros/3rdparty/Fitline/LFLineFitter.h
+/home/cogrob-wrc/object_detection_ros/3rdparty/Fitline/LFLineFitter.h
 

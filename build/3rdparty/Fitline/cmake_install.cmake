@@ -1,4 +1,4 @@
-# Install script for directory: /home/jiaming/object_detection_ros/3rdparty/Fitline
+# Install script for directory: /home/cogrob-wrc/object_detection_ros/3rdparty/Fitline
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)

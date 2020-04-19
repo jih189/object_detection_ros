@@ -325,7 +325,7 @@ class TexturelessParticleFilterTracker : public ParticleFilterTracker {
       obj_model_->findVisibleSamplePoints();
       obj_model_->findNormalUsingEdgeCoordFineOri();
       obj_model_->findEdgeCorrespondencesFineOri();
-      obj_model_->drawPointsAndErrorFineOri(imageTemp);
+      obj_model_->displayPoseLine(imageTemp, resultPose[0], CV_RGB(255, 0, 0), 1, false);
       imshow("result", cv::cvarrToMat(imageTemp));
 
       cv::waitKey(0);
